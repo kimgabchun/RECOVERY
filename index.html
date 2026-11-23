@@ -254,6 +254,8 @@ button.sysf{font-family:system-ui,-apple-system,"Malgun Gothic","Apple SD Gothic
 .held-bar .hacts{margin-top:6px}.held-bar .hacts button{flex:1 1 0;min-height:44px;font-weight:800}
 /* v2.1 보스 밀물지기 1인칭 전투: 물 높이 판이 들어가도 한 화면에 들어오게 그림을 줄임. 빨간 테두리 = 이번 공격이 닿는 거리 */
 .fpv.fight.bossf{height:36vh;min-height:220px}.fpp .bosswater{margin:0 0 4px;padding:4px 8px;font-size:12px;line-height:1.35;border-radius:0}.fpp.bossp .fpmsg{max-height:62px;min-height:0}.fpdist i.hot{box-shadow:0 0 0 2px #e2573f}
+/* v2.1 가방 격자: 물건 그림 자체가 누르는 자리(들고 있는 물건은 아래 칸을 누를 수 있게 통과) */
+.grid .gi{pointer-events:auto;cursor:pointer;touch-action:manipulation}.grid .gi.held{pointer-events:none}
 </style>
 </head>
 <body>
@@ -1887,7 +1889,7 @@ function gridHtml(c, w, h) {
   let g = `<div class="grid" style="grid-template-columns:repeat(${w},${cw}px)">`;
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) g += `<div class="cell" data-a="cell" data-k="${c}" data-t="${x},${y}"></div>`;
   st.bag.forEach((it, i) => { if (it.c !== c) return; const [ww, hh] = G.dimsOf(it), d = D.items[it.k], im = RA['I_' + it.k];
-    g += `<div class="gi ${im ? 'img' : ''} ${G.isPouch(it) ? 'pouch' : ''} ${held && held.obj === it ? 'held' : ''}" style="${at(it.x, it.y, ww, hh)};background-color:${CCOL[d.c] || '#999'}${im ? `;background-image:url(${im})` : ''}">${esc(short(d.n))}${it.lv ? ' ' + it.lv : ''}</div>`; });
+    g += `<div data-a="cell" data-k="${c}" data-t="${it.x},${it.y}" class="gi ${im ? 'img' : ''} ${G.isPouch(it) ? 'pouch' : ''} ${held && held.obj === it ? 'held' : ''}" style="${at(it.x, it.y, ww, hh)};background-color:${CCOL[d.c] || '#999'}${im ? `;background-image:url(${im})` : ''}">${esc(short(d.n))}${it.lv ? ' ' + it.lv : ''}</div>`; });
   const hi = heldItem();
   if (hi && ghost && ghost.c === c) { const [ww, hh] = G.dimsOf(hi, held.r), ok = G.fitsAt(st, hi, c, ghost.x, ghost.y, held.r, held.src === 'bag' ? hi : undefined);
     g += `<div class="ghost ${ok ? 'ok' : 'no'}" style="${at(ghost.x, ghost.y, ww, hh)}">${ok ? '✓' : '×'}</div>`; }
@@ -2761,6 +2763,7 @@ document.addEventListener('click', ev => {
   // v0.7 격자 조작
   if (a === 'cell') { if (reveal || st.combat) { toast(reveal ? '상자를 살피는 중이에요' : '전투 중이에요'); return; } const [x, y] = t.split(',').map(Number), c = k;
     const hi = heldItem();
+    if (hi && held.src === 'bag') { const o = st.bag.find(it => it !== hi && it.c === c && x >= it.x && y >= it.y && x < it.x + G.dimsOf(it)[0] && y < it.y + G.dimsOf(it)[1]); if (o) { held = { src: 'bag', obj: o, r: o.r || 0 }; ghost = { c, x: o.x, y: o.y }; return render(); } }
     if (!hi) { const it = st.bag.find(it => it.c === c && x >= it.x && y >= it.y && x < it.x + G.dimsOf(it)[0] && y < it.y + G.dimsOf(it)[1]); if (it) { held = { src: 'bag', obj: it, r: it.r || 0 }; ghost = { c, x: it.x, y: it.y }; } return render(); }
     if (ghost && ghost.c === c && ghost.x === x && ghost.y === y) {
       if (!G.fitsAt(st, hi, c, x, y, held.r, held.src === 'bag' ? hi : undefined)) { toast(!G.contDims(st, c) ? '넘친 파우치 안에는 놓을 수 없어요 — 파우치를 먼저 배낭에 놓아 주세요' : G.nestMsg(st, hi, c) || '여기엔 안 들어가요 — 빈칸이 모자라요'); return; } // 크기 규칙인지 빈칸 부족인지 따로 [전략실장] // 빨간 칸이면 계속 들고 있음 [전략실장]
