@@ -1259,18 +1259,18 @@ function startCombat(st, k) {
 function weapon(st) { if (!st.equip) return { range: 0, dmg: 1 + (P(st, 'fist') ? 1 : 0), hits: 1, up: 0, lv: 1, n: '맨손' }; return Object.assign({ lv: st.equip.lv || 1, n: D.items[st.equip.k].n }, D.items[st.equip.k].w); }
 function atkInfo(st, w) { /* v2.14 공격 1번의 피해 (화면 표시용: 무기 × 타수 + 내 보너스. 적의 막기·약점은 빼고) */
   const x = weapon({ equip: w || null, passives: st && st.passives }); const per = x.dmg + (x.lv - 1) * x.up, base = per * x.hits;
-  const bonus = (P(st, 'arm') ? 1 : 0) + lvB(st, 'atk') + (A(st, 'wrist') ? 1 : 0); return { per, hits: x.hits, base, bonus, total: base + bonus, glove: A(st, 'glove') ? 3 : 0 }; }
+  const bonus = (P(st, 'arm') ? 1 : 0) + lvB(st, 'atk') + accN(st, 'wrist'); return { per, hits: x.hits, base, bonus, total: base + bonus, glove: 3 * accN(st, 'glove') }; }
 function dmgAfter(st, it, dmg, blocking) { /* v2.8 받는 피해 (전투 hit·보스판·예고가 같이 씀) */
   if (P(st, 'spore') && (it === 'spit' || it === 'bite')) dmg = Math.max(0, dmg - 1);
   let real = blocking ? (dmg > 0 ? Math.max(1, Math.round(dmg * 0.3)) : 0) : dmg; /* v2.8 막아도 최소 1 (BOSS 승인 ②A) */
-  if (blocking && P(st, 'guard') && real > 1) real -= 1; if (blocking && lvB(st, 'bl') && real > 1) real = Math.max(1, real - lvB(st, 'bl')); if (A(st, 'vest') && real > 1) real -= 1; return real; }
+  if (blocking && P(st, 'guard') && real > 1) real -= 1; if (blocking && lvB(st, 'bl') && real > 1) real = Math.max(1, real - lvB(st, 'bl')); if (A(st, 'vest') && real > 1) real = Math.max(1, real - accN(st, 'vest')); return real; }
 function intentShow(st) { /* v2.8 화면에 보이는 '다음 행동 피해' = 막지 않으면 실제로 받을 피해 (안개 숨은 전투 안개 포함) */
   const c = st.combat; if (!c) return 0; const e = c.e, it = e.intent; let d = intentDmg(e); if (!d) return 0;
   if (it === 'breath') d += (c.mist || 0) * D.whale.bm; return it === 'nibble' ? d : dmgAfter(st, it, d, false); }
 function can(st, name, ...a) { /* v2.8 ① 이 행동을 엔진이 받아 줄지: 사본에서 해 보고 거절 글(없으면 '') */
   return canS(JSON.stringify(st), name, ...a); }
 function canS(snap, name, ...a) { /* v2.8 화면이 한 번 그릴 때 상태 사본 글은 한 번만 만듦 */
-  const f = ({ sell, craft, moveItem, heal, reserveSupply, search, combatAct, move, useItem, buy, buyN, buyAmb, shopPin, equip, equipPack, openBox, openX, extract })[name]; if (!f) return '';
+  const f = ({ sell, craft, moveItem, heal, reserveSupply, search, combatAct, move, useItem, buy, buyN, buyAmb, shopPin, accUpStart, equip, equipPack, openBox, openX, extract })[name]; if (!f) return '';
   const c = JSON.parse(snap); try { f(c, ...a); return ''; } catch (e) { return e && e.game ? e.message : ''; } }
 const REACH = { spit: [1, 2], spout: [1, 2], weld: [1, 2], heavy: [0], ambush: [0], claw: [0], swing: [0], slam: [0], snap: [0], pinch: [0], smash: [0], ram: [0], cast: [0], grab: [0], bite: [0, 1], frenzy: [0, 1], sting: [0, 1], shock: [0, 1], gnaw: [0, 1], swingarm: [0, 1], tail: [0, 1], puff: [0, 1], wrap: [0, 1], clamp: [0], swallow: [0], undertow: [0, 1] }; /* v2.8 combatAct0의 닿는 거리와 같게 */
 function intentHits(st) { const c = st.combat; if (!c) return false; const e = c.e, it = e.intent; if (it === 'squeeze' || it === 'crush' || it === 'drag') return !!e.held; if (it === 'undertow') return e.dist <= 1; const R = REACH[it]; return R ? R.includes(e.dist) : true; }
@@ -1290,11 +1290,11 @@ function combatAct0(st, act, arg) {
     else if (e.intent === 'block' && w.breakBlock) L.push('망치로 방어를 깨뜨렸어요!');
     if (e.k === 'shell') { if (e.intent === 'stagger' || e.weak) { tot *= 2; L.push('빈틈을 찔렀어요! 두 배'); } else if (e.intent !== 'block') tot = Math.max(1, Math.ceil(tot * 0.6)); e.weak = false; } // v1.2 등껍질 (패시브 +1보다 먼저 [전략실장])
     if (isBoss(e)) { const ex = bossExposed(c.turn); tot = Math.max(1, Math.round(tot * (ex ? 2 : 1) * D.boss.mul)); if (ex) L.push('드러난 씨눈을 쳤어요! 두 배'); } // v1.6 두꺼운 몸 ×0.8, 씨눈 노출 ×2 (패시브 +1보다 먼저)
-    if (P(st, 'arm')) tot += 1; tot += lvB(st, 'atk'); /* v2.5 레벨 공격 +1씩 */ if (A(st, 'wrist')) tot += 1; if (A(st, 'glove') && !c.accFirst) { tot += 3; L.push('기습 장갑: 첫 공격 +3'); } c.accFirst = true; // 단련된 팔: 공격 한 번에 +1, 적의 막기 계산 뒤 [전략실장]
+    if (P(st, 'arm')) tot += 1; tot += lvB(st, 'atk'); /* v2.5 레벨 공격 +1씩 */ tot += accN(st, 'wrist'); if (A(st, 'glove') && !c.accFirst) { const gd = 3 * accN(st, 'glove'); tot += gd; L.push('기습 장갑: 첫 공격 +' + gd); } c.accFirst = true; // 단련된 팔: 공격 한 번에 +1, 적의 막기 계산 뒤 [전략실장]
     if (e.held) { e.held = false; L.push(isBoss(e) ? '사슬을 끊고 빠져나왔어요' : e.k === 'net' ? '그물을 찢고 빠져나왔어요' : '덩굴을 끊고 빠져나왔어요'); if (e.intent === 'squeeze' || e.intent === 'crush' || e.intent === 'drag') e.intent = 'stagger'; } // 맞히면 풀리고 그 차례 조이기도 끊김 [전략실장]
     c.lastHit = st.equip ? 'weapon' : 'fist';
     tot = seaDmg(st, c, tot, L); e.hp -= tot; L.push(`${w.n} 공격 ${tot} 피해${w.hits > 1 ? ` (${w.hits}타)` : ''}`);
-    if ((w.lv >= 3 || (w.lv >= 2 && A(st, 'whet'))) && e.hp > 0) {
+    if ((w.lv >= 3 || (A(st, 'whet') && (w.lv >= 2 || accN(st, 'whet') >= 3))) && e.hp > 0) { if (A(st, 'whet') && st.equip) { const xd = accN(st, 'whet'); e.hp -= xd; L.push('숫돌 목걸이: 특수 +' + xd); }
       if (w.sp === 'bleed') { e.bleed = 2; L.push('출혈!'); }
       if (w.sp === 'push') { if (isBoss(e)) L.push('밀물지기는 밀리지 않아요'); else { e.dist = Math.max(e.dist, 1); L.push('밀어냈어요 (중간 거리)'); } }
       if (w.sp === 'stun' && e.k !== 'gull' && e.k !== 'whale' && e.stunImm === 0 && !(isBoss(e) && e.stunUsed)) { e.stunned = true; e.stunImm = 3; if (isBoss(e)) e.stunUsed = true; L.push('기절!'); } // 보스는 싸움에 한 번만 기절(망치·덫 함께)
@@ -1312,12 +1312,12 @@ function combatAct0(st, act, arg) {
       if (e.k === 'gull') E('갈매기는 연막 속에서도 낚아채요. 연막탄이 안 통해요');
       if (e.held) { c.turn--; E('덩굴에 붙잡혀 연막탄을 쓸 수 없어요 — 때려서 끊어요'); }
       st[from].splice(i, 1); st.combat = null; log(st, '연막탄을 터뜨리고 물러났어요'); useEnergy(st, 3);
-      if (st.run) { if (st.run.prev) { const p = st.run.prev; st.run.prev = st.run.node; st.run.node = p; st.run.moves++; } if (!A(st, 'earplug')) st.run.risk++; log(st, `${D.nodes[st.run.node].n}(으)로 물러났어요`); seaRetreat(st); }
+      if (st.run) { if (st.run.prev) { const p = st.run.prev; st.run.prev = st.run.node; st.run.node = p; st.run.moves++; } if (!A(st, 'earplug')) st.run.risk++; else st.run.risk = Math.max(0, st.run.risk - accN(st, 'earplug')); log(st, `${D.nodes[st.run.node].n}(으)로 물러났어요`); seaRetreat(st); }
       return; }
     if (def.trap) { if (isBoss(e) && e.stunUsed) E('밀물지기는 한 번 기절한 뒤로는 덫이 안 통해요'); if (e.k === 'gull') E('날아다니는 갈매기에게는 덫이 안 통해요'); if (e.stunImm > 0) { c.turn--; E('적이 경계하고 있어 덫이 안 통해요 (조금 뒤에 다시)'); } e.stunned = true; e.stunImm = 3; if (isBoss(e)) e.stunUsed = true; L.push('덫! 적이 걸려 움직이지 못해요'); }
     else if (def.stim) { if (st.hp <= 2) { c.turn--; E('체력이 너무 낮아요'); } st.hp -= 2; st.energy = Math.min(st.energyMax, st.energy + 6); L.push('각성제 사용 기력 +6, 체력 −2'); }
     else if (def.thr) { if (D.cancelable.includes(e.intent) && !(e.k === 'gull' && it.k !== 'stone' && it.k !== 'bottle')) { e.intent = 'stagger'; L.push(`${def.n} 던지기! 적의 행동을 끊었어요`); if (e.k === 'moths' && (it.k === 'flare' || it.k === 'bottle')) { e.hp = 0; c.lastHit = 'throw'; L.push('불빛과 소리에 나방떼가 흩어졌어요'); } pqAdd(st, 'cancel'); if (P(st, 'throw')) { e.hp -= 2; L.push('투척 감각: 2 피해'); c.lastHit = 'throw'; } } else L.push(`${def.n} 던졌지만 소용없었어요 (돌진·침·기습·모여들기·휘감기·사슬 감기만 끊을 수 있음)`); }
-    else if (def.heal) { if (it.k === 'antidote' && st.run && st.run.spore > 0) { const s0 = st.run.spore; seaAntidote(st); L.push(`해독제: 포자 −${s0 - (st.run.spore || 0)}`); } /* v2.8 */ const hv = def.heal + (P(st, 'medic') ? 3 : 0) + (A(st, 'herb') ? 2 : 0); const h0 = st.hp; st.hp = Math.min(st.hpMax, st.hp + hv); L.push(`${def.n} 사용 체력 +${st.hp - h0}`); } /* v2.8 */
+    else if (def.heal) { if (it.k === 'antidote' && st.run && st.run.spore > 0) { const s0 = st.run.spore; seaAntidote(st); L.push(`해독제: 포자 −${s0 - (st.run.spore || 0)}`); } /* v2.8 */ const hv = def.heal + (P(st, 'medic') ? 3 : 0) + 2 * accN(st, 'herb'); const h0 = st.hp; st.hp = Math.min(st.hpMax, st.hp + hv); L.push(`${def.n} 사용 체력 +${st.hp - h0}`); } /* v2.8 */
     else if (def.food) { const e0 = st.energy; st.energy = Math.min(st.energyMax, st.energy + def.food); L.push(`${def.n} 사용 기력 +${st.energy - e0}`); } /* v2.8 */
     else E('전투에서 쓸 수 없는 물건이에요');
     st[from].splice(i, 1);
@@ -1325,9 +1325,9 @@ function combatAct0(st, act, arg) {
   else if (act === 'flee') {
     if (isBoss(e)) E('밀물지기 앞에서는 물러날 수 없어요'); if (e.dist !== 2) E('멀리 있을 때만 후퇴할 수 있어요');
     if (e.intent === 'spit') { const sd = dmgAfter(st, 'spit', intentDmg(e), false); /* v2.8 조끼·포자 감각 같이 */ st.hp -= sd; L.push(`후퇴 중 침에 맞음 −${sd}`); if (st.hp <= 0 && st.run) { st.combat = null; die(st, '후퇴하다 침에 맞아 쓰러졌어요'); return; } } /* v2.8 */
-    st.combat = null; log(st, '후퇴했어요'); useEnergy(st, A(st, 'keyring') ? 2 : 3);
+    st.combat = null; log(st, '후퇴했어요'); useEnergy(st, A(st, 'keyring') ? 2 : 3); if (A(st, 'keyring') && st.hp > 0) st.hp = Math.min(st.hpMax, st.hp + 2 * accN(st, 'keyring')); /* v2.16 */
     if (st.hp <= 0 && st.run) { die(st, '후퇴하다 쓰러졌어요'); return; }
-    if (st.run) { if (st.run.prev) { const p = st.run.prev; st.run.prev = st.run.node; st.run.node = p; st.run.moves++; } if (!A(st, 'earplug')) st.run.risk++; log(st, `${D.nodes[st.run.node].n}(으)로 물러났어요`); seaRetreat(st); }
+    if (st.run) { if (st.run.prev) { const p = st.run.prev; st.run.prev = st.run.node; st.run.node = p; st.run.moves++; } if (!A(st, 'earplug')) st.run.risk++; else st.run.risk = Math.max(0, st.run.risk - accN(st, 'earplug')); log(st, `${D.nodes[st.run.node].n}(으)로 물러났어요`); seaRetreat(st); }
     return;
   } else E('알 수 없는 행동');
   if (e.hp <= 0) return win(st, L);
@@ -1395,9 +1395,9 @@ function combatAct0(st, act, arg) {
 function A(st, k) { return !!(st.acc && st.acc.k === k); }
 // 뽑기·호박석 전용 난수: 게임의 원래 난수 흐름을 건드리지 않게 따로 둠 (예전 저장·검사와 결과가 달라지지 않게)
 function rngA(st) { if (st.seedA === undefined) st.seedA = (st.seed ^ 0x9E3779B9) >>> 0; let t = st.seedA = (st.seedA + 0x6D2B79F5) >>> 0; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }
-function amberDrop(st, boss) { if (!st.run || st.run.practice) return 0; const n = boss ? D.amber.boss : (rngA(st) < D.amber.drop + (A(st, 'luckcoin') ? D.amber.luck : 0) ? 1 : 0); let got = 0; for (let i = 0; i < n; i++) if (addTo(st, 'bag', { k: 'amber', f: true })) got++;
+function amberDrop(st, boss) { if (!st.run || st.run.practice) return 0; const lp = D.amber.drop + (A(st, 'luckcoin') ? (10 + 5 * accN(st, 'luckcoin')) / 100 : 0), n = boss ? D.amber.boss : Math.floor(lp) + (rngA(st) < lp - Math.floor(lp) ? 1 : 0); /* v2.16 100%를 넘으면 2개 */ let got = 0; for (let i = 0; i < n; i++) if (addTo(st, 'bag', { k: 'amber', f: true })) got++;
   if (n) log(st, got === n ? `🟠 호박석 ${got}개를 주웠어요` : `🟠 호박석 ${n}개가 나왔지만 배낭이 가득해 ${got}개만 주웠어요`); return got; }
-function winExtra(st, boss) { amberDrop(st, boss); if (A(st, 'trophy')) st.hp = Math.min(st.hpMax, st.hp + 2); if (A(st, 'breeze')) st.energy = Math.min(st.energyMax, st.energy + 1); }
+function winExtra(st, boss) { amberDrop(st, boss); if (A(st, 'trophy')) st.hp = Math.min(st.hpMax, st.hp + 2 * accN(st, 'trophy')); if (A(st, 'breeze')) st.energy = Math.min(st.energyMax, st.energy + accN(st, 'breeze')); }
 function wpick(tbl, r) { let c = 0; for (const [w, v] of tbl) { c += w; if (r * 100 < c) return v; } return tbl[tbl.length - 1][1]; }
 function boxWeapons(st) { const b = D.boxes.sealed; return [...b.weapons, ...(st.sea && st.sea.on ? b.weapons2 : [])].filter(k => D.items[k] && D.items[k].w); }
 function boxInfo(st, kind) { const b = D.boxes[kind]; if (!b) E('없는 상자예요'); const nm = L => L.map(k => D.items[k].n).join('·');
@@ -1414,8 +1414,8 @@ function openBox(st, kind) { needBase(st); const b = D.boxes[kind]; if (!b) E('�
   st.lastBox = { kind, k: it.k, lv: it.lv || 0, to }; log(st, `🎁 ${b.n}: ${D.items[it.k].n}${it.lv ? ` ${it.lv}단계` : ''}`); return st.lastBox; }
 function equipAcc(st, from, i) { needBase(st); const it = (st[from] || [])[i]; if (!it || !D.items[it.k].acc) E('장신구가 아니에요'); st[from].splice(i, 1);
   if (st.acc) { const old = st.acc; if (!addTo(st, from, old) && !addTo(st, 'stash', old) && !addTo(st, 'bag', old)) { st[from].splice(i, 0, it); E('바꾼 장신구를 둘 곳이 없어요'); } }
-  st.acc = { k: it.k }; log(st, `${D.items[it.k].n} 착용`); }
-function unequipAcc(st) { needBase(st); if (!st.acc) E('끼고 있는 장신구가 없어요'); if (!addTo(st, 'stash', { k: st.acc.k }) && !addTo(st, 'bag', { k: st.acc.k })) E('둘 곳이 없어요'); st.acc = null; }
+  st.acc = it.lv ? { k: it.k, lv: it.lv } : { k: it.k }; log(st, `${D.items[it.k].n}${it.lv ? ` ${it.lv}강` : ""} 착용`); }
+function unequipAcc(st) { needBase(st); if (!st.acc) E('끼고 있는 장신구가 없어요'); if (!addTo(st, 'stash', Object.assign({}, st.acc)) && !addTo(st, 'bag', Object.assign({}, st.acc))) E('둘 곳이 없어요'); st.acc = null; }
 function win(st, L) { const n = D.enemies[st.combat.e.k].n; st.stats.kills++; lvGain(st, st.combat.e.k, L); pqAdd(st, 'kill_' + st.combat.e.k); if (!st.equip && st.combat.lastHit === 'fist') pqAdd(st, 'fist'); /* 마지막 피해가 맨손 공격일 때만 [전략실장] */ const boss = isBoss(st.combat.e), ek = st.combat.e.k, lh = st.combat.lastHit, ed = st.combat.e.dist; st.combat = null; log(st, `${n}을(를) 쓰러뜨렸어요! (${L.join(', ')})`); seaWin(st, ek); seaWin2(st, ek, lh, ed); winExtra(st, boss || ek === 'claw' || ek === 'whale');
   if (boss) { st.won5 = true; if (st.run) st.run.bossWin = true; log(st, '🌊 밀물지기를 쓰러뜨리고 씨눈을 얻었어요! (5차 목표) 귀환해서 정화 장치에 끼워요'); } }
 function die(st, why) { if (st.tm) { st.hp = 1; log(st, '연습 판이라 쓰러지지 않아요 (체력 1)'); return; } /* v2.12 튜토리얼 */ if (!(st.run && st.run.practice)) lvDeath(st); /* v2.5 쓰러지면 막대 −5 */
@@ -1430,9 +1430,9 @@ function useItem(st, from, i) {
   if (st.combat) E('전투 중에는 전투 화면에서 써요');
   const it = (st[from] || [])[i]; if (!it || !['bag', 'pocket', 'stash'].includes(from)) E('물건이 없어요');
   const def = D.items[it.k];
-  if (it.k === 'antidote' && st.run && st.run.spore > 0) { seaAntidote(st); st.hp = Math.min(st.hpMax, st.hp + def.heal + (P(st, 'medic') ? 3 : 0) + (A(st, 'herb') ? 2 : 0)); } // v2.2 해독제: 포자 −6 (체력이 가득해도 쓸 수 있음)
+  if (it.k === 'antidote' && st.run && st.run.spore > 0) { seaAntidote(st); st.hp = Math.min(st.hpMax, st.hp + def.heal + (P(st, 'medic') ? 3 : 0) + 2 * accN(st, 'herb')); } // v2.2 해독제: 포자 −6 (체력이 가득해도 쓸 수 있음)
   else if (def.open) { openCan(st, from, i); return; }
-  else if (def.heal) { if (st.hp >= st.hpMax) E('체력이 이미 가득해요'); st.hp = Math.min(st.hpMax, st.hp + def.heal + (P(st, 'medic') ? 3 : 0) + (A(st, 'herb') ? 2 : 0)); }
+  else if (def.heal) { if (st.hp >= st.hpMax) E('체력이 이미 가득해요'); st.hp = Math.min(st.hpMax, st.hp + def.heal + (P(st, 'medic') ? 3 : 0) + 2 * accN(st, 'herb')); }
   else if (def.food) { if (!st.run) E('식량은 탐사 중에 써요'); st.energy = Math.min(st.energyMax, st.energy + def.food); }
   else if (def.stim) { if (!st.run) E('각성제는 탐사 중에 써요'); if (st.hp <= 2) E('체력이 너무 낮아요'); st.hp -= 2; st.energy = Math.min(st.energyMax, st.energy + 6); }
   else if (def.compass) seaCompass(st); // v2.0 보완
@@ -1494,6 +1494,16 @@ function gmApply(st) { lvFix(st); const N = 99999999;
   const old = st.pack || 'sack'; if (old !== 'gm') { const f = Object.keys(D.items).find(k => D.items[k].pack === old); st.pack = 'gm'; if (f && f !== 'gmbag') { const it = { k: f }; if (!addTo(st, 'stash', it)) addTo(st, 'bag', it); } }
   st.hpMax = D.start.hp + (P(st, 'tough') ? 5 : 0) + 5 * lvB(st, 'hp'); st.energyMax = D.start.energy + (P(st, 'breath') ? 3 : 0); /* 패시브까지 다시 셈 */
   st.hp = st.hpMax; st.energy = st.energyMax; checkGoal(st); log(st, '🎁 관리자 쿠폰: 코인·호박석 99,999,999 · 모든 챕터·의뢰·패시브 · 레벨 만렙 · GM 가방'); }
+/* ===== v2.16 장신구 강화 (BOSS 관문 1 승인 2026-11-24: 호박석 10개 · 쓰러지면 사라짐(지금 그대로) · 10강에서 멈춤) =====
+   기획서 v0.2: 강화마다 주 능력치가 반드시 오름. 주사위판(성공 11칸 + 대성공 1칸 = +2강), 늘 성공. 판이 뜰 때 호박석 10개가 나감. */
+D.accUp = { max: 10, cost: 10 };
+const accN = (st, k) => (A(st, k) ? (st.acc.lv || 1) : 0); /* 끼고 있는 장신구의 강화 단계 (없으면 0) */
+function accUpInfo(st) { const a = st.acc; if (!a || !D.items[a.k]) return null; const lv = a.lv || 1, have = countBase(st, 'amber'), max = lv >= D.accUp.max;
+  return { k: a.k, lv, max, cost: D.accUp.cost, have, ok: !max && have >= D.accUp.cost && !st.run && !st.combat && !st.wTry }; }
+function accUpStart(st) { needBase(st); if (st.wTry) E('강화 판이 이미 떠 있어요'); const a = accUpInfo(st); if (!a) E('끼고 있는 장신구가 없어요'); if (a.max) E('최고 강화(10강)예요');
+  if (a.have < a.cost) E(`호박석이 부족해요 (${a.have}/${a.cost})`); consume(st, { amber: a.cost });
+  const cells = ['G']; while (cells.length < 12) cells.push('O'); for (let i = 11; i > 0; i--) { const j = Math.floor(rngA(st) * (i + 1)); const x = cells[i]; cells[i] = cells[j]; cells[j] = x; }
+  st.wTry = { k: a.k, lv: a.lv, b: cells.join(''), c: a.cost, a: 1 }; return diceInfo(st); }
 function shopStock(st) { // v2.14: 1~5칸 랜덤(📌 고정 먼저) + 칼. DAY가 바뀌면 바뀌고, 같은 날에는 몇 번을 열어도 같음
   const sd = D.shopDay, all = Object.keys(D.shop).filter(k => !sd.no[k] && shopOpen(st, k)), fix = sd.fixed.filter(k => all.includes(k)), pool = all.filter(k => !fix.includes(k));
   const pins = (Array.isArray(st.shopPin) ? st.shopPin : []).filter(k => pool.includes(k)).slice(0, sd.pinMax); if (st.tm && pool.includes('can') && !pins.includes('can')) pins.push('can'); /* 튜토리얼: 통조림은 늘 (고정 칸은 안 씀) */
@@ -1589,23 +1599,24 @@ function upgradeStart(st) { needBase(st); if (st.wTry) E('강화 판이 이미 �
   st.coins -= u.coins; const n = diceN(u.lv, wFl(st.equip)), cells = ['G']; for (let i = 0; i < n; i++) cells.push('O'); while (cells.length < 12) cells.push('F');
   for (let i = 11; i > 0; i--) { const j = Math.floor(rngA(st) * (i + 1)); const x = cells[i]; cells[i] = cells[j]; cells[j] = x; } /* 판은 매번 섞음 */
   st.wTry = { k: st.equip.k, lv: u.lv, b: cells.join(''), c: u.coins }; return diceInfo(st); }
-function diceEnd(st, t, kind, extra) { const w = st.equip, nm = D.items[t.k].n, closed = !!(extra && extra.closed); let to = t.lv;
+function diceEnd(st, t, kind, extra) { const w = t.a ? st.acc : st.equip, nm = D.items[t.k].n, closed = !!(extra && extra.closed); let to = t.lv;
   if (kind === 'great') to = Math.min(D.wUp.max, t.lv + 2); else if (kind === 'ok') to = t.lv + 1;
   else if (kind === 'fail') { if (t.lv > 3 && rngA(st) * 100 < D.wGauge.down) { kind = 'down'; to = t.lv - 1; } else kind = 'keep'; }
   w.lv = to; const f0 = wFl(w); if (kind === 'great' || kind === 'ok') delete w.fl; else if (!closed) { const nf = Math.min(100 - D.wUp.ok[to], f0 + D.wUp.pity); if (nf > 0) w.fl = nf; else delete w.fl; }
   const fd = (kind === 'keep' || kind === 'down') && !closed ? Math.max(0, wFl(w) - f0) : 0;
   const m = kind === 'great' ? `🌟 ${nm} 대성공! ${t.lv} → ${to}단계 (+${to - t.lv})` : kind === 'ok' ? `✨ ${nm} 강화 성공! ${t.lv} → ${to}단계` : kind === 'down' ? `💥 ${nm} 하락… ${t.lv} → ${to}단계` : closed ? `💨 ${nm} 강화를 그만뒀어요 — ${t.lv}단계 그대로` : `💨 ${nm} 실패 — ${t.lv}단계 그대로`;
-  const m2 = m + (t.lv < 3 && to >= 3 && !(t.lv === 2 && A(st, 'whet')) ? ' · 특수 효과 열림' : ''); /* 숫돌 목걸이면 2단계에서 이미 열림 */ /* v2.10 */ log(st, m2); return Object.assign({ from: t.lv, bd: t.b, kind, to, msg: m2, closed, fd, fl: wFl(w), cellsNext: kind === 'keep' || kind === 'down' ? diceN(to, wFl(w)) : 0 }, extra || {}); }
+  const m2 = (t.a ? m.split('단계').join('강') : m) + (!t.a && t.lv < 3 && to >= 3 && !(t.lv === 2 && A(st, 'whet')) ? ' · 특수 효과 열림' : ''); /* 숫돌 목걸이면 2단계에서 이미 열림 */ /* v2.10 */ log(st, m2); return Object.assign({ from: t.lv, bd: t.b, kind, to, msg: m2, closed, fd, fl: wFl(w), cellsNext: kind === 'keep' || kind === 'down' ? diceN(to, wFl(w)) : 0 }, extra || {}); }
 function diceRoll(st, s) { needBase(st); const t = st.wTry; if (!t || typeof t.b !== 'string') E('강화 판이 없어요'); if (!Number.isInteger(s) || s < 1 || s > 12) E('시작 칸을 골라요');
-  const w = st.equip; delete st.wTry;
+  const w = t.a ? st.acc : st.equip; delete st.wTry;
   if (!w || w.k !== t.k || (w.lv || 1) !== t.lv) { const m = '무기가 바뀌어 강화를 그만뒀어요 (코인은 이미 씀)'; log(st, m); return { from: t.lv, to: t.lv, bd: t.b, kind: 'keep', closed: true, msg: m, fd: 0, fl: w ? wFl(w) : 0 }; }
   const d1 = 1 + Math.floor(rngA(st) * 6), d2 = 1 + Math.floor(rngA(st) * 6), sum = d1 + d2, land = diceLand(s, sum), c = t.b[land - 1];
   return diceEnd(st, t, c === 'G' ? 'great' : c === 'O' ? 'ok' : 'fail', { s, d1, d2, sum, land }); }
-function diceClose(st) { needBase(st); const t = st.wTry; if (!t || typeof t.b !== 'string') E('강화 판이 없어요'); delete st.wTry; const w = st.equip;
+function diceClose(st) { needBase(st); const t = st.wTry; if (!t || typeof t.b !== 'string') E('강화 판이 없어요'); delete st.wTry; const w = t.a ? st.acc : st.equip;
   if (!w || w.k !== t.k || (w.lv || 1) !== t.lv) { const m = '무기가 바뀌어 강화를 그만뒀어요 (코인은 이미 씀)'; log(st, m); return { from: t.lv, to: t.lv, bd: t.b, kind: 'keep', closed: true, msg: m, fd: 0, fl: w ? wFl(w) : 0 }; }
   return diceEnd(st, t, 'keep', { closed: true }); }
 function diceBest(b) { let bs = 1, bv = -1; for (let s = 1; s <= 12; s++) { const p = dicePre(b, s); if (p.ok + p.great > bv) { bv = p.ok + p.great; bs = s; } } return bs; } /* 봇·한 번 누르기 강화용: 가장 좋은 시작 칸 */
 function wTryCheck(st, bad) { if (st.wTry === undefined) return; const t = st.wTry, e = st.equip;
+  if (t && t.a === 1) { const a = st.acc; if (!D.items[t.k] || !D.items[t.k].acc || !Number.isInteger(t.lv) || t.lv < 1 || t.lv >= D.accUp.max || typeof t.b !== 'string' || !/^[OG]{12}$/.test(t.b) || t.b.split('G').length !== 2 || t.c !== D.accUp.cost || Object.keys(t).some(k => !['k', 'lv', 'b', 'c', 'a'].includes(k))) bad('장신구 강화 판'); if (st.run || st.combat || !a || a.k !== t.k || (a.lv || 1) !== t.lv) bad('장신구 강화 판 장신구'); return; } /* v2.16 */
   if (!t || typeof t !== 'object' || !D.items[t.k] || !D.items[t.k].w || !Number.isInteger(t.lv) || t.lv < 1 || t.lv >= D.wUp.max || typeof t.b !== 'string' || !/^[OGF]{12}$/.test(t.b) || t.c !== D.wUp.coins[t.lv] || Object.keys(t).some(k => !['k', 'lv', 'b', 'c'].includes(k))) bad('강화 판');
   if (st.run || st.combat || !e || e.k !== t.k || (e.lv || 1) !== t.lv) bad('강화 판 무기');
   const cnt = ch => t.b.split(ch).length - 1; if (cnt('G') !== 1 || cnt('O') !== diceN(t.lv, wFl(e))) bad('강화 판 칸 수'); }
@@ -1974,7 +1985,9 @@ function wCheck(st, bad) { /* v2.6 — 땅에 떨군 물건(run.found)까지, �
   for (const it of [...(st.bag || []), ...(st.pocket || []), ...(st.stash || []), ...(st.equip ? [st.equip] : []), ...fd]) { if (!it || !D.items[it.k]) { if (fd.includes(it)) bad('떨군 물건'); continue; }
     if (D.items[it.k].w) { const lv = it.lv === undefined ? 1 : it.lv; if (!Number.isInteger(lv) || lv < 1 || lv > D.wUp.max) bad('무기 단계');
       if (it.fl !== undefined && (!Number.isInteger(it.fl) || it.fl < 0 || it.fl % D.wUp.pity || lv < 3 || lv >= D.wUp.max || it.fl > 100 - D.wUp.ok[lv])) bad('강화 보정'); }
-    else if (it.fl !== undefined || (it.lv !== undefined && it.lv !== 0)) bad('무기 아닌 물건의 단계'); } }
+    else if (D.items[it.k].acc && it.fl === undefined && (it.lv === undefined || (Number.isInteger(it.lv) && it.lv >= 1 && it.lv <= D.accUp.max))) { /* v2.16 장신구 강화 단계 */ }
+    else if (it.fl !== undefined || (it.lv !== undefined && it.lv !== 0)) bad('무기 아닌 물건의 단계'); }
+  if (st.acc && D.items[st.acc.k] && (st.acc.fl !== undefined || (st.acc.lv !== undefined && !(Number.isInteger(st.acc.lv) && st.acc.lv >= 1 && st.acc.lv <= D.accUp.max)))) bad('장신구 강화 단계'); }
 function validate(st) {
   if (st.acc && (!D.items[st.acc.k] || !D.items[st.acc.k].acc)) st.acc = null; // v2.3
 
@@ -2055,7 +2068,7 @@ function migrate(st) { if (st && st.wTry && typeof st.wTry.b !== 'string' && typ
 }
 function load(txt) { const o = JSON.parse(txt); if (!o || o.app !== 'surv-rpg' || !o.st) E('저장 형식이 달라요'); const st = lvFix(migrate(o.st)); validate(st); return st; }
 
-root.SurvEngine = { redeem, atkInfo, ambInfo, ambWeapon, buyAmb, shopPin, buyN, buyMax, can, canS, intentHits, intentShow, dmgAfter, diceInfo, dicePre, diceRoll, diceClose, diceBest, upgradeStart, levelInfo, lvPick, storeUpInfo, storeUp, lvGain, lvDeath, startCombat, die, shopStock, openBox, boxInfo, equipAcc, unequipAcc, amberDrop, accOn: A, seaInfo4, lightLamp, challengeWhale, whaleInfo, seaInfo3, kelpBlocked, seaAdj, cutKelp, syncHelm, repairEngine, seaInfo2, upgradeLamp, intentHidden, shopOpen, seaInfo, setSail, voyage, submitMark, toggleLamp, ringBell, regionOpen, fogCalc, zoneOf, bossInfo, challengeBoss, todInfo, rest, nextGoal, starterDue, questInfo, questRun, tideInfo, flooded, exitCost, shipInfo, buildShip, eventInfo, eventAct, xboxes, openX, reserveSupply, cancelReserve, hasK, nestMsg, tierOf, reach, depthOf, clearLastRun, passiveInfo, submitPassive, checkPassives, boxesOf, placeItem, equipPack, craft, findSpot, fitsAt, dimsOf, area, bagCells, contDims, conts, norm, isPouch, pouchEmpty, D, ADJ, regionOf, swapTake, swapInfo, fits, deepBonus, riskOf, buyIntel, unlockMetro, checkGoal, newGame, startRun, move, search, take, drop, extract, combatAct, useItem, moveItem, sell, buy, equip, unequip, heal, upgrade, upgradeInfo, build, quest, deviceInfo, buildDevice, toggleLock, needs, distToExit, used, sellPrice, countBase, built, weapon, intentDmg, validate, save, load, stashCap };
+root.SurvEngine = { accUpInfo, accUpStart, redeem, atkInfo, ambInfo, ambWeapon, buyAmb, shopPin, buyN, buyMax, can, canS, intentHits, intentShow, dmgAfter, diceInfo, dicePre, diceRoll, diceClose, diceBest, upgradeStart, levelInfo, lvPick, storeUpInfo, storeUp, lvGain, lvDeath, startCombat, die, shopStock, openBox, boxInfo, equipAcc, unequipAcc, amberDrop, accOn: A, seaInfo4, lightLamp, challengeWhale, whaleInfo, seaInfo3, kelpBlocked, seaAdj, cutKelp, syncHelm, repairEngine, seaInfo2, upgradeLamp, intentHidden, shopOpen, seaInfo, setSail, voyage, submitMark, toggleLamp, ringBell, regionOpen, fogCalc, zoneOf, bossInfo, challengeBoss, todInfo, rest, nextGoal, starterDue, questInfo, questRun, tideInfo, flooded, exitCost, shipInfo, buildShip, eventInfo, eventAct, xboxes, openX, reserveSupply, cancelReserve, hasK, nestMsg, tierOf, reach, depthOf, clearLastRun, passiveInfo, submitPassive, checkPassives, boxesOf, placeItem, equipPack, craft, findSpot, fitsAt, dimsOf, area, bagCells, contDims, conts, norm, isPouch, pouchEmpty, D, ADJ, regionOf, swapTake, swapInfo, fits, deepBonus, riskOf, buyIntel, unlockMetro, checkGoal, newGame, startRun, move, search, take, drop, extract, combatAct, useItem, moveItem, sell, buy, equip, unequip, heal, upgrade, upgradeInfo, build, quest, deviceInfo, buildDevice, toggleLock, needs, distToExit, used, sellPrice, countBase, built, weapon, intentDmg, validate, save, load, stashCap };
 // v2.1 배낭이 바뀌는 행동 뒤에는 잠수 헬멧을 지녔는지 바로 맞춤 [전략실장]
 for (const k of ['take', 'swapTake', 'drop', 'moveItem', 'combatAct', 'useItem', 'search', 'move', 'openX', 'eventAct']) { const f0 = root.SurvEngine[k]; root.SurvEngine[k] = function (st) { try { return f0.apply(this, arguments); } finally { if (st && st.run) syncHelm(st); } }; }
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -2121,7 +2134,7 @@ let rawSave = null, loadFail = false; // v2.0 불러오기에 실패하면 원�
 let tgNew = false; try { tgNew = !Object.keys(localStorage).some(k => /^recovery-v[0-9]+$/.test(k)); } catch (e) {} /* v2.12 */
 try { const t = localStorage.getItem(KEY) || localStorage.getItem('recovery-v21') || localStorage.getItem('recovery-v20') || localStorage.getItem('recovery-v16') || localStorage.getItem('recovery-v15') || localStorage.getItem('recovery-v14') || localStorage.getItem('recovery-v13') || localStorage.getItem('recovery-v12') || localStorage.getItem('recovery-v11') || localStorage.getItem('recovery-v10') || localStorage.getItem('recovery-v09'); rawSave = t; st = t ? G.load(t) : G.newGame(); } catch (e) { st = G.newGame(); try { if (rawSave) { localStorage.setItem('recovery-broken', rawSave); loadFail = true; } } catch (e2) {} }
 
-const iname = it => D.items[it.k].n + (it.lv ? ` ${it.lv}단계` : '') + (it.fl ? ` (보정 +${it.fl}%)` : '');
+const iname = it => D.items[it.k].n + (D.items[it.k].acc ? ` ${it.lv || 1}강` : it.lv ? ` ${it.lv}단계` : '') + (it.fl ? ` (보정 +${it.fl}%)` : '');
 function itemTags(it) {
   const d = D.items[it.k], need = G.needs(st)[it.k];
   return `<span class="tag">${d.c} · ${d.sh[0]}×${d.sh[1]}</span>${it.b ? '<span class="tag">보급</span>' : ''}${st.locks[it.k] ? '<span class="tag lock">🔒</span>' : ''}${need ? `<span class="tag need">목표에 ${need}개 필요 · 보유 ${G.countBase(st, it.k)}</span>` : ''}${it.f ? '<span class="tag">이번에 주움</span>' : ''}`;
@@ -2136,9 +2149,18 @@ function lockPass() { /* v2.8 ① 그린 뒤 보이는 단추마다 엔진에 �
     else if (a === 'sell' && f) r = ask('sell', f, i); else if (a === 'equip' && f) r = ask('equip', f, i); else if (a === 'pack' && f) r = ask('equipPack', f, i);
     else if (a === 'box' && k) r = ask('openBox', k); else if (a === 'xbox' && k) r = ask('openX', k); else if (a === 'move' && k) r = ask('move', k); else if (a === 'extract') r = ask('extract');
     if (r) el.dataset.why = r; }); }
+/* v2.16 장신구 강화 단계별 효과 글 */
+function accDesc(k, n) { const T = { wrist: `공격마다 피해 +${n}`, glove: `전투 첫 공격 피해 +${3 * n}`, whet: `무기 특수가 ${n >= 3 ? '1단계' : '2단계'}부터 · 특수가 터진 공격 피해 +${n}`, herb: `치료 회복 +${2 * n}`, trophy: `적을 쓰러뜨리면 체력 +${2 * n}`, breeze: `적을 쓰러뜨리면 기력 +${n}`,
+  keyring: `후퇴 기력 3 → 2 · 후퇴하면 체력 +${2 * n}`, earplug: `후퇴·연막으로 물러나면 위험 −${n} (오르지 않음)`, luckcoin: `호박석이 나올 확률 +${10 + 5 * n}%p`, vest: `받는 피해 −${n} (최소 1)` };
+  return T[k] || esc(D.items[k].use); }
+function accUpHtml() { const a = G.accUpInfo(st); let h = '<div class="card"><b>💍 장신구 강화</b>';
+  if (!a) return h + '<div class="muted">장신구를 끼면 여기서 강화할 수 있어요 (장신구는 봉인 상자에서 나와요)</div></div>';
+  h += `<div class="muted">${esc(D.items[a.k].n)} <b>${a.lv}강</b>${a.max ? ' · 최고 강화예요' : ` → ${a.lv + 1}강 · 호박석 ${a.cost}개 (가진 ${a.have.toLocaleString()}개) · 🎲 늘 성공, 대성공이면 +2강`}<br>지금: ${accDesc(a.k, a.lv)}${a.max ? '' : `<br>다음: <b>${accDesc(a.k, a.lv + 1)}</b>`}<br><span class="bad">쓰러지면 끼고 있던 장신구와 강화가 함께 사라져요</span></div>`;
+  if (!a.max) h += `<div class="btns"><button class="${a.ok ? 'pri' : ''}" data-a="accup" ${a.ok ? '' : 'disabled'}>💍 강화 (호박석 ${a.cost}개)</button></div>`;
+  return h + '</div>'; }
 function itemLine(it, where, i, btns) {
   const d = D.items[it.k];
-  return `<div class="item"><div><div class="nm">${RA['I_' + it.k] ? `<img class="thumb" src="${RA['I_' + it.k]}" alt="">` : ''}${nmv((it))}${itemTags(it)}</div><div class="muted">${d.w ? weaponDesc(it) : esc(d.use)} · ${d.nosell || it.ns ? '팔 수 없음' : '팔면 ' + G.sellPrice(it)}</div></div><div class="btns sm">${btns}</div></div>`;
+  return `<div class="item"><div><div class="nm">${RA['I_' + it.k] ? `<img class="thumb" src="${RA['I_' + it.k]}" alt="">` : ''}${nmv((it))}${itemTags(it)}</div><div class="muted">${d.w ? weaponDesc(it) : d.acc ? '장신구 · ' + accDesc(it.k, it.lv || 1) : esc(d.use)} · ${d.nosell || it.ns ? '팔 수 없음' : '팔면 ' + G.sellPrice(it)}</div></div><div class="btns sm">${btns}</div></div>`;
 }
 
 // ---------- v2.5 레벨·보관함 강화 화면 ----------
@@ -2162,7 +2184,7 @@ function wgBar(g, x) { return `<div class="wg wgtap"><img class="wgbar" src="${W
 function wgSync() { let ov = document.getElementById('wgw'); if (!ov) { ov = document.createElement('div'); ov.id = 'wgw'; document.body.appendChild(ov); }
   const g = G.gaugeInfo(st);
   if (g && !st.run && !st.combat) { const key = g.k + g.lv + ':' + g.s; if (key === wgKey && wgRun) return; wgKey = key; wgRes = null; wgLast = g; wgSw = g.sweep;
-    ov.innerHTML = `<div class="wgov"><div class="card wgcard"><b>🔧 ${esc(g.n)} ${g.lv} → ${g.lv + 1}단계 강화</b><div class="muted">초록 칸에서 누르면 성공 · 가운데 금빛은 <b>대성공(${g.lv + 2 > D.wUp.max ? D.wUp.max + '단계' : '+2'})</b><br>빨간 곳은 실패(반은 그대로, 반은 −1단계)</div>${wgBar(g, 0)}<div class="btns"><button class="pri sysf wgtap wgbig">멈춰!</button></div><div class="btns sm"><button data-a="wgclose">그만두기 (그대로 · 코인은 이미 씀)</button></div></div></div>`;
+    ov.innerHTML = `<div class="wgov"><div class="card wgcard"><b>🔧 ${esc(g.n)} ${g.lv}${g.a ? '강' : ''} → ${g.lv + 1}${g.a ? '강' : '단계'} 강화</b><div class="muted">초록 칸에서 누르면 성공 · 가운데 금빛은 <b>대성공(${g.lv + 2 > D.wUp.max ? D.wUp.max + '단계' : '+2'})</b><br>빨간 곳은 실패(반은 그대로, 반은 −1단계)</div>${wgBar(g, 0)}<div class="btns"><button class="pri sysf wgtap wgbig">멈춰!</button></div><div class="btns sm"><button data-a="wgclose">그만두기 (그대로 · ${g.a ? '호박석' : '코인'}은 이미 씀)</button></div></div></div>`;
     wgRun = true; wgT0 = performance.now() - Math.random() * wgSw * 2000; cancelAnimationFrame(wgRaf); const step = () => { if (!wgRun) return; const n = document.getElementById('wgn'); if (n) n.style.left = wgPos(performance.now()) + '%'; wgRaf = requestAnimationFrame(step); }; wgRaf = requestAnimationFrame(step); return; }
   wgRun = false; wgKey = ''; cancelAnimationFrame(wgRaf);
   if (wgRes && wgLast) { const r = wgRes, t = { great: '🌟 대성공!', ok: '✨ 강화 성공!', keep: r.closed ? '💨 그만뒀어요' : '💨 실패', down: '💥 하락…' }[r.kind];
@@ -2187,10 +2209,10 @@ function dcSync() { let ov = document.getElementById('dcw'); if (!ov) { ov = doc
   const g = G.diceInfo(st);
   if (g && !st.run && !st.combat) { const key = g.k + g.lv + g.b; if (key !== dcKey || !dcOpen) { dcKey = key; dcSel = 0; } dcOpen = true; dcRes = null; dcKeep(null);
     const p = dcSel ? g.pre[dcSel - 1] : null;
-    ov.innerHTML = `<div class="wgov"><div class="card wgcard dccard"><b>🎲 ${esc(g.n)} ${g.lv} → ${g.lv + 1}단계 강화</b><div class="muted">칸 하나를 눌러 시작점으로 → 주사위 두 개 합만큼 오른쪽으로 가요 (12 다음은 1). 멈춘 칸이 결과예요.<br>대성공 +2${g.b.includes('F') ? ' · 실패는 반은 그대로, 반은 −1단계' : ' · 실패 칸 없음(늘 올라요)'}</div>
+    ov.innerHTML = `<div class="wgov"><div class="card wgcard dccard"><b>🎲 ${esc(g.n)} ${g.lv}${g.a ? '강' : ''} → ${g.lv + 1}${g.a ? '강' : '단계'} 강화</b><div class="muted">칸 하나를 눌러 시작점으로 → 주사위 두 개 합만큼 오른쪽으로 가요 (12 다음은 1). 멈춘 칸이 결과예요.<br>대성공 +2${g.b.includes('F') ? ' · 실패는 반은 그대로, 반은 −1단계' : ' · 실패 칸 없음(늘 올라요)'}</div>
       ${dcBoard(g.b, dcSel, dcSel, 0, true)}
       <div class="dcpre">${p ? `<b>${dcSel}번에서 출발</b> · 성공 ${p.ok}% · 대성공 ${p.great}% · 실패 ${p.fail}%` : '👆 시작할 칸을 골라요 (7칸 앞이 가장 잘 나와요)'}</div>
-      <div class="btns"><button class="pri wgbig" data-a="dcroll" ${dcSel ? '' : 'disabled'}>🎲 굴리기</button></div><div class="btns sm"><button data-a="dcclose">그만두기 (그대로 · 코인은 이미 씀)</button></div></div></div>`; return; }
+      <div class="btns"><button class="pri wgbig" data-a="dcroll" ${dcSel ? '' : 'disabled'}>🎲 굴리기</button></div><div class="btns sm"><button data-a="dcclose">그만두기 (그대로 · ${g.a ? '호박석' : '코인'}은 이미 씀)</button></div></div></div>`; return; }
   dcOpen = false;
   if (dcRes) { const r = dcRes, t = { great: '🌟 대성공!', ok: '✨ 강화 성공!', keep: r.closed ? '💨 그만뒀어요' : '💨 실패', down: '💥 하락…' }[r.kind];
     const sub = r.kind === 'keep' ? `${r.from}단계 그대로${r.fd ? ' · 다음 판 성공 칸 ' + r.cellsNext + '개' + (r.fl % 10 ? ' (한 번 더 실패하면 +1)' : ' (+1)') : ''}` : `${r.from} → ${r.to}단계${r.kind === 'great' ? ` (+${r.to - r.from})` : ''}${r.kind === 'down' && r.fd ? ' · 다음 판 성공 칸 ' + r.cellsNext + '개' + (r.fl % 10 ? ' (한 번 더 실패하면 +1)' : ' (+1)') : ''}`;
@@ -2423,6 +2445,7 @@ function renderBase() {
   else h += `<div class="muted">${nmv((w))} → ${u.lv + 1}단계: ${matText(u.mats)} · ${u.coins}코인${u.bench > 1 ? ' · 작업대 2단계 필요' : ''}</div><div class="btns"><button data-a="upgrade" ${u.ok ? '' : 'disabled'}>강화</button></div>`;
   for (const [ck, cd] of Object.entries(D.craft)) h += `<div class="muted" style="margin-top:8px">🎒 제작: ${cd.desc} — ${matText(cd.mats)} · ${cd.coins}코인</div><div class="btns"><button data-a="craft" data-k="${ck}"${WHY(G.can(st, 'craft', ck))}>만들기</button></div>`;
   h += '</div>';
+  h += accUpHtml(); /* v2.16 */
   h += '<!--§fac-->';
   // 시설
   h += `<div class="card"><b>🏗️ 시설</b>${Object.entries(D.facilities).map(([f, d]) => `<div class="item"><div><div class="nm">${d.n} ${G.built(st, f) ? '✅' : ''}</div><div class="muted">${d.desc}${G.built(st, f) ? '' : ` · ${matText(d.mats)} · ${d.coins}코인`}</div></div>${G.built(st, f) ? '' : `<div class="btns sm"><button data-a="build" data-k="${f}">짓기</button></div>`}</div>`).join('')}</div>`;
@@ -3042,7 +3065,7 @@ function swapCard(found) {
     const after = G.swapInfo(st, S.i, on ? S.drops.filter(x => x !== j) : S.drops.concat(j));
     if (!G.pouchEmpty(st, b) || b.c === 'X') return '';
     const label = on ? `✅ ${nmv((b))} 버림 (${gainTxt(b)}) — 취소` : `${nmv((b))} 버리기 (${gainTxt(b)}${after.short ? ' · 아직 자리 없음' : ' → 줍기 가능'})`;
-    return `<div class="item"><div><div class="nm">${nmv((b))}${itemTags(b)}</div><div class="muted">${bd.w ? weaponDesc(b) : esc(bd.use)} · ${bd.nosell || b.ns ? '팔 수 없음' : '팔면 ' + G.sellPrice(b)}</div></div><div class="btns sm"><button data-a="swtog" data-i="${j}" ${on ? 'class="pri"' : ''}>${label}</button></div></div>`;
+    return `<div class="item"><div><div class="nm">${nmv((b))}${itemTags(b)}</div><div class="muted">${bd.w ? weaponDesc(b) : bd.acc ? '장신구 · ' + accDesc(b.k, b.lv || 1) : esc(bd.use)} · ${bd.nosell || b.ns ? '팔 수 없음' : '팔면 ' + G.sellPrice(b)}</div></div><div class="btns sm"><button data-a="swtog" data-i="${j}" ${on ? 'class="pri"' : ''}>${label}</button></div></div>`;
   }).join('');
   return `<div class="card swc" style="border-color:var(--acc)"><b>🎒 바꿔 줍기: ${esc(d.n)} (${d.sh[0]}×${d.sh[1]})</b>
   <div class="btns swtop"><button class="pri sysf" data-a="swgo" ${info.short || !S.drops.length ? 'disabled' : ''}>버리고 줍기</button><button data-a="swno">취소</button></div>
@@ -3244,7 +3267,7 @@ function bedHtml() { return `<div class="card"><b>🛏️ 치료</b><div class="
 let wPick = false, pPick = false, packCat = '의료';
 const th = it => RA['I_' + it.k] ? `<img class="thumb" src="${RA['I_' + it.k]}" alt="">` : '';
 function groupLines(list, btn) { const g = {}; list.forEach(([f, i, it]) => { const key = it.k + '|' + (it.lv || 0) + '|' + (it.fl || 0) + '|' + (it.b ? 1 : 0) + '|' + (it.ns ? 1 : 0); (g[key] = g[key] || { f, i, it, n: 0 }).n++; });
-  return Object.values(g).map(x => `<div class="item"><div><div class="nm">${th(x.it)}${nmv((x.it))}${x.n > 1 ? ` <span class="tag need">×${x.n}</span>` : ''}</div><div class="muted">${D.items[x.it.k].w ? weaponDesc(x.it) : esc(D.items[x.it.k].use)} · ${D.items[x.it.k].sh[0]}×${D.items[x.it.k].sh[1]}</div></div><div class="btns sm">${btn(x.f, x.i, x.it)}</div></div>`).join(''); }
+  return Object.values(g).map(x => `<div class="item"><div><div class="nm">${th(x.it)}${nmv((x.it))}${x.n > 1 ? ` <span class="tag need">×${x.n}</span>` : ''}</div><div class="muted">${D.items[x.it.k].w ? weaponDesc(x.it) : D.items[x.it.k].acc ? '장신구 · ' + accDesc(x.it.k, x.it.lv || 1) : esc(D.items[x.it.k].use)} · ${D.items[x.it.k].sh[0]}×${D.items[x.it.k].sh[1]}</div></div><div class="btns sm">${btn(x.f, x.i, x.it)}</div></div>`).join(''); }
 const PACK_CATS = [['의료', d => d.heal || d.stim], ['식량', d => d.food], ['던지기', d => d.thr || d.smoke || d.trap], ['파우치', d => d.inner], ['기타', d => !(d.heal || d.stim || d.food || d.thr || d.smoke || d.trap || d.inner || d.w || d.pack)]];
 function boxHtml(kind) { const b = G.boxInfo(st, kind), ok = b.have >= b.cost, im = RA['I_amber'] ? `<img class="thumb" src="${RA['I_amber']}" alt="">` : '🟠 ';
   return `<div class="item"><div><div class="nm">${RA['I_box' + kind] ? `<img class="thumb" src="${RA['I_box' + kind]}" alt="">` : '🎁 '}${b.n}</div><div class="muted">${kind === 'cargo' ? '배에 실려 있던 조합 화물이에요. 쓸 물건이 나와요.' : '단단히 봉해진 조합 상자예요. 강화된 무기, 아주 가끔 장신구가 나와요.'}</div></div><div class="btns sm"><button class="${ok ? 'pri' : ''}" data-a="box" data-k="${kind}" ${ok ? '' : 'disabled'}>열기 · 호박석 ${b.cost}</button></div></div>
@@ -3260,7 +3283,7 @@ function equipHtml(m) {
   if (wPick) { const L = st.stash.map((it, i) => ['stash', i, it]).filter(([, , it]) => D.items[it.k].w); h += '<div class="muted" style="margin-top:6px">📦 보관함의 무기</div>' + (L.length ? groupLines(L, (f, i) => `<button class="pri" data-a="equip" data-f="${f}" data-i="${i}">장착</button>`) : '<div class="muted">보관함에 무기가 없어요 (더 보기 → 상점)</div>'); } // 보관함 무기만 (BOSS 요청) [전략실장]
   h += '</div>';
   // v2.3 장신구 (하나만 낌)
-  h += '<div class="card"><b>💍 장신구</b>' + (st.acc ? `<div class="item"><div><div class="nm">${th(st.acc)}${esc(D.items[st.acc.k].n)}</div><div class="muted">${esc(D.items[st.acc.k].use)}</div></div><div class="btns sm"><button data-a="accun">보관함으로</button></div></div>` : '<div class="muted">끼고 있는 장신구가 없어요 (봉인 상자에서 가끔 나와요). 쓰러지면 잃어요.</div>');
+  h += '<div class="card"><b>💍 장신구</b>' + (st.acc ? `<div class="item"><div><div class="nm">${th(st.acc)}${esc(D.items[st.acc.k].n)}</div><div class="muted">${'장신구 · ' + accDesc(st.acc.k, st.acc.lv || 1)}</div></div><div class="btns sm"><button data-a="accun">보관함으로</button></div></div>` : '<div class="muted">끼고 있는 장신구가 없어요 (봉인 상자에서 가끔 나와요). 쓰러지면 잃어요.</div>');
   { const AL = st.stash.map((it, i) => ['stash', i, it]).filter(([, , it]) => D.items[it.k].acc); if (AL.length) h += '<div class="muted" style="margin-top:6px">📦 보관함의 장신구</div>' + groupLines(AL, (f, i) => `<button class="pri" data-a="acceq" data-f="${f}" data-i="${i}">끼기</button>`); }
   h += '</div>';
   const p0 = st.pack || 'sack', P = D.packs[p0], pim = RA['I_' + (p0 === 'sack' ? 'sack' : p0 + 'F')], packs = from(it => D.items[it.k].pack);
@@ -3412,7 +3435,8 @@ document.addEventListener('click', ev => {
   if (a === 'lvpick') return act(() => G.lvPick(st, k)); // v2.5 레벨업 고르기는 결과창·사건 중에도 됨
   if (a === 'cpn') { const inp = document.getElementById('cpnIn'), v = inp ? inp.value : ''; let kind = ''; act(() => { kind = G.redeem(st, v); }); if (kind) { if (inp) inp.value = ''; toast(kind === 'gm' ? '🎁 관리자 쿠폰 적용! 코인·호박석 99,999,999 · 모든 챕터·의뢰·패시브 · 만렙 · GM 가방' : '🎁 쿠폰을 썼어요'); } return; } /* v2.15 쿠폰 */
   
-if (a === 'buy' && k) { buyQ = { k, n: 1 }; return render(); } if (a === 'buyamb' && k) { buyQ = { k, n: 1, amb: 1 }; return render(); } if (a === 'pin' && k) return act(() => G.shopPin(st, k)); /* v2.14 */
+if (a === 'accup') return act(() => G.accUpStart(st)); /* v2.16 장신구 강화 → 주사위판 */
+  if (a === 'buy' && k) { buyQ = { k, n: 1 }; return render(); } if (a === 'buyamb' && k) { buyQ = { k, n: 1, amb: 1 }; return render(); } if (a === 'pin' && k) return act(() => G.shopPin(st, k)); /* v2.14 */
   if (a === 'bqx') { buyQ = null; return render(); } if (a === 'bqup' && buyQ) { buyQ.n = Math.min(buyQ.amb ? 1 : 99, buyQ.n + 1); return render(); } if (a === 'bqdn' && buyQ) { buyQ.n = Math.max(1, buyQ.n - 1); return render(); }
   if (a === 'bqgo' && buyQ) { const q = buyQ, nm = D.items[q.k].n; let ok = false; const s0 = st.stash.filter(x => x.k === q.k).length; act(() => { if (q.amb) G.buyAmb(st, q.k); else G.buyN(st, q.k, q.n); ok = true; }); if (ok) { buyQ = null; const inS = st.stash.filter(x => x.k === q.k).length - s0; toast((q.amb ? '🟠 ' + nm + ' 1단계를 샀어요' : '🛒 ' + nm + ' ' + q.n + '개를 샀어요') + ' → ' + (inS >= q.n ? '보관함' : inS > 0 ? '보관함 ' + inS + '개 · 배낭 ' + (q.n - inS) + '개' : '배낭 (보관함이 꽉 찼어요)')); render(); } return; } /* v2.13 상점 수량 · v2.14 호박석 무기 */
   
