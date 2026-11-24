@@ -186,6 +186,20 @@ svg{display:block;width:100%;height:auto;background:#101316;border-radius:var(--
 .helpg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.helpg button{display:flex;flex-direction:column;align-items:flex-start;text-align:left;min-height:58px;padding:8px 10px;white-space:normal}.helpg button small{font-size:12px;color:var(--muted);font-weight:400;margin-top:2px}
 .helpl{margin:8px 0 4px;padding-left:18px;line-height:1.55}.helpl li{margin:4px 0}
 </style>
+<style id="v213">.item{flex-wrap:wrap!important;align-items:center;row-gap:6px}
+.item>div:first-child{flex:1 1 170px!important;min-width:0!important}
+.item .nm{min-width:0;overflow-wrap:anywhere}
+.item .muted{overflow-wrap:anywhere}
+.item>.btns,.item>.btns.sm{flex:1 1 auto!important;display:flex!important;flex-wrap:wrap!important;justify-content:flex-end;gap:6px;margin-top:0!important;min-width:0!important;max-width:100%}
+.item>.btns>button{flex:1 1 0!important;min-width:50px!important;width:auto!important;white-space:normal!important;word-break:keep-all;padding-left:4px!important;padding-right:4px!important}
+.btns{min-width:0;max-width:100%}.btns button{min-width:0}</style>
+<style id="v213b">.bqov{z-index:86}.bqcard{width:100%;max-width:380px;margin:0}
+.bqcard .row{align-items:center}.bq-x{min-height:40px;min-width:44px;padding:0 10px;font-size:18px}
+.bq-it{display:flex;gap:10px;align-items:center;margin:8px 0}.bq-im{width:56px;height:56px;object-fit:contain;flex:none}.bq-it>div{min-width:0}
+.bq-n{display:flex;align-items:stretch;justify-content:center;gap:10px;margin:10px 0}.bq-n button{min-width:64px;min-height:56px;font-size:22px}
+.bq-v{min-width:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px solid var(--line);background:#0b1119}.bq-v b{font-size:28px;line-height:1}.bq-v small{font-size:12px;color:var(--muted)}
+.bq-sum{text-align:center;font-size:15px}.bq-why{text-align:center;margin-top:4px}.bqcard .btns button{min-height:48px;font-size:16px}
+</style>
 
 <style id="dot">
 /* ===== 도트판 화면 틀 (BOSS 승인 2026-11-20): 규칙은 v2.2 그대로, 모습만 바꿈 ===== */
@@ -1252,7 +1266,7 @@ function intentShow(st) { /* v2.8 화면에 보이는 '다음 행동 피해' = �
 function can(st, name, ...a) { /* v2.8 ① 이 행동을 엔진이 받아 줄지: 사본에서 해 보고 거절 글(없으면 '') */
   return canS(JSON.stringify(st), name, ...a); }
 function canS(snap, name, ...a) { /* v2.8 화면이 한 번 그릴 때 상태 사본 글은 한 번만 만듦 */
-  const f = ({ sell, craft, moveItem, heal, reserveSupply, search, combatAct, move, useItem, buy, equip, equipPack, openBox, openX, extract })[name]; if (!f) return '';
+  const f = ({ sell, craft, moveItem, heal, reserveSupply, search, combatAct, move, useItem, buy, buyN, equip, equipPack, openBox, openX, extract })[name]; if (!f) return '';
   const c = JSON.parse(snap); try { f(c, ...a); return ''; } catch (e) { return e && e.game ? e.message : ''; } }
 const REACH = { spit: [1, 2], spout: [1, 2], weld: [1, 2], heavy: [0], ambush: [0], claw: [0], swing: [0], slam: [0], snap: [0], pinch: [0], smash: [0], ram: [0], cast: [0], grab: [0], bite: [0, 1], frenzy: [0, 1], sting: [0, 1], shock: [0, 1], gnaw: [0, 1], swingarm: [0, 1], tail: [0, 1], puff: [0, 1], wrap: [0, 1], clamp: [0], swallow: [0], undertow: [0, 1] }; /* v2.8 combatAct0의 닿는 거리와 같게 */
 function intentHits(st) { const c = st.combat; if (!c) return false; const e = c.e, it = e.intent; if (it === 'squeeze' || it === 'crush' || it === 'drag') return !!e.held; if (it === 'undertow') return e.dist <= 1; const R = REACH[it]; return R ? R.includes(e.dist) : true; }
@@ -1452,6 +1466,10 @@ function buy(st, k) {
   if (!addTo(st, 'stash', it) && !addTo(st, 'bag', it)) E('보관함과 배낭이 꽉 찼어요');
   st.coins -= price; log(st, `${D.items[k].n} 구입 −${price}`);
 }
+function buyN(st, k, n) { needBase(st); if (!Number.isInteger(n) || n < 1 || n > 99) E('수량은 1~99개예요'); const price = D.shop[k]; if (price && st.coins < price * n) E(`코인이 부족해요 (${(price * n - st.coins).toLocaleString()}코인 모자라요)`);
+  const c = JSON.parse(JSON.stringify(st)); for (let q = 0; q < n; q++) { try { buy(c, k); } catch (e) { if (e && e.game && q > 0 && /꽉/.test(e.message)) E(`자리가 ${q}개만 있어요`); throw e; } }
+  for (let q = 0; q < n; q++) buy(st, k); return n; } /* v2.13 여러 개 사기: 사본에서 먼저 해 보고, 다 되면 진짜로 (하나라도 안 되면 아무것도 안 바뀜) */
+function buyMax(st, k) { const c = JSON.parse(JSON.stringify(st)); let q = 0; for (; q < 99; q++) { try { buy(c, k); } catch (e) { break; } } return q; } /* v2.13 지금 살 수 있는 최대 수 */
 function equip(st, from, i) {
   needBase(st); const it = (st[from] || [])[i]; if (!it || !D.items[it.k].w) E('무기가 아니에요');
   st[from].splice(i, 1);
@@ -1995,7 +2013,7 @@ function migrate(st) { if (st && st.wTry && typeof st.wTry.b !== 'string' && typ
 }
 function load(txt) { const o = JSON.parse(txt); if (!o || o.app !== 'surv-rpg' || !o.st) E('저장 형식이 달라요'); const st = lvFix(migrate(o.st)); validate(st); return st; }
 
-root.SurvEngine = { can, canS, intentHits, intentShow, dmgAfter, diceInfo, dicePre, diceRoll, diceClose, diceBest, upgradeStart, levelInfo, lvPick, storeUpInfo, storeUp, lvGain, lvDeath, startCombat, die, shopStock, openBox, boxInfo, equipAcc, unequipAcc, amberDrop, accOn: A, seaInfo4, lightLamp, challengeWhale, whaleInfo, seaInfo3, kelpBlocked, seaAdj, cutKelp, syncHelm, repairEngine, seaInfo2, upgradeLamp, intentHidden, shopOpen, seaInfo, setSail, voyage, submitMark, toggleLamp, ringBell, regionOpen, fogCalc, zoneOf, bossInfo, challengeBoss, todInfo, rest, nextGoal, starterDue, questInfo, questRun, tideInfo, flooded, exitCost, shipInfo, buildShip, eventInfo, eventAct, xboxes, openX, reserveSupply, cancelReserve, hasK, nestMsg, tierOf, reach, depthOf, clearLastRun, passiveInfo, submitPassive, checkPassives, boxesOf, placeItem, equipPack, craft, findSpot, fitsAt, dimsOf, area, bagCells, contDims, conts, norm, isPouch, pouchEmpty, D, ADJ, regionOf, swapTake, swapInfo, fits, deepBonus, riskOf, buyIntel, unlockMetro, checkGoal, newGame, startRun, move, search, take, drop, extract, combatAct, useItem, moveItem, sell, buy, equip, unequip, heal, upgrade, upgradeInfo, build, quest, deviceInfo, buildDevice, toggleLock, needs, distToExit, used, sellPrice, countBase, built, weapon, intentDmg, validate, save, load, stashCap };
+root.SurvEngine = { buyN, buyMax, can, canS, intentHits, intentShow, dmgAfter, diceInfo, dicePre, diceRoll, diceClose, diceBest, upgradeStart, levelInfo, lvPick, storeUpInfo, storeUp, lvGain, lvDeath, startCombat, die, shopStock, openBox, boxInfo, equipAcc, unequipAcc, amberDrop, accOn: A, seaInfo4, lightLamp, challengeWhale, whaleInfo, seaInfo3, kelpBlocked, seaAdj, cutKelp, syncHelm, repairEngine, seaInfo2, upgradeLamp, intentHidden, shopOpen, seaInfo, setSail, voyage, submitMark, toggleLamp, ringBell, regionOpen, fogCalc, zoneOf, bossInfo, challengeBoss, todInfo, rest, nextGoal, starterDue, questInfo, questRun, tideInfo, flooded, exitCost, shipInfo, buildShip, eventInfo, eventAct, xboxes, openX, reserveSupply, cancelReserve, hasK, nestMsg, tierOf, reach, depthOf, clearLastRun, passiveInfo, submitPassive, checkPassives, boxesOf, placeItem, equipPack, craft, findSpot, fitsAt, dimsOf, area, bagCells, contDims, conts, norm, isPouch, pouchEmpty, D, ADJ, regionOf, swapTake, swapInfo, fits, deepBonus, riskOf, buyIntel, unlockMetro, checkGoal, newGame, startRun, move, search, take, drop, extract, combatAct, useItem, moveItem, sell, buy, equip, unequip, heal, upgrade, upgradeInfo, build, quest, deviceInfo, buildDevice, toggleLock, needs, distToExit, used, sellPrice, countBase, built, weapon, intentDmg, validate, save, load, stashCap };
 // v2.1 배낭이 바뀌는 행동 뒤에는 잠수 헬멧을 지녔는지 바로 맞춤 [전략실장]
 for (const k of ['take', 'swapTake', 'drop', 'moveItem', 'combatAct', 'useItem', 'search', 'move', 'openX', 'eventAct']) { const f0 = root.SurvEngine[k]; root.SurvEngine[k] = function (st) { try { return f0.apply(this, arguments); } finally { if (st && st.run) syncHelm(st); } }; }
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -2152,7 +2170,21 @@ let gearOpen = false; /* v2.11 */
 function gearSync() { let gv = document.getElementById('gearov'); if (!gv) { gv = document.createElement('div'); gv.id = 'gearov'; document.body.appendChild(gv); }
   if (gearOpen && !st.run && !st.combat && !st.lastRun) gearOpen = false;
   gv.innerHTML = gearOpen ? `<div class="lvov"><div class="card gearcard"><b>⚙️ 설정</b><div class="btns"><button data-a="snd">${SND.on ? '🔊 소리 켜짐' : '🔇 소리 꺼짐'}</button><button data-a="gearhelp">📖 규칙 보기</button><button class="pri" data-a="gearx">닫기</button></div></div></div>` : ''; }
-function header() { header0(); dcSync(); gearSync(); const li = G.levelInfo(st), hd = $('#hdr'); { let ov = document.getElementById('lvovw'); if (!ov) { ov = document.createElement('div'); ov.id = 'lvovw'; document.body.appendChild(ov); } ov.innerHTML = !st.combat && !showHelp && !(st.lastRun && !st.run) && !(st.run && st.run.event) && !bossAsk ? lvBanner() : ''; /* 다른 창이 닫힌 뒤에 뜸 [전략실장] */ } if (hd) hd.insertAdjacentHTML('afterbegin', `<span class="lvtag" data-a="lvopen">⭐${li.label}${li.pend ? ' 🎁' : ''}</span> `); }
+/* ===== v2.13 상점 수량 고르기 (BOSS 요청 2026-11-24: 사도 산 줄 모름 → 수량 칸 ▲▼, 최대 99, 돈이 모자라면 사기 막기, 닫기 ✕) ===== */
+let buyQ = null; /* { k, n } */
+function buySync() { let bv = document.getElementById('buyov'); if (!bv) { bv = document.createElement('div'); bv.id = 'buyov'; document.body.appendChild(bv); }
+  if (buyQ && (st.run || st.combat || !D.items[buyQ.k] || !D.shop[buyQ.k])) buyQ = null;
+  if (!buyQ) { bv.innerHTML = ''; return; }
+  const k = buyQ.k, d = D.items[k], p = D.shop[k], n = buyQ.n, tot = p * n, mx = G.buyMax(st, k), why = G.canS(JSON.stringify(st), 'buyN', k, n);
+  const im = RA['I_' + k] ? `<img class="bq-im" src="${RA['I_' + k]}" alt="">` : '';
+  bv.innerHTML = `<div class="lvov bqov"><div class="card bqcard"><div class="row"><b>🛒 사기</b><button class="bq-x" data-a="bqx" aria-label="닫기">✕</button></div>
+  <div class="bq-it">${im}<div><b>${esc(d.n)}</b> <span class="tag">${d.sh[0]}×${d.sh[1]}</span><div class="muted">${esc(d.use)} · 1개 ${p}코인</div></div></div>
+  <div class="bq-n"><button data-a="bqdn" aria-label="하나 줄이기" ${n <= 1 ? 'disabled' : ''}>▼</button><div class="bq-v"><b>${n}</b><small>개</small></div><button data-a="bqup" aria-label="하나 늘리기" ${n >= 99 ? 'disabled' : ''}>▲</button></div>
+  <div class="bq-sum">합계 <b class="${why ? 'bad' : ''}">${tot.toLocaleString()}코인</b> · 가진 코인 ${st.coins.toLocaleString()}</div>
+  <div class="muted bq-why">${why ? '🔒 ' + esc(why) : `지금 살 수 있는 만큼: 최대 ${mx}개`}</div>
+  <div class="btns"><button class="pri" data-a="bqgo" ${why ? 'disabled' : ''}>${n}개 사기 (${tot.toLocaleString()}코인)</button></div></div></div>`; }
+
+function header() { header0(); dcSync(); gearSync(); buySync(); const li = G.levelInfo(st), hd = $('#hdr'); { let ov = document.getElementById('lvovw'); if (!ov) { ov = document.createElement('div'); ov.id = 'lvovw'; document.body.appendChild(ov); } ov.innerHTML = !st.combat && !showHelp && !(st.lastRun && !st.run) && !(st.run && st.run.event) && !bossAsk ? lvBanner() : ''; /* 다른 창이 닫힌 뒤에 뜸 [전략실장] */ } if (hd) hd.insertAdjacentHTML('afterbegin', `<span class="lvtag" data-a="lvopen">⭐${li.label}${li.pend ? ' 🎁' : ''}</span> `); }
 function header0() {
   const r = st.run, c = st.combat;
   $('#hdr').innerHTML = `❤️ <span class="${st.hp <= 10 ? 'bad' : ''}">${st.hp}/${st.hpMax}</span> ${r ? `⚡ <span class="${st.energy <= 3 ? 'bad' : ''}">${st.energy}/${st.energyMax}</span> ⚠️ 위험 ${r.risk}` : ''} 🎒 ${G.bagCells(st).use}/${G.bagCells(st).tot} 💰 ${st.coins}${r ? ` 🚪 출구까지 ${G.distToExit(r.node)}칸` : ''}${r && r.practice ? ' <span class="tag">연습</span>' : ''}${r && r.night !== undefined ? ` <span class="tag">${r.night ? '🌙 밤' : '☀️ 낮'}</span>` : ''}${c ? ' ⚔️' : ''}<button class="gearbtn" data-a="gear" aria-label="설정">⚙️</button>`;
@@ -3327,7 +3359,10 @@ document.addEventListener('click', ev => {
   if (dcBusy() && !el.closest('#dcw')) return; /* v2.9 판이 떠 있으면 뒤 화면(키보드 포함) 막음 */ if (a === 'dcpick') { dcSel = +k; return dcSync(); } if (a === 'dcroll') return dcRoll(); if (a === 'dcclose') { let r = null; act(() => { r = G.diceClose(st); }); if (r) { dcRes = r; dcKeep(r); dcResAt = performance.now(); render(); } return; } if (a === 'dcok') { if (performance.now() - dcResAt < WG_HOLD) return; dcRes = null; dcKeep(null); return render(); } /* v2.9 주사위판 */
   if (a === 'wgclose') return wgHit(null); if (a === 'wgok') { if (performance.now() - wgResAt < WG_HOLD) return; wgRes = null; wgLast = null; return render(); } /* v2.7 */
   if (a === 'lvpick') return act(() => G.lvPick(st, k)); // v2.5 레벨업 고르기는 결과창·사건 중에도 됨
-  if (a === 'helpcat') { helpCat = k; window.scrollTo(0, 0); return render(); } if (a === 'helpback') { helpCat = null; window.scrollTo(0, 0); return render(); } /* v2.12 규칙 보기 */
+  if (a === 'buy' && k) { buyQ = { k, n: 1 }; return render(); } if (a === 'bqx') { buyQ = null; return render(); } if (a === 'bqup' && buyQ) { buyQ.n = Math.min(99, buyQ.n + 1); return render(); } if (a === 'bqdn' && buyQ) { buyQ.n = Math.max(1, buyQ.n - 1); return render(); }
+  if (a === 'bqgo' && buyQ) { const q = buyQ, nm = D.items[q.k].n; let ok = false; const s0 = st.stash.length; act(() => { G.buyN(st, q.k, q.n); ok = true; }); if (ok) { buyQ = null; const inS = st.stash.length - s0; toast('🛒 ' + nm + ' ' + q.n + '개를 샀어요 → ' + (inS >= q.n ? '보관함' : inS > 0 ? '보관함 ' + inS + '개 · 배낭 ' + (q.n - inS) + '개' : '배낭 (보관함이 꽉 찼어요)')); render(); } return; } /* v2.13 상점 수량 */
+  
+if (a === 'helpcat') { helpCat = k; window.scrollTo(0, 0); return render(); } if (a === 'helpback') { helpCat = null; window.scrollTo(0, 0); return render(); } /* v2.12 규칙 보기 */
   if (a === 'gear') { if (!st.run && !st.combat && !st.lastRun) { const to = sheet === 'more' ? '' : 'more'; sheetFresh = !!to; sheetSwitch = true; sheet = to; wPick = false; pPick = false; gearOpen = false; return render(); } gearOpen = !gearOpen; return render(); }
   if (a === 'gearx') { gearOpen = false; return render(); } if (a === 'gearhelp') { gearOpen = false; showHelp = true; return render(); } /* v2.11 톱니 */
   if (a === 'lvlater') { lvLater = st.lvl; return render(); } if (a === 'lvopen') { lvLater = -1; return render(); }
@@ -3431,7 +3466,8 @@ const TSTEP = [
   { sel: '.sheet [data-a="sheet"][data-k=""]', t: '「주머니」는 안전 주머니예요. 1칸짜리 물건을 2개까지 넣을 수 있고, 쓰러져도 지켜져요. 이제 「닫기」를 눌러요.', done: () => !sheet },
   { pre: () => !sheet && !outside, sel: '.exitbtn[data-a="goout"]', t: '이번엔 코인 쓰는 법이에요. 「← 등대 나가기」를 눌러요.', done: () => outside, fix: () => { sheet = ''; outside = false; } },
   { pre: () => !sheet && outside, obj: 'ship', t: '갈매기호에 선장 마루의 상점이 있어요. 배를 눌러요.', done: () => sheet === 'ship', fix: () => { sheet = ''; outside = true; } },
-  { sel: '.sheet [data-a="buy"][data-k="can"]', t: '💰 코인으로 물건을 사요. 통조림(기력 +8)을 사 볼까요?', done: () => [...st.stash, ...st.bag].some(x => x.k === 'can'), fix: () => { outside = true; sheet = 'ship'; } },
+  { sel: '.sheet [data-a="buy"][data-k="can"]', t: '💰 코인으로 물건을 사요. 통조림(기력 +8)의 「25코인」을 눌러요.', done: () => (typeof buyQ !== 'undefined' && !!buyQ) || [...st.stash, ...st.bag].some(x => x.k === 'can'), fix: () => { outside = true; sheet = 'ship'; } },
+  { sel: '#buyov [data-a="bqgo"]', also: '#buyov [data-a="bqup"], #buyov [data-a="bqdn"]', t: '몇 개 살지 ▲▼로 정해요(최대 99개). 합계만큼 코인이 없으면 「사기」가 막혀요. 정했으면 「사기」를 눌러요.', done: () => [...st.stash, ...st.bag].some(x => x.k === 'can'), fix: () => { outside = true; sheet = 'ship'; if (typeof buyQ !== 'undefined') buyQ = { k: 'can', n: 1 }; } },
   { sel: '.sheet [data-a="sheet"][data-k=""]', t: '코인은 물건을 팔거나 의뢰를 끝내면 벌어요. 상점 물건은 날마다 바뀌어요. 「닫기」를 눌러요.', done: () => !sheet },
   { pre: () => !sheet, sel: '[data-a="sheet"][data-k="door"]', t: '이제 탐사를 떠나요. 「탐사 준비 →」를 눌러요.', done: () => sheet === 'door', fix: () => { sheet = ''; } },
   { sel: '.sheet [data-a="start"]', t: '갈 곳을 골라요. 「포자 숲 시가지」로 출발!', done: () => !!st.run, fix: () => { sheet = 'door'; } },
@@ -3502,7 +3538,9 @@ function tgAllowed(x, y) { const L = tgLay; if (!L) return false;
   const inn = el => { if (!el || el.style.display === 'none') return false; const r = el.getBoundingClientRect(); return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom; };
   if (inn(L.querySelector('.tg-bub')) || inn(L.querySelector('.tg-fin .tg-card'))) return true;
   if (inn(tq('.lvov .lvcard'))) return true; /* 레벨업 창이 뜨면 고를 수 있게 */
-  const S = TSTEP[st.tg | 0]; if (!S || S.fin || S.next) return false; const e = tgTarget(S); if (!tVis(e)) return false; const b = tgBox(e);
+  const S = TSTEP[st.tg | 0]; if (!S || S.fin || S.next) return false;
+  if (S.also) { const at0 = document.elementFromPoint(x, y); if (at0 && [...document.querySelectorAll(S.also)].some(a => tVis(a) && (a === at0 || a.contains(at0)))) return true; } /* 단계에서 함께 눌러도 되는 단추 */
+  const e = tgTarget(S); if (!tVis(e)) return false; const b = tgBox(e);
   if (!(x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h)) return false;
   const at = document.elementFromPoint(x, y);
   if (S.obj) { if (!at || !at.closest('.hitlayer')) return false; const sc = tq('.scene'); if (!sc) return false; const rc = sc.getBoundingClientRect(), o = window.__surv.hitAt((x - rc.left) / rc.width * 720, (y - rc.top) / rc.height * 1280); return !!o && o.id === S.obj; }
