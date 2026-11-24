@@ -162,6 +162,30 @@ svg{display:block;width:100%;height:auto;background:#101316;border-radius:var(--
 #dcw .wgov{z-index:60}
 .dccard .dcb,.dccard .dcdice,.dccard .wgtxt{position:relative;z-index:2}.dcdice span{color:#fff;text-shadow:0 2px 0 #000}
 </style>
+<style id="v212">#tgl{position:fixed;inset:0;z-index:9000;pointer-events:none;font-family:inherit}
+#tgl .tg-dim{position:fixed;inset:0;background:#000a}
+#tgl .tg-hole{position:fixed;border:3px solid var(--acc,#f6c877);border-radius:6px;box-shadow:0 0 0 9999px #000a,0 0 18px 4px #f6c87788;transition:left .2s,top .2s,width .2s,height .2s;animation:tgglow 1s steps(2) infinite}
+@keyframes tgglow{50%{border-color:#fff3c4}}
+#tgl .tg-arr{position:fixed;width:36px;height:40px;animation:tgbob .7s steps(2) infinite}
+#tgl .tg-arr::before{content:"";position:absolute;left:12px;width:12px;height:18px;background:var(--acc,#f6c877);border:3px solid #070b12;border-width:0 3px}
+#tgl .tg-arr::after{content:"";position:absolute;left:0;border:18px solid transparent}
+#tgl .tg-arr.dn::before{top:0}#tgl .tg-arr.dn::after{top:16px;border-top:20px solid var(--acc,#f6c877);border-bottom:0}
+#tgl .tg-arr.up::before{bottom:0}#tgl .tg-arr.up::after{bottom:16px;border-bottom:20px solid var(--acc,#f6c877);border-top:0}
+@keyframes tgbob{50%{transform:translateY(6px)}}
+#tgl .tg-arr.up{animation-name:tgbobu}@keyframes tgbobu{50%{transform:translateY(-6px)}}
+#tgl .tg-arr.tg-nudge{animation:tgnudge .35s steps(4)}@keyframes tgnudge{25%{transform:translateX(-8px)}50%{transform:translateX(8px)}75%{transform:translateX(-5px)}}
+#tgl .tg-bub{position:fixed;left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));max-width:520px;margin:0 auto;background:#101823;border:3px solid var(--acc,#f6c877);box-shadow:5px 5px 0 #000a;padding:10px 12px;color:#ece5d0;font-size:15px;line-height:1.45;pointer-events:auto}
+#tgl .tg-bub.bot{bottom:max(14px,env(safe-area-inset-bottom))}#tgl .tg-bub.top{top:max(14px,env(safe-area-inset-top))}#tgl .tg-bub.mid{top:50%;transform:translateY(-50%)}
+#tgl .tg-who{font-size:12px;color:var(--acc,#f6c877);font-weight:700;margin-bottom:2px}
+#tgl .tg-btns{display:flex;justify-content:flex-end;margin-top:6px}#tgl .tg-btns:empty{display:none}#tgl .tg-btns button{min-height:40px;padding:4px 16px}
+#tgl .tg-fin{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px max(16px,env(safe-area-inset-right)) 16px max(16px,env(safe-area-inset-left));pointer-events:none}
+#tgl .tg-card{pointer-events:auto;width:100%;max-width:380px;background:#101823;border:3px solid var(--acc,#f6c877);box-shadow:6px 6px 0 #000a;padding:16px;text-align:center;color:#ece5d0;display:flex;flex-direction:column;gap:10px}
+#tgl .tg-big{font-size:40px;line-height:1}#tgl .tg-card>b{font-size:19px}
+#tgl .tg-rew{display:flex;align-items:center;gap:10px;text-align:left;background:#18212e;border:2px solid #34455c;padding:8px}#tgl .tg-rew img{width:56px;height:56px;object-fit:contain}#tgl .tg-rew small{display:block;color:var(--muted,#9aa7b4);font-size:12.5px;margin-top:2px}
+#tgl .tg-card button{min-height:46px;font-size:16px}
+.helpg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.helpg button{display:flex;flex-direction:column;align-items:flex-start;text-align:left;min-height:58px;padding:8px 10px;white-space:normal}.helpg button small{font-size:12px;color:var(--muted);font-weight:400;margin-top:2px}
+.helpl{margin:8px 0 4px;padding-left:18px;line-height:1.55}.helpl li{margin:4px 0}
+</style>
 
 <style id="dot">
 /* ===== 도트판 화면 틀 (BOSS 승인 2026-11-20): 규칙은 v2.2 그대로, 모습만 바꿈 ===== */
@@ -933,7 +957,8 @@ function startRun(st, region, start) { if (st.wTry) E('강화 게이지를 먼�
   st.stats.runs++; log(st, (st.run.practice ? `연습 탐사 ${st.runsDone + 1}/2 시작 (잃는 것 없음, 주운 물건은 못 가져옴)` : `${R.n} 탐사 시작! 쓰러지면 배낭과 장착 무기를 잃어요.`) + (st.run.intel ? ' 📜 정보: ⭐풍부한 곳과 ☠둥지를 지도에 표시했어요' : ''));
 }
 function encounter(st, factor) {
-  if (st.combat) return; // v2.1 이미 싸우는 중(시추 집게)
+  if (st.combat) return;
+  if (st.tm) { if (st.run && st.run.node === 'N2' && !st.tmF) { st.tmF = 1; startCombat(st, 'charger'); st.combat.e.hp = st.combat.e.hpMax = 8; } return; } /* v2.12 튜토리얼 */ // v2.1 이미 싸우는 중(시추 집게)
   if (st.run && isLit(st, st.run.node)) return; // v2.2 불 켠 칸은 안전
   const r = st.run, nd = D.nodes[r.node];
   const danger = nd.danger + (r.node === r.nest ? 2 : 0);
@@ -975,7 +1000,8 @@ function search(st, j) {
   let cnt = 1 + (rng(st) < 0.6 ? 1 : 0) + (rng(st) < 0.2 ? 1 : 0) + (n === r.rich ? 1 : 0) + deepBonus(n) + (P(st, 'search') && rng(st) < 0.15 ? 1 : 0), got = []; // v0.2: 1~3개, v0.3: 풍부한 곳 +1, v0.4: 위험 2는 +1·위험 3은 +2
   const due = partDue(st, n) ? D.partAt[n] : seaDue(st, n); if (due) (r.partGot = r.partGot || {})[n] = true;
   const sd = due ? [] : starterDue(st); if (sd.length) { r.gN = (r.gN || 0) + 1; cnt = Math.max(cnt, sd.length); } // v1.4 첫 귀환 전 끈·테이프 보장
-  for (let q = 0; q < cnt; q++) { const it = (q === 0 && due) ? due : q < sd.length ? sd[q] : pickW(st, bx[j].loot); (r.found[n] = r.found[n] || []).push({ k: it }); got.push(D.items[it].n); }
+  if (st.tm) cnt = 2; /* v2.12 튜토리얼 */
+  for (let q = 0; q < cnt; q++) { const it = st.tm ? ['battery', 'rope'][q] : (q === 0 && due) ? due : q < sd.length ? sd[q] : pickW(st, bx[j].loot); (r.found[n] = r.found[n] || []).push({ k: it }); got.push(D.items[it].n); }
   r.last = { n, j, cnt }; log(st, `${bx[j].e} ${bx[j].n} ${k + 1}/3: ${got.join(', ')} 발견. 위험도 ${r.risk}`); seaSpore(st, 1); seaOilGift(st, n);
   encounter(st, 0.5);
 }
@@ -1374,7 +1400,7 @@ function equipAcc(st, from, i) { needBase(st); const it = (st[from] || [])[i]; i
 function unequipAcc(st) { needBase(st); if (!st.acc) E('끼고 있는 장신구가 없어요'); if (!addTo(st, 'stash', { k: st.acc.k }) && !addTo(st, 'bag', { k: st.acc.k })) E('둘 곳이 없어요'); st.acc = null; }
 function win(st, L) { const n = D.enemies[st.combat.e.k].n; st.stats.kills++; lvGain(st, st.combat.e.k, L); pqAdd(st, 'kill_' + st.combat.e.k); if (!st.equip && st.combat.lastHit === 'fist') pqAdd(st, 'fist'); /* 마지막 피해가 맨손 공격일 때만 [전략실장] */ const boss = isBoss(st.combat.e), ek = st.combat.e.k, lh = st.combat.lastHit, ed = st.combat.e.dist; st.combat = null; log(st, `${n}을(를) 쓰러뜨렸어요! (${L.join(', ')})`); seaWin(st, ek); seaWin2(st, ek, lh, ed); winExtra(st, boss || ek === 'claw' || ek === 'whale');
   if (boss) { st.won5 = true; if (st.run) st.run.bossWin = true; log(st, '🌊 밀물지기를 쓰러뜨리고 씨눈을 얻었어요! (5차 목표) 귀환해서 정화 장치에 끼워요'); } }
-function die(st, why) { if (!(st.run && st.run.practice)) lvDeath(st); /* v2.5 쓰러지면 막대 −5 */
+function die(st, why) { if (st.tm) { st.hp = 1; log(st, '연습 판이라 쓰러지지 않아요 (체력 1)'); return; } /* v2.12 튜토리얼 */ if (!(st.run && st.run.practice)) lvDeath(st); /* v2.5 쓰러지면 막대 −5 */
   const r = st.run; st.stats.deaths++;
   if (r && r.practice) { for (const w of ['bag', 'pocket']) st[w] = st[w].filter(it => !it.f); norm(st); log(st, `${why} — 연습이라 잃은 건 없어요 (연습 중 주운 물건만 사라짐)`); }
   else { const n = st.bag.length + (st.equip ? 1 : 0), pk = st.pack && st.pack !== 'sack' ? D.packs[st.pack].n : ''; st.bag = []; st.equip = null; if (st.acc) { log(st, `끼고 있던 ${D.items[st.acc.k].n}도 잃었어요`); st.acc = null; } st.pack = 'sack'; st.pocket.forEach(it => delete it.f); log(st, `${why} — 배낭${pk ? `(${pk})` : ''}과 장착 무기를 잃었어요 (${n}개). 안전 주머니는 지켰어요${pk ? ' · 천 자루를 다시 받았어요' : ''}`); }
@@ -2026,12 +2052,13 @@ function persist() { try { localStorage.setItem(KEY, G.save(st)); } catch (e) { 
 function act(fn, tag, snd) { const had = !!st.combat, pb = Object.keys(st.passives || {}).length; let ok = true; try { fn(); if (tag) { st.tut = st.tut || {}; st.tut[tag] = true; } } catch (e) { ok = false; toast(e.game ? e.message : '오류: ' + e.message); } if (ok && snd) SND.sfx(snd); if (ok && !had && st.combat && !quietFoe) SND.sfx('S3'); quietFoe = false; if (Object.keys(st.passives || {}).length > pb) toast('🧬 새 패시브를 얻었어요! 거점의 패시브 화면에서 확인'); persist(); render(); }
 // ---------- 첫 판 안내 (v0.2) ----------
 const TUT = [['start', '「탐사 준비 →」 누르고 출발'], ['move', '지도에서 노란 테두리 지점을 눌러 이동'], ['search', '구역의 상자를 눌러 물건 찾기'], ['take', '찾은 물건 「줍기」 (배낭 격자에 맞춰 넣기, ✋로 자리 고르기)'], ['extract', '출구(🚪)에서 「귀환」'], ['sell', '거점에서 필요 없는 물건 팔기 / 의뢰 완료']];
-function tutCard() {
+function tutCard() { return ''; /* v2.12 튜토리얼로 바뀜 */
   const t = st.tut || {}; if (TUT.every(([k]) => t[k]) || t.hide) return '';
   const next = TUT.find(([k]) => !t[k]);
   return `<div class="card" style="border-color:var(--acc)"><div class="row"><b>🧭 첫 판 안내</b><button data-a="tuthide" style="min-height:30px">숨기기</button></div>${img('A1', 'hero', '리커버리')}${TUT.map(([k, s]) => `<div>${t[k] ? '✅' : (next && next[0] === k ? '👉' : '⬜')} ${s}</div>`).join('')}<div class="muted">첫 탐사부터 실전이에요. 쓰러지면 배낭과 장착 무기를 잃으니, 위험하면 일찍 돌아와요.</div><div class="muted" style="margin-top:6px">📖 12년 전 포자 비가 내린 뒤로 등대 불을 꺼 왔어요. 그 탓에 폭풍 치던 밤, 교역선이 섬에 좌초했어요. 선장 마루의 배를 고쳐 주기로 했어요.</div></div>`;
 }
 let rawSave = null, loadFail = false; // v2.0 불러오기에 실패하면 원래 저장 글을 따로 보관 [전략실장]
+let tgNew = false; try { tgNew = !Object.keys(localStorage).some(k => /^recovery-v[0-9]+$/.test(k)); } catch (e) {} /* v2.12 */
 try { const t = localStorage.getItem(KEY) || localStorage.getItem('recovery-v21') || localStorage.getItem('recovery-v20') || localStorage.getItem('recovery-v16') || localStorage.getItem('recovery-v15') || localStorage.getItem('recovery-v14') || localStorage.getItem('recovery-v13') || localStorage.getItem('recovery-v12') || localStorage.getItem('recovery-v11') || localStorage.getItem('recovery-v10') || localStorage.getItem('recovery-v09'); rawSave = t; st = t ? G.load(t) : G.newGame(); } catch (e) { st = G.newGame(); try { if (rawSave) { localStorage.setItem('recovery-broken', rawSave); loadFail = true; } } catch (e2) {} }
 
 const iname = it => D.items[it.k].n + (it.lv ? ` ${it.lv}단계` : '') + (it.fl ? ` (보정 +${it.fl}%)` : '');
@@ -2124,7 +2151,7 @@ function dcRoll() { const g = G.diceInfo(st); if (!g || !dcSel || dcAnim) return
 let gearOpen = false; /* v2.11 */
 function gearSync() { let gv = document.getElementById('gearov'); if (!gv) { gv = document.createElement('div'); gv.id = 'gearov'; document.body.appendChild(gv); }
   if (gearOpen && !st.run && !st.combat && !st.lastRun) gearOpen = false;
-  gv.innerHTML = gearOpen ? `<div class="lvov"><div class="card gearcard"><b>⚙️ 설정</b><div class="btns"><button data-a="snd">${SND.on ? '🔊 소리 켜짐' : '🔇 소리 꺼짐'}</button><button data-a="gearhelp">규칙 보기</button><button class="pri" data-a="gearx">닫기</button></div></div></div>` : ''; }
+  gv.innerHTML = gearOpen ? `<div class="lvov"><div class="card gearcard"><b>⚙️ 설정</b><div class="btns"><button data-a="snd">${SND.on ? '🔊 소리 켜짐' : '🔇 소리 꺼짐'}</button><button data-a="gearhelp">📖 규칙 보기</button><button class="pri" data-a="gearx">닫기</button></div></div></div>` : ''; }
 function header() { header0(); dcSync(); gearSync(); const li = G.levelInfo(st), hd = $('#hdr'); { let ov = document.getElementById('lvovw'); if (!ov) { ov = document.createElement('div'); ov.id = 'lvovw'; document.body.appendChild(ov); } ov.innerHTML = !st.combat && !showHelp && !(st.lastRun && !st.run) && !(st.run && st.run.event) && !bossAsk ? lvBanner() : ''; /* 다른 창이 닫힌 뒤에 뜸 [전략실장] */ } if (hd) hd.insertAdjacentHTML('afterbegin', `<span class="lvtag" data-a="lvopen">⭐${li.label}${li.pend ? ' 🎁' : ''}</span> `); }
 function header0() {
   const r = st.run, c = st.combat;
@@ -2329,7 +2356,7 @@ function renderBase() {
   h += '<!--§shop-->';
   // 상점
   h += `<div class="card"><b>🛒 선장 마루의 상점</b><div class="tabs">${[[1, '물건'], [2, '화물 상자'], [3, '봉인 상자']].map(([n, t]) => `<button class="${shopPage === n ? 'on' : ''}" data-a="shoppg" data-k="${n}">${t}</button>`).join('')}</div>${shopPage === 1 ? `<div class="muted">📦 오늘 들어온 물건 (DAY ${st.day}) · 날이 바뀌면 물건이 바뀌어요. 칼은 늘 있어요.</div>` + G.shopStock(st).map(k => [k, D.shop[k]]).map(([k, p]) => `<div class="item"><div><div class="nm">${D.items[k].n}<span class="tag">${D.items[k].sh[0]}×${D.items[k].sh[1]}</span></div><div class="muted">${esc(D.items[k].use)} · 되팔면 ${D.items[k].p}</div></div><div class="btns sm"><button data-a="buy" data-k="${k}" ${st.coins < p ? 'disabled' : ''}>${p}코인</button></div></div>`).join('') : boxHtml(shopPage === 2 ? 'cargo' : 'sealed')}</div>`;
-  h += '<!--§log-->' + logCard() + '<!--§settings-->' + `<div class="card"><div class="btns sm"><button data-a="snd">${SND.on ? '🔊 소리 켜짐' : '🔇 소리 꺼짐'}</button><button data-a="help">규칙 보기</button><button data-a="exp">저장 내보내기</button><button data-a="imp">불러오기</button><button class="danger" data-a="reset">새 게임</button></div>
+  h += '<!--§log-->' + logCard() + '<!--§settings-->' + `<div class="card"><div class="btns sm"><button data-a="snd">${SND.on ? '🔊 소리 켜짐' : '🔇 소리 꺼짐'}</button><button data-a="help">📖 규칙 보기</button><button data-a="exp">저장 내보내기</button><button data-a="imp">불러오기</button><button class="danger" data-a="reset">새 게임</button></div>
   ${saveBox === 'exp' ? `<div class="muted" style="margin-top:6px">아래 글이 저장 데이터예요. 복사해서 메모장 등에 보관하세요. 다른 기기에서 「불러오기」에 붙여 넣으면 이어서 할 수 있어요.</div><textarea id="expTxt" readonly style="width:100%;min-height:90px;background:#101316;color:var(--ink);border:1px solid var(--line);border-radius:8px">${esc(G.save(st))}</textarea><div class="btns sm"><button data-a="copy">복사</button><button data-a="closebox">닫기</button></div>` : ''}
   ${saveBox === 'imp' ? `<div class="muted" style="margin-top:6px">내보낸 글을 붙여 넣고 「불러오기」를 누르세요. 지금 진행은 불러온 내용으로 바뀌어요(잘못된 글이면 바뀌지 않아요).</div><textarea id="impTxt" style="width:100%;min-height:90px;background:#101316;color:var(--ink);border:1px solid var(--line);border-radius:8px"></textarea><div class="btns sm"><button class="pri" data-a="doimp">불러오기</button><button data-a="closebox">닫기</button></div>` : ''}
   <div class="muted">리커버리 시험판 v${D.version} · 자동 저장은 이 기기·이 브라우저에만 돼요</div></div>`;
@@ -2955,14 +2982,97 @@ function renderCombat() {
   ${tools.length ? `<div class="muted" style="margin-top:6px">도구 (한 턴 소모)</div><div class="btns sm">${tools.join('')}</div>` : ''}
   </div><div class="card"><div class="log">${c.lines.map(l => `<div>· ${esc(l)}</div>`).join('')}</div></div>`;
 }
+/* ===== v2.12 규칙 보기: 주제별로 나눔 (BOSS 요청 2026-11-24 "보관함·가방·탐험·전투… 세부적으로 나눠서, 누르면 내용과 방법") ===== */
+let helpCat = null;
+const HELP = [
+  ['base', '🏠 거점', '거점에서 할 수 있는 일', () => [
+    '거점(등대)에서 준비하고 탐사를 떠나요. 그림 속 물건을 누르면 열려요.',
+    '📦 보관함: 물건을 쌓아 두는 곳. 🛏️ 치료: 코인으로 체력을 채워요(의무실을 지으면 무료).',
+    '🔧 작업대: 무기 강화·가방 만들기·시설 짓기. 📻 의뢰: 할 일을 받고 보상을 받아요.',
+    '🗺️ 마루의 해도: 다음 탐사에서 ⭐ 풍부한 곳과 ☠ 둥지를 미리 봐요.',
+    '🧬 패시브(위층): 어려운 퀘스트를 깨면 작은 능력이 영구히 생겨요.',
+    '「← 등대 나가기」: 등대 밖 갈매기호(상점)와 해안(시간 보내기)으로 가요.']],
+  ['storage', '📦 보관함', '물건 넣고 빼기·보관함 늘리기', () => [
+    '거점에 물건을 쌓아 두는 곳이에요. 탐사에서 쓰러져도 보관함 물건은 그대로예요.',
+    '물건은 종류별로 묶여 있어요. 묶음을 눌러 펼친 뒤 「배낭」·「주머니」로 옮기거나 「쓰기」·「팔기」를 눌러요.',
+    '🔒를 누르면 그 종류의 물건이 모두 잠겨서 실수로 팔리지 않아요.',
+    `칸이 정해져 있어요. 「보관함 확장」 시설을 지으면 늘고, 귀중품을 내면 단계가 올라 더 늘어요.`,
+    '탐사에서 돌아와 결과창의 「🎒 배낭 정리하기」를 누르면 바로 보관하거나 팔 수 있어요.']],
+  ['bag', '🎒 가방·배낭', '격자·파우치·안전 주머니', () => [
+    '탐사에는 배낭·안전 주머니에 든 것과 장착한 무기만 가져가요. 배낭은 눈에 보이는 격자예요.',
+    '물건마다 모양(1×1·1×2·2×2·1×3)이 있어요. 눌러서 옮기고 ↻로 돌려요.',
+    '파우치는 겉보다 안이 넓어요(소형 파우치는 배낭에 넣으면 안에 2×3칸).',
+    '큰 가방은 작업대에서 만들거나 주워서, 거점에서 메요.',
+    '안전 주머니: 1칸짜리 물건을 2개까지 넣을 수 있고, 쓰러져도 지켜져요.',
+    '배낭이 꽉 차면 「바꿔 줍기」로 무엇을 내려놓을지 골라요.',
+    '⚠️ 쓰러지면 배낭(메고 있던 가방째)과 장착 무기·장신구를 잃어요.']],
+  ['coin', '💰 코인·상점', '버는 법과 쓰는 법', () => [
+    '버는 법: 물건 팔기, 의뢰 보상, 조난 무전의 보답.',
+    '쓰는 법: 상점에서 사기, 치료, 무기 강화, 시설 짓기, 마루의 해도, 보급 상자 예약.',
+    '상점은 등대 밖 갈매기호(선장 마루)에 있어요. 날(DAY)이 바뀌면 물건이 바뀌고, 칼은 늘 있어요.',
+    '화물 상자·봉인 상자는 호박석으로 열어요. 호박석은 적을 쓰러뜨리면 가끔 나와요.',
+    '첫 귀환에 성공한 뒤부터 「탐사 준비」에서 코인으로 보급 상자를 예약할 수 있어요.']],
+  ['explore', '🧭 탐사', '이동·조사·귀환·낮과 밤', () => [
+    '「탐사 준비 →」에서 지역을 골라 출발해요. 화살표를 눌러 이어진 곳으로 이동해요.',
+    '지점마다 상자 3개를 뒤질 수 있어요(상자 1개 = 조사 1번).',
+    '⚡ 기력: 이동·조사할 때마다 줄어요. 다 떨어지면 체력이 대신 줄어요. 통조림·물병으로 채워요.',
+    '⚠️ 위험도: 이동·조사할수록 올라서 적이 자주 나와요. 위험 표시가 2개 이상인 깊은 곳은 물건이 더 많이 나오지만 위험도도 더 올라요.',
+    '❗ 사건: 이동하다 가끔 일어나요. 선택지와 결과를 보고 골라요(첫 탐사에는 없어요).',
+    '🚪 출구에서 「귀환」하면 성공이에요. 가져온 물건은 결과창에서 봐요.',
+    '☀️ 낮엔 적이 자주 나오지만 약하고, 🌙 밤엔 드물게 나오지만 세요. 탐사 한 번이 반나절이라, 낮에 나가면 그날 밤에, 밤에 나가면 다음 날 아침에 돌아와요.',
+    '열쇠는 잠긴 방을 열어요. 1칸이라 안전 주머니에 넣으면 쓰러져도 지켜져요.']],
+  ['combat', '⚔️ 전투', '다음 행동·거리·막기', () => [
+    '위쪽에 적의 체력과 「다음:」 행동이 보여요. 다음 행동을 보고 대응해요.',
+    '거리는 가까움·중간·멀리 세 칸이에요. 무기마다 닿는 거리가 달라요(칼은 적이 가까이 있을 때만 닿아요).',
+    '⚔️ 공격 · 🛡️ 막기(받는 피해를 크게 줄여요) · ▲ 다가가기 · ▼ 물러나기.',
+    '🏃 후퇴: 적이 멀리 있을 때만 할 수 있고 기력 3이 들어요(등대 열쇠고리를 차면 2). 보스 전투에서는 후퇴할 수 없어요.',
+    '🎒 도구: 붕대·통조림을 쓰거나 돌·병·조명탄을 던져요. 한 턴이 지나가요.',
+    '던지기는 돌진·침·기습·모여들기·휘감기·사슬 감기 같은 행동을 끊어요.',
+    '강타처럼 큰 공격 뒤에는 빈틈이 생기는 적이 있어요. 그때가 공격할 기회예요.']],
+  ['weapon', '🔧 무기 강화', '주사위판 강화', () => [
+    '작업대에서 코인으로 강화해요(10단계까지). 1→2는 작업대 1단계, 2→3부터는 작업대 2단계가 필요해요.',
+    '🎲 주사위판: 12칸짜리 판에서 시작 칸을 고르고, 주사위 두 개의 합만큼 오른쪽으로 가요(12 다음은 1). 멈춘 칸이 결과예요.',
+    '대성공 칸(1칸)에 멈추면 +2단계예요. 1~3단계 판에는 실패 칸이 없어요.',
+    '4단계부터는 실패 칸이 있어요. 실패하면 50% 확률로 그대로, 50% 확률로 1단계 내려가요(3단계 아래로는 안 내려가요).',
+    '실패 2번마다 다음 판의 성공 칸이 1개 늘어요. 3단계가 되면 무기의 특수 효과가 열려요.',
+    '⚠️ 쓰러지면 강화한 무기도 잃어요.']],
+  ['level', '⭐ 레벨·패시브', '레벨업 보너스와 패시브', () => [
+    '맨 위 ⭐에 레벨과 경험치 막대가 보여요. 적을 쓰러뜨릴 때마다 막대가 차요(보스는 더 많이).',
+    '레벨이 오르면 보너스(체력·공격·막기) 중 하나를 골라요. 「나중에」를 누르면 ⭐를 눌러 다시 고를 수 있어요.',
+    '쓰러지면 다음 레벨까지 쌓은 처치 수가 조금 줄어요(레벨은 그대로예요).',
+    '🧬 패시브: 처치·제출·맨손 같은 어려운 퀘스트를 깨면 작은 능력이 영구히 생겨요. 거점 위층에서 봐요.']],
+  ['goal', '🎯 목표·의뢰', '1장 목표와 의뢰', () => [
+    '1차 목표: 등대 시설 3개(작업대 2단계·보관함 확장·의무실).',
+    '2차 목표: 갱도 승강기를 고쳐 균사 갱도를 열고 ★ 갱도 의뢰 3개 끝내기.',
+    '3차 목표: 거점에서 정화 장치를 3단계까지 짓기(정화부는 필터 대신 코인으로도 돼요).',
+    '4차 목표: 의뢰 「방파제 수문」 → 잠긴 항구에서 배 수리 부품 3개를 찾아 갈매기호를 고쳐요.',
+    '5차 목표: 1장 보스 밀물지기를 쓰러뜨려요.',
+    '📜 의뢰는 무전기에서 받아요. 처치·탐사 의뢰는 실전 탐사에서 귀환해야 인정되고, 물건 보상은 보관함으로 들어와요.']],
+  ['harbor', '🌊 항구·보스', '밀물과 밀물지기', () => [
+    '잠긴 항구: 이동 6번마다 🌊 밀물이 차서 낮은 곳부터 잠겨요(들어갈 때 기력 3, 상자를 못 뒤져요).',
+    '배 수리 부품 3개는 낮은 곳에 있어요. 아직 없는 부품은 물이 차기 전에 그 지점을 처음 조사하면 꼭 나와요.',
+    '밀물지기(1장 보스): 배를 다 고치면 방파제 입구에서 도전해요. 전투에서 후퇴할 수 없어요.',
+    '4턴마다 물이 차올라 공격이 바뀌어요. 물이 오른 바로 다음 턴엔 씨눈이 드러나 피해가 두 배예요.',
+    '만조에는 행동마다 기력 1(없으면 체력 2)이 들어요. 사슬 감기는 던지면 끊겨요.',
+    '지면 보통처럼 배낭과 장착 무기를 잃어요.']],
+  ['sea', '🌫 바다(2장)', '항로 표지·안개', () => [
+    '1장을 끝내면 갈매기호를 타고 「포자 바다」로 나가요. 거점이 배(선실·갑판)로 옮겨져요.',
+    '구역마다 📍 항로 표지를 찾아 조타실에 내면 다음 구역으로 갈 수 있어요. 표지를 잃어도 그 칸에 다시 나와요.',
+    '처음 가는 칸은 지도에 ?로 보여요. 안개가 짙으면 적이 가까이에서 먼저 덮쳐요. 밤엔 안개가 더 짙어요.',
+    '갑판의 탐조등을 켜고 나가면(기름 1통) 안개가 옅어지고, 고래 기름이면 더 옅어져요.',
+    '🔔 종 부표를 울리면 주변 2칸의 안개가 걷히고 안개가 한 단계 옅어지지만, 위험도가 올라요.',
+    '구역마다 해초 길, 잠긴 선장실, 등불 같은 장치가 있어요. 탐사 화면의 알림을 따라가요.']],
+  ['setting', '⚙️ 설정·저장', '소리·저장·새 게임', () => [
+    '윗줄 오른쪽 ⚙️를 누르면 설정이 열려요. 소리 켜기·끄기, 규칙 보기가 있어요.',
+    '이 기기의 이 브라우저에 자동으로 저장돼요. 「저장 내보내기」로 글을 복사해 두면 「불러오기」로 되살릴 수 있어요.',
+    '「새 게임」은 지금 저장을 지우고 처음부터 시작해요(튜토리얼부터).',
+    '휴대폰에서는 화면을 한 번 누른 뒤부터 소리가 나요.']]
+];
 function helpHtml() {
-  return `<div class="card"><b>리커버리 — 규칙 한눈에</b>${img('A1', 'hero', '리커버리')}<div class="muted">
-  · 거점에서 준비하고 탐사를 떠나요. 지도에서 이어진 곳을 눌러 이동해요.<br>· 지점마다 상자 3개를 열어 볼 수 있어요(상자 1개 = 조사 1번). 이동·조사할 때마다 기력이 줄고 위험도가 올라 적이 자주·강하게 나와요.<br>
-  · 배낭은 눈에 보이는 격자예요. 물건마다 모양(1×1·1×2·2×2·1×3)이 있고, 눌러서 옮기고 ↻로 돌려요. 파우치는 겉보다 안이 넓어요. 큰 가방은 작업대에서 만들거나 주워서 거점에서 메요. 쓰러지면 가방째 잃어요. 꽉 차면 「바꿔 줍기」로 무엇을 버릴지 골라요. 깊은 곳(⚠⚠ 이상)은 조사하면 더 많이 나오지만 위험도가 더 올라요. 1칸짜리 2개는 안전 주머니에 넣으면 쓰러져도 지켜져요.<br>· 3차 목표를 끝내고 의뢰 「방파제 수문」을 마치면 「잠긴 항구」가 열려요. 이동 6번마다 🌊밀물이 차서 낮은 곳부터 잠겨요(들어갈 때 기력 3, 상자 못 뒤짐). 배 수리 부품 3개는 낮은 곳에 있어요. 작업대에서 배를 고치면 4차 목표예요.<br>· 📜 의뢰는 15개예요(무전기). 처치·탐사 의뢰는 실전 탐사에서 귀환해야 인정되고(무너진 통로로 나가도 귀환이에요), 물건 보상은 보관함으로 들어와요.<br>· 이동하다 가끔 ❗사건이 일어나요. 선택지와 결과를 보고 골라요(첫 탐사에는 없어요). 열쇠는 창고·광업소 사무실의 잠긴 방을 열어요. 1×1이라 안전 주머니에 넣으면 쓰러져도 지켜져요. 첫 귀환 뒤부터 「탐사 준비」에서 코인으로 보급 상자를 예약할 수 있어요.<br>· 출구(🚪)에서 귀환하면 성공. 쓰러지면 배낭과 장착 무기를 잃어요. 처음 받은 칼·붕대는 다시 주지 않아요(팔 수는 있어요). 귀환하면 결과창에서 「배낭 정리하기」로 바로 보관하거나 팔아요.<br>
-  · 전투: 적의 다음 행동이 보여요. 거리(가까움·중간·멀리)를 바꾸고, 막고, 공격하세요. 후퇴는 멀리에서만.<br>· 균체는 소리·빛에 반응해요. 돌·병·조명탄을 던지면 돌진·침·기습·모여들기·휘감기·사슬 감기를 끊어요.<br>
-  · 🌊 밀물지기(1장 보스): 배를 다 고치면 잠긴 항구의 방파제 입구에서 도전해요. 물러날 수 없고, 4턴마다 물이 차올라 공격이 바뀌어요. 물이 오른 바로 다음 턴엔 씨눈이 드러나 피해가 두 배예요. 만조에는 행동마다 기력 1(없으면 체력 2). 사슬 감기는 던지면 끊기고, 붙잡혔을 때 때리면 풀리면서 조이기도 끊겨요(조이기를 맞으면 그다음 턴이 빈틈이에요). 내 공격으로 보스 체력이 다하면 그 자리에서 이기고, 같은 턴에 둘 다 쓰러지면 진 거예요. 지면 보통처럼 배낭과 장착 무기를 잃어요.<br>· ☀️🌙 낮과 밤: 낮엔 적이 자주 나오지만 약하고, 밤엔 드물게 나오지만 세요. 탐사 한 번이 반나절이에요: 낮에 나가면 그날 밤에, 밤에 나가면 다음 날 아침에 돌아와요(DAY는 아침이 올 때만 올라요). 등대 밖 해안에서 쉬어 넘길 수도 있어요. 상점은 등대 밖 갈매기호에 있어요(왼쪽 아래 「← 등대 나가기」).<br>· 📜 마루의 해도: 다음 탐사의 ⭐풍부한 곳(조사 +1개)과 ☠둥지(적이 자주)를 미리 봐요.<br>· 1차 목표: 등대 시설 3개(작업대 2단계·보관함 확장·의무실). 2차 목표: 승강기를 고쳐 균사 갱도를 열고 ★ 갱도 의뢰 3개. 3차 목표: 거점에서 정화 장치 3단계 짓기(정화부는 필터 대신 코인으로도).<br>· 🧬 패시브: 어려운 퀘스트(처치·제출·맨손 등)를 깨면 작은 능력이 영구히 생겨요. 거점의 「패시브」에서 진행을 봐요.<br>· 🔊 위쪽 버튼으로 소리를 켜고 꺼요. 폰은 화면을 한 번 누른 뒤부터 소리가 나요.</div>
-  <div class="btns"><button data-a="closehelp">닫기</button></div></div>`;
+  if (helpCat) { const c = HELP.find(x => x[0] === helpCat); if (c) return `<div class="card helpc"><div class="row"><b>${c[1]}</b><button data-a="helpback" style="min-height:34px">← 목록</button></div><ul class="helpl">${c[3]().map(t => `<li>${t}</li>`).join('')}</ul><div class="btns"><button data-a="helpback">← 다른 주제</button><button data-a="closehelp">닫기</button></div></div>`; }
+  return `<div class="card helpc"><div class="row"><b>📖 규칙 보기</b><button data-a="closehelp" style="min-height:34px">닫기 ✕</button></div><div class="muted">알고 싶은 주제를 눌러요.</div><div class="helpg">${HELP.map(c => `<button data-a="helpcat" data-k="${c[0]}"><b>${c[1]}</b><small>${c[2]}</small></button>`).join('')}</div></div>`;
 }
+
 let showHelp = false, confirmReset = false, saveBox = '', showPassive = false;
 function passiveHtml() {
   const L = G.passiveInfo(st), got = L.filter(p => p.done).length;
@@ -3164,7 +3274,7 @@ function seaIcon(id) { const n = D.nodes[id], s = st.sea || {}, z = D.regions[G.
   return (n.mark && (s.cleared || 0) < z ? '📍' : '') + (n.bell ? '🔔' : '') + (n.lock && !s.capOpen ? '🔒' : '') + (n.lamp ? (s.lit && s.lit[id] ? '🏮' : '🕯') : '') + (n.door && !G.seaInfo4(st).allLit ? '🚪' : '') + (n.whale ? '🐋' : '') + (n.guard && !s.clawDead ? '⚙️' : ''); }
 function renderScene() {
   const m = baseParts(), p0 = st.pack || 'sack', pim = RA['I_' + (p0 === 'sack' ? 'sack' : p0 + 'F')], b = G.bagCells(st);
-  const t = st.tut || {}; const TUTN = TUT.find(([k2]) => !t[k2]); const tut = (!t.hide && TUTN) ? `<div class="tutmini"><span>🧭 다음: ${TUTN[1]}</span><button data-a="tuthide">숨기기</button></div>` : '';
+  const t = st.tut || {}; const TUTN = TUT.find(([k2]) => !t[k2]); const tut = (false && !t.hide && TUTN) ? `<div class="tutmini"><span>🧭 다음: ${TUTN[1]}</span><button data-a="tuthide">숨기기</button></div>` : '';
   bgStyle();
   let h = `<div class="scene bgim ${st.tod === 1 ? 'tn' : 'td'}"><div class="ttl">${SEAON() ? (outside ? '🌊 갈매기호 갑판' : '⚓ 갈매기호 선실') : outside ? '🌊 등대 바깥' : '🗼 등대 거점'}<small>DAY ${st.day}${todChip()}${seaChip()}${SEAON() ? '' : st.won5 ? ' · 🏁 1장 끝' : st.won4 ? ' · 🚢 4차 달성' : st.won3 ? ' · 🌟 3차 달성' : st.won2 ? ' · 🌱 2차 달성' : st.won ? ' · 🎉 1차 달성' : ''}</small></div>${tut}
     ${SEAON() ? seaSceneHtml() : outside ? outHtml() : RA.BG1 ? OBJS.map(objHtml).join('') + OBJS.map(o => `<span class="olab" style="left:${o.lp[0] / 7.2}%;top:${o.lp[1] / 12.8}%">${o.n}</span>`).join('') + '<div class="hitlayer" data-a="objhit" aria-label="거점 물건 누르기"></div>'
@@ -3217,6 +3327,7 @@ document.addEventListener('click', ev => {
   if (dcBusy() && !el.closest('#dcw')) return; /* v2.9 판이 떠 있으면 뒤 화면(키보드 포함) 막음 */ if (a === 'dcpick') { dcSel = +k; return dcSync(); } if (a === 'dcroll') return dcRoll(); if (a === 'dcclose') { let r = null; act(() => { r = G.diceClose(st); }); if (r) { dcRes = r; dcKeep(r); dcResAt = performance.now(); render(); } return; } if (a === 'dcok') { if (performance.now() - dcResAt < WG_HOLD) return; dcRes = null; dcKeep(null); return render(); } /* v2.9 주사위판 */
   if (a === 'wgclose') return wgHit(null); if (a === 'wgok') { if (performance.now() - wgResAt < WG_HOLD) return; wgRes = null; wgLast = null; return render(); } /* v2.7 */
   if (a === 'lvpick') return act(() => G.lvPick(st, k)); // v2.5 레벨업 고르기는 결과창·사건 중에도 됨
+  if (a === 'helpcat') { helpCat = k; window.scrollTo(0, 0); return render(); } if (a === 'helpback') { helpCat = null; window.scrollTo(0, 0); return render(); } /* v2.12 규칙 보기 */
   if (a === 'gear') { if (!st.run && !st.combat && !st.lastRun) { const to = sheet === 'more' ? '' : 'more'; sheetFresh = !!to; sheetSwitch = true; sheet = to; wPick = false; pPick = false; gearOpen = false; return render(); } gearOpen = !gearOpen; return render(); }
   if (a === 'gearx') { gearOpen = false; return render(); } if (a === 'gearhelp') { gearOpen = false; showHelp = true; return render(); } /* v2.11 톱니 */
   if (a === 'lvlater') { lvLater = st.lvl; return render(); } if (a === 'lvopen') { lvLater = -1; return render(); }
@@ -3243,10 +3354,10 @@ document.addEventListener('click', ev => {
   if (a === 'equip') wPick = false; if (a === 'mv' && t === 'pocket') pPick = false;
   if (a === 'passive') { showPassive = true; window.scrollTo(0, 0); return render(); } if (a === 'closepassive') { showPassive = false; return render(); }
   if (a === 'psubmit') return act(() => G.submitPassive(st, k));
-  if (a === 'help') { showHelp = true; return render(); } if (a === 'closehelp') { showHelp = false; return render(); }
+  if (a === 'help') { showHelp = true; return render(); } if (a === 'closehelp') { helpCat = null; showHelp = false; return render(); }
   if (a === 'shoppg') { shopPage = +k; return render(); } // v2.3
   if (a === 'reset') { confirmReset = true; return render(); } if (a === 'reset0') { confirmReset = false; return render(); }
-  if (a === 'reset2') { confirmReset = false; st = G.newGame(); persist(); window.scrollTo(0, 0); return render(); }
+  if (a === 'reset2') { confirmReset = false; tgNew = true; st = G.newGame(); persist(); window.scrollTo(0, 0); return render(); }
   if (a === 'tuthide') { st.tut = st.tut || {}; st.tut.hide = true; persist(); return render(); }
   if (a === 'exp' || a === 'imp') { saveBox = saveBox === a ? '' : a; return render(); }
   if (a === 'closebox') { saveBox = ''; return render(); }
@@ -3303,6 +3414,118 @@ document.addEventListener('click', ev => {
     else if (a === 'box') G.openBox(st, k); else if (a === 'acceq') G.equipAcc(st, f, i); else if (a === 'accun') G.unequipAcc(st); // v2.3
   }, TAG[a], snd);
 });
+/* ===== v2.12 튜토리얼 (BOSS 지시 2026-11-24, 관문 1: 쓰러지지 않음 · 진짜 게임과 따로 · 끝나면 DAY 1 아침 + 소형 파우치 · 하던 저장은 그대로) =====
+   연습 판(st.tm)을 따로 만들어 진행 → 끝나면 버리고 새 게임을 만듦. 화살표가 가리키는 곳 말고는 사람 손 입력(누르기·키·스크롤)을 모두 막음.
+   단계 번호는 st.tg에 저장 → 새로고침해도 이어서 함. 시험 도구는 window.__noTut으로 끔. */
+const TSEED = 1; /* 연습 판 씨앗: 첫날 상점에 통조림이 있음 */
+const tq = s => document.querySelector(s);
+const tVis = e => !!e && !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
+const tTurn = () => (st.combat ? st.combat.turn : 99);
+const tBagI = k => st.bag.findIndex(x => x.k === k);
+const TSTEP = [
+  { t: '안녕하세요, 선원이에요! 지금부터 연습 판으로 게임을 배워요. 연습 판에서는 쓰러지지 않고, 여기서 한 일은 진짜 게임에 남지 않아요.', next: 1 },
+  { sel: '#hdr', t: '화면 맨 위를 보세요. ❤️ 체력 · 🎒 배낭 칸 · 💰 코인이 보여요.', next: 1 },
+  { pre: () => !sheet && !outside, obj: 'storage', t: '먼저 📦 보관함을 눌러요. 거점에 물건을 쌓아 두는 곳이에요.', done: () => sheet === 'storage', fix: () => { outside = false; sheet = ''; } },
+  { sel: '.sheet [data-a="cattog"]', t: '물건이 종류별로 묶여 있어요. 「💊 의료」를 눌러 펼쳐요.', done: () => tVis(tq('.sheet [data-a="mv"][data-f="stash"][data-t="bag"]')), fix: () => { outside = false; sheet = 'storage'; } },
+  { sel: '.sheet [data-a="mv"][data-f="stash"][data-t="bag"]', t: '붕대를 「배낭」으로 옮겨요. 탐사에는 배낭·안전 주머니에 든 것과 장착한 무기만 가져가요.', done: () => tBagI('bandage') >= 0 },
+  { sel: '.sheet [data-a="sheet"][data-k=""]', t: '「주머니」는 안전 주머니예요. 1칸짜리 물건을 2개까지 넣을 수 있고, 쓰러져도 지켜져요. 이제 「닫기」를 눌러요.', done: () => !sheet },
+  { pre: () => !sheet && !outside, sel: '.exitbtn[data-a="goout"]', t: '이번엔 코인 쓰는 법이에요. 「← 등대 나가기」를 눌러요.', done: () => outside, fix: () => { sheet = ''; outside = false; } },
+  { pre: () => !sheet && outside, obj: 'ship', t: '갈매기호에 선장 마루의 상점이 있어요. 배를 눌러요.', done: () => sheet === 'ship', fix: () => { sheet = ''; outside = true; } },
+  { sel: '.sheet [data-a="buy"][data-k="can"]', t: '💰 코인으로 물건을 사요. 통조림(기력 +8)을 사 볼까요?', done: () => [...st.stash, ...st.bag].some(x => x.k === 'can'), fix: () => { outside = true; sheet = 'ship'; } },
+  { sel: '.sheet [data-a="sheet"][data-k=""]', t: '코인은 물건을 팔거나 의뢰를 끝내면 벌어요. 상점 물건은 날마다 바뀌어요. 「닫기」를 눌러요.', done: () => !sheet },
+  { pre: () => !sheet, sel: '[data-a="sheet"][data-k="door"]', t: '이제 탐사를 떠나요. 「탐사 준비 →」를 눌러요.', done: () => sheet === 'door', fix: () => { sheet = ''; } },
+  { sel: '.sheet [data-a="start"]', t: '갈 곳을 골라요. 「포자 숲 시가지」로 출발!', done: () => !!st.run, fix: () => { sheet = 'door'; } },
+  { sel: '#hdr', t: '탐사 중이에요. ⚡ 기력은 이동·조사에 쓰여요. ⚠️ 위험도가 오를수록 적이 자주 나와요. 🚪 출구까지 몇 칸인지도 보여요.', next: 1 },
+  { sel: '[data-a="search"][data-k="0"]', t: '상자를 눌러 뒤져요. 한 곳에 상자가 3개 있고, 뒤질 때마다 기력 1이 들어요.', done: () => !!(st.run && st.run.searched && st.run.searched.E1) },
+  { sel: '[data-a="take"][data-i="0"]', t: '찾은 물건이에요. 「배터리」를 눌러 주워서 배낭에 넣어요. 비싸게 팔리는 물건이에요.', done: () => tBagI('battery') >= 0, wait: 1 },
+  { sel: '[data-a="move"][data-k="N2"]', t: '화살표를 누르면 이어진 곳으로 가요. 「편의점」으로 이동해요.', done: () => !!(st.run && st.run.node === 'N2') },
+  { sel: '.fphud', t: '적이 나타났어요! 위에 적의 체력과 「다음:」 행동이 보여요. 다음 행동을 보고 대응하는 게 전투의 핵심이에요.', next: 1, wait: 1 },
+  { sel: '.fpdist', t: '오른쪽은 거리예요(가까움·중간·멀리). 칼은 적이 가까이 있을 때만 닿아요.', next: 1 },
+  { sel: '[data-a="ca"][data-k="approach"]', t: '적이 돌진해 와요. 「▲ 다가가기」로 맞서요.', done: () => tTurn() >= 1 },
+  { sel: '[data-a="ca"][data-k="block"]', t: '「다음: 강타」! 세게 때리려 해요. 「🛡️ 막기」로 피해를 크게 줄여요.', done: () => tTurn() >= 2, wait: 1 },
+  { sel: '[data-a="ca"][data-k="attack"]', t: '강타 뒤엔 빈틈이 생겨요. 지금 「⚔️ 공격」!', done: () => tTurn() >= 3, wait: 1 },
+  { sel: '[data-a="ca"][data-k="block"]', t: '또 강타예요. 「🛡️ 막기」!', done: () => tTurn() >= 4, wait: 1 },
+  { sel: '[data-a="ca"][data-k="attack"]', t: '빈틈! 「⚔️ 공격」으로 마무리해요.', done: () => !st.combat, wait: 1 },
+  { sel: () => tq(`[data-a="use"][data-f="bag"][data-i="${tBagI('bandage')}"]`), t: '이겼어요! 체력이 조금 줄었죠? 붕대 옆의 「쓰기」를 눌러 체력을 채워요. 전투 중에는 「🎒 도구」로 써요.', done: () => tBagI('bandage') < 0, wait: 1 },
+  { sel: '[data-a="move"][data-k="E1"]', t: '이제 돌아가요. 🚪 표시가 있는 「입구」로 가요.', done: () => !!(st.run && st.run.node === 'E1') },
+  { sel: '[data-a="extract"]', t: '출구에서 「🚪 귀환」을 누르면 탐사 성공! 실전에서 쓰러지면 배낭과 장착 무기를 잃으니, 위험하면 일찍 돌아와요.', done: () => !st.run },
+  { sel: '[data-a="rclose"]', t: '가져온 물건이 보여요. 「거점으로」를 눌러요.', done: () => !st.lastRun, wait: 1 },
+  { pre: () => !sheet && !outside, sel: '[data-a="sheet"][data-k="bag"]', t: '주운 배터리를 팔아 볼게요. 「장비」를 눌러요.', done: () => sheet === 'bag', fix: () => { outside = false; sheet = ''; } },
+  { sel: () => tq(`.sheet [data-a="sell"][data-f="bag"][data-i="${tBagI('battery')}"]`), t: '배터리의 「팔기」를 눌러요.', done: () => tBagI('battery') < 0, fix: () => { sheet = 'bag'; } },
+  { sel: '#hdr', t: '💰 코인이 늘었어요! 탐사 → 귀환 → 팔기 → 준비, 이 과정을 되풀이하며 등대를 살려요. 규칙은 ⚙️ 설정의 「📖 규칙 보기」에서 언제든 볼 수 있어요.', next: 1 },
+  { fin: 1 }
+];
+let tgLay = null, tgSeen = -1, tgMiss = 0, tgAt = 0;
+function tgFresh(s) { return tgNew && !s.tm && !s.tutDone && s.day === 1 && !s.runsDone && !s.rs && !s.run && !(s.stats && s.stats.runs); }
+function tgBegin() { const s = G.newGame(TSEED); s.tm = 1; s.tg = 0; st = s; outside = false; sheet = ''; gearOpen = false; showHelp = false; persist(); render(); window.scrollTo(0, 0); }
+function tgFinish() { const s = G.newGame(); s.tutDone = true; s.stash.push({ k: 'pouchS' }); s.log.unshift('🎁 튜토리얼 보상: 소형 파우치를 보관함에 넣었어요'); st = s; outside = false; sheet = ''; gearOpen = false; showHelp = false; persist(); render(); window.scrollTo(0, 0); }
+function tgTarget(S) { if (S.obj) return tq(`.obj[data-k="${S.obj}"]`); if (typeof S.sel === 'function') return S.sel(); if (!S.sel) return null; for (const x of S.sel.split(',')) { const e = [...document.querySelectorAll(x.trim())].find(tVis); if (e) return e; } return null; }
+function tgEls() { if (tgLay) return tgLay; const L = document.createElement('div'); L.id = 'tgl';
+  L.innerHTML = '<div class="tg-dim"></div><div class="tg-hole"></div><div class="tg-arr"></div><div class="tg-bub"><div class="tg-who">🧭 선원</div><div class="tg-t"></div><div class="tg-btns"></div></div><div class="tg-fin"></div>'; document.body.appendChild(L); tgLay = L; return L; }
+function tgBtns(b, h) { if (b.dataset.h !== h) { b.dataset.h = h; b.innerHTML = h; } } /* 같은 단추를 다시 만들지 않음(누르는 중에 사라지지 않게) */
+let tgLock = 0;
+function tgHide() { if (tgLay) tgLay.style.display = 'none'; }
+function tgBox(e) { const r = e.getBoundingClientRect(), p = 6, cp = e.style && e.style.clipPath; /* 1인칭 상자처럼 모양을 잘라 쓴 곳은 그 모양만큼 */
+  if (cp && /polygon/.test(cp)) { const v = [...cp.matchAll(/([0-9.]+)% ([0-9.]+)%/g)].map(m => [+m[1], +m[2]]); if (v.length) { const xs = v.map(a => a[0]), ys = v.map(a => a[1]), x0 = r.left + r.width * Math.min(...xs) / 100, y0 = r.top + r.height * Math.min(...ys) / 100; return { x: x0 - p, y: y0 - p, w: r.width * (Math.max(...xs) - Math.min(...xs)) / 100 + p * 2, h: r.height * (Math.max(...ys) - Math.min(...ys)) / 100 + p * 2 }; } }
+  return { x: r.left - p, y: r.top - p, w: r.width + p * 2, h: r.height + p * 2 }; }
+function tgTick() {
+  if (window.__noTut) return tgHide();
+  if (!st || !st.tm) { tgHide(); if (st && !document.getElementById('ttl') && tgFresh(st)) tgBegin(); return; }
+  if (document.getElementById('ttl')) return tgHide(); /* 시작 화면이 닫힌 뒤에 */
+  if (st.run && !st.combat && !tq('.fpv')) { const ft = tq('[data-a="fptog"]'); if (ft) ft.click(); } /* 1인칭 화면으로 */
+  const L = tgEls(); L.style.display = ''; let i = st.tg | 0; if (i >= TSTEP.length) i = TSTEP.length - 1;
+  const S = TSTEP[i];
+  if (S.done && S.done()) { st.tg = i + 1; persist(); tgSeen = -1; return tgTick(); }
+  if (S.pre && !S.pre() && S.fix && !st.lastRun) { S.fix(); render(); } /* 앞 단계를 건너뛰어 창이 남았으면 정리 */
+  const hole = L.querySelector('.tg-hole'), arr = L.querySelector('.tg-arr'), bub = L.querySelector('.tg-bub'), fin = L.querySelector('.tg-fin'), dim = L.querySelector('.tg-dim');
+  if (S.fin) { hole.style.display = arr.style.display = bub.style.display = 'none'; dim.style.display = ''; fin.style.display = '';
+    if (!fin.innerHTML) fin.innerHTML = `<div class="tg-card"><div class="tg-big">🎉</div><b>튜토리얼이 종료되었습니다</b><div class="tg-rew">${RA.I_pouchS ? `<img src="${RA.I_pouchS}" alt="">` : '👝'}<div><b>보상: 소형 파우치</b><small>배낭에 넣으면 안에 2×3칸을 쓸 수 있어요 · 보관함에 넣어 드려요</small></div></div><div class="muted">확인을 누르면 DAY 1 아침, 진짜 게임이 시작돼요.</div><button class="pri" data-tg="fin">확인</button></div>`;
+    return; }
+  fin.style.display = 'none'; fin.innerHTML = '';
+  if (i !== tgSeen) { tgSeen = i; tgMiss = 0; tgAt = Date.now(); L.querySelector('.tg-t').textContent = S.t; const e0 = tgTarget(S); if (e0 && e0.scrollIntoView && !S.obj && e0 !== tq('#hdr')) try { e0.scrollIntoView({ block: 'center' }); } catch (x) {} }
+  const e = S.sel || S.obj ? tgTarget(S) : null, btns = L.querySelector('.tg-btns');
+  if ((S.sel || S.obj) && !tVis(e)) { /* 가리킬 단추가 아직 안 보임: 화면을 되살리고, 4초 뒤 '화면 다시 보기' (건너뛰기는 없음) */
+    tgMiss++; if (tgMiss === 12 && S.fix) { S.fix(); render(); }
+    hole.style.display = arr.style.display = 'none'; dim.style.display = '';
+    tgBtns(btns, S.next ? '<button class="pri" data-tg="next">다음 ▶</button>' : Date.now() - tgAt > 4000 ? '<button data-tg="redo">🔄 화면 다시 보기</button>' : ''); /* 건너뛰기는 없음: 화면만 다시 그림 */
+    bub.style.display = ''; bub.className = 'tg-bub bot'; return; }
+  tgBtns(btns, S.next ? '<button class="pri" data-tg="next">다음 ▶</button>' : '');
+  dim.style.display = e ? 'none' : ''; bub.style.display = '';
+  if (!e) { hole.style.display = arr.style.display = 'none'; bub.className = 'tg-bub mid'; return; }
+  const b = tgBox(e), vh = window.innerHeight; hole.style.display = ''; Object.assign(hole.style, { left: b.x + 'px', top: b.y + 'px', width: b.w + 'px', height: b.h + 'px' });
+  const big = b.h > vh * 0.45, below = b.y + b.h / 2 < vh * 0.5; /* 단추가 위쪽이면 말풍선은 아래, 화살표는 단추 밑에서 위로 */
+  arr.style.display = big ? 'none' : ''; arr.className = 'tg-arr ' + (below ? 'up' : 'dn');
+  arr.style.left = (b.x + b.w / 2 - 18) + 'px'; arr.style.top = (below ? b.y + b.h + 4 : b.y - 44) + 'px';
+  bub.className = 'tg-bub ' + (below ? 'bot' : 'top');
+}
+function tgAllowed(x, y) { const L = tgLay; if (!L) return false;
+  const inn = el => { if (!el || el.style.display === 'none') return false; const r = el.getBoundingClientRect(); return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom; };
+  if (inn(L.querySelector('.tg-bub')) || inn(L.querySelector('.tg-fin .tg-card'))) return true;
+  if (inn(tq('.lvov .lvcard'))) return true; /* 레벨업 창이 뜨면 고를 수 있게 */
+  const S = TSTEP[st.tg | 0]; if (!S || S.fin || S.next) return false; const e = tgTarget(S); if (!tVis(e)) return false; const b = tgBox(e);
+  if (!(x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h)) return false;
+  const at = document.elementFromPoint(x, y);
+  if (S.obj) { if (!at || !at.closest('.hitlayer')) return false; const sc = tq('.scene'); if (!sc) return false; const rc = sc.getBoundingClientRect(), o = window.__surv.hitAt((x - rc.left) / rc.width * 720, (y - rc.top) / rc.height * 1280); return !!o && o.id === S.obj; }
+  return !!at && (at === e || e.contains(at)); }
+function tgPt(ev) { const t = (ev.touches && ev.touches[0]) || (ev.changedTouches && ev.changedTouches[0]) || ev; return [t.clientX, t.clientY]; }
+function tgGuard(ev) { if (window.__noTut || !st || !st.tm || !ev.isTrusted || document.getElementById('ttl')) return;
+  const [x, y] = tgPt(ev); const inBub = tgLay && ev.target && ev.target.closest && ev.target.closest('#tgl');
+  if (tgAllowed(x, y) && (inBub || ev.type !== 'click' || Date.now() - tgLock > 400)) { if (ev.type === 'click' && !inBub) tgLock = Date.now(); return; } /* 같은 단추 두 번 누름 막기 */
+  ev.stopImmediatePropagation(); ev.stopPropagation(); if (ev.cancelable) ev.preventDefault();
+  if ((ev.type === 'click' || ev.type === 'touchend') && tgLay) { const a = tgLay.querySelector('.tg-arr'); a.classList.remove('tg-nudge'); void a.offsetWidth; a.classList.add('tg-nudge'); } }
+['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'touchstart', 'touchend', 'click', 'dblclick', 'contextmenu', 'auxclick'].forEach(k => window.addEventListener(k, tgGuard, { capture: true, passive: false }));
+['wheel', 'touchmove'].forEach(k => window.addEventListener(k, ev => { if (!window.__noTut && st && st.tm && ev.isTrusted && ev.cancelable && !document.getElementById('ttl')) ev.preventDefault(); }, { capture: true, passive: false }));
+window.addEventListener('keydown', ev => { if (window.__noTut || !st || !st.tm || !ev.isTrusted || document.getElementById('ttl')) return;
+  const S = TSTEP[st.tg | 0], e = S && !S.next && !S.fin ? tgTarget(S) : null, ae = document.activeElement;
+  if ((ev.key === 'Enter' || ev.key === ' ') && ((e && ae && (ae === e || e.contains(ae))) || (ae && ae.closest && ae.closest('#tgl')))) return;
+  ev.stopImmediatePropagation(); ev.preventDefault(); }, { capture: true });
+document.addEventListener('click', ev => { const b = ev.target.closest && ev.target.closest('[data-tg]'); if (!b || !st || !st.tm) return; ev.stopPropagation();
+  if (b.dataset.tg === 'redo') { const S = TSTEP[st.tg | 0]; if (S && S.fix) S.fix(); tgSeen = -1; tgAt = Date.now(); render(); return; }
+  if (b.dataset.tg === 'next') { const S = TSTEP[st.tg | 0]; if (!S || !S.next || Date.now() - tgLock < 400) return; tgLock = Date.now(); /* 두 번 눌러 다음 안내까지 넘어가지 않게 */ st.tg = (st.tg | 0) + 1; persist(); tgSeen = -1; tgTick(); }
+  else if (b.dataset.tg === 'fin') { const f = tgLay.querySelector('.tg-fin'); f.innerHTML = ''; f.style.display = 'none'; tgFinish(); tgHide(); } }, true);
+window.__tgT = { ok: (x, y) => tgAllowed(x, y), step: () => st && st.tg }; /* 시험용: 이 점을 누르면 통하는지 */
+setInterval(tgTick, 150); window.addEventListener('resize', () => { tgSeen = -1; });
+
 bgStyle();
 window.__surv = { wgHitAt: x => window.__wgTest && wgHit(x), G, hitObj, hitAt, OBJS, get sheet() { return sheet; }, get st() { return st; }, snd: SND, get reveal() { return reveal; } };
 persist(); render();
@@ -3432,8 +3655,8 @@ body.nomotion #ttl-cine .c-stage{animation:none !important}
   function get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
   var motionOff = get(MK) === '0'; if (motionOff) document.body.classList.add('nomotion');
-  function progress() { var s = S.st; return !!(s && (s.day > 1 || s.runsDone > 0 || s.rs > 0 || s.run)); }
-  function info() { var s = S.st, p = []; if (s.day) p.push('DAY ' + s.day); if (typeof s.coins === 'number') p.push('코인 ' + s.coins); if (s.run) p.push('탐사 중'); return p.join(' · '); }
+  function progress() { var s = S.st; return !!(s && (s.tm || s.day > 1 || s.runsDone > 0 || s.rs > 0 || s.run)); }
+  function info() { var s = S.st, p = []; if (s.tm) return '튜토리얼 하는 중'; /* v2.12 */ if (s.day) p.push('DAY ' + s.day); if (typeof s.coins === 'number') p.push('코인 ' + s.coins); if (s.run) p.push('탐사 중'); return p.join(' · '); }
   var el = document.createElement('div'); el.id = 'ttl';
   el.innerHTML = '<div id="ttl-cam"><div id="ttl-stage"><i class="t-bg"></i><i class="t-bg t-bgd"></i><i class="t-glow"></i><i class="t-fire"></i><i class="t-hero"></i><i class="t-dust"></i></div></div><canvas id="ttl-warp"></canvas><div class="t-load"></div><div id="ttl-flash"></div><div id="ttl-ui"></div>';
   var q = function (s) { return el.querySelector(s); }, cam = q('#ttl-cam'), stage = q('#ttl-stage'), ui = q('#ttl-ui'), flash = q('#ttl-flash'), hero = q('.t-hero'), fireEl = q('.t-fire'), dust = q('.t-dust');
