@@ -200,6 +200,7 @@ svg{display:block;width:100%;height:auto;background:#101316;border-radius:var(--
 .bq-v{min-width:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px solid var(--line);background:#0b1119}.bq-v b{font-size:28px;line-height:1}.bq-v small{font-size:12px;color:var(--muted)}
 .bq-sum{text-align:center;font-size:15px}.bq-why{text-align:center;margin-top:4px}.bqcard .btns button{min-height:48px;font-size:16px}
 </style>
+<style id="v215">.cpn{margin-top:10px;border-top:1px solid var(--line);padding-top:8px}.cpn-row{display:flex;gap:6px;margin-top:6px;min-width:0}.cpn-row input{flex:1 1 auto;min-width:0;min-height:40px;padding:0 10px;font:inherit;font-size:16px;background:#0b1119;color:var(--ink);border:2px solid var(--line)}.cpn-row button{flex:none;min-height:40px;padding:0 14px}</style>
 
 <style id="dot">
 /* ===== 도트판 화면 틀 (BOSS 승인 2026-11-20): 규칙은 v2.2 그대로, 모습만 바꿈 ===== */
@@ -846,11 +847,11 @@ function pouchEmpty(st, it) { return !isPouch(it) || !st.bag.some(x => x.c === i
 function needEmpty(st, it) { if (!pouchEmpty(st, it)) E('파우치를 먼저 비워 주세요'); }
 function allItems(st) { return [...st.bag, ...st.pocket, ...st.stash, ...(st.equip ? [st.equip] : [])]; }
 function sellPrice(it) { if (D.items[it.k].nosell || it.ns) return 0; /* v2.8 못 파는 물건은 0 */ return D.items[it.k].p + (it.lv ? (it.lv - 1) * D.sellUp.lv : 0); }
-function countBase(st, k) { return [...st.stash, ...st.bag].filter(it => it.k === k).length; }
+function countBase(st, k) { return [...st.stash, ...st.bag].filter(it => it.k === k).length + (k === 'amber' && st.amb > 0 ? st.amb : 0); } /* v2.15 GM 호박석 주머니 */
 function hasMats(st, mats) { return Object.entries(mats).every(([k, n]) => countBase(st, k) >= n); }
 function consume(st, mats) {
   for (const [k, n0] of Object.entries(mats)) {
-    let n = n0;
+    let n = n0; if (k === 'amber' && st.amb > 0) { const t = Math.min(st.amb, n); st.amb -= t; n -= t; } /* v2.15 GM 호박석 주머니 먼저 */
     for (const where of ['stash', 'bag']) { for (let i = st[where].length - 1; i >= 0 && n > 0; i--) if (st[where][i].k === k) { st[where].splice(i, 1); n--; } }
     if (n > 0) E('재료 처리 오류');
   }
@@ -1474,6 +1475,25 @@ function shopPin(st, k) { needBase(st); const P0 = (Array.isArray(st.shopPin) ? 
   if (!D.shop[k] || D.shopDay.fixed.includes(k) || !shopStock(st).includes(k)) E('오늘 상점에 있는 물건만 고정할 수 있어요');
   if (P0.length >= D.shopDay.pinMax) E(`고정은 ${D.shopDay.pinMax}칸까지예요 (다른 고정을 먼저 풀어요)`);
   P0.push(k); log(st, `📌 ${D.items[k].n}을(를) 고정했어요 — 날이 바뀌어도 상점에 남아요`); return true; }
+/* ===== v2.15 쿠폰 (BOSS 요청 2026-11-24): 설정 → 쿠폰 등록. 관리자(GM) 쿠폰 = 장신구 뽑아 써 보기·확인용 =====
+   쿠폰 글은 코드에 그대로 두지 않고 숫자(해시)로만 비교. GM: 코인·호박석 99,999,999 · 1~2장 전부 클리어 · 의뢰·패시브 전부 · 레벨 만렙 · GM 가방(6×10) */
+D.packs.gm = { n: 'GM 무한 가방', w: 6, h: 10 };
+D.items.gmbag = { n: 'GM 무한 가방', c: '가방', s: 3, p: 0, nosell: true, use: '관리자 가방 · 메면 배낭 6×10', pack: 'gm', sh: [2, 3] };
+const CPN_H = s => { let h = 2166136261; for (const ch of s) { h ^= ch.codePointAt(0); h = Math.imul(h, 16777619) >>> 0; } return h; };
+const COUPONS = { 1135433081: 'gm' };
+function redeem(st, code) { if (st.tm) E('튜토리얼에서는 쿠폰을 쓸 수 없어요'); if (st.run || st.combat) E('거점에서만 쿠폰을 쓸 수 있어요');
+  const c = String(code === undefined ? '' : code).trim().toLowerCase(); if (!c) E('쿠폰 번호를 넣어 주세요'); const kind = COUPONS[CPN_H(c)]; if (!kind) E('없는 쿠폰이에요');
+  if (kind === 'gm') gmApply(st); return kind; }
+function gmApply(st) { lvFix(st); const N = 99999999;
+  st.gm = true; st.coins = N; st.amb = N; /* 호박석은 물건이라 9,999만 개를 쌓을 수 없어 GM 주머니 수로 둠 (상자·무기 살 때 먼저 씀) */
+  st.won = st.won2 = st.won3 = st.won4 = st.won5 = true; st.unlocked = Object.assign({}, st.unlocked, { metro: true, harbor: true });
+  st.fac = Object.assign({}, st.fac, { bench: 2, storage: 1, clinic: 1, scout: 1 }); st.stLv = D.storeUp.length; st.device = D.device.length; st.ship = D.ship.length;
+  for (const q of Object.keys(D.quests)) st.quests[q] = true; st.passives = Object.fromEntries(Object.keys(D.passives).map(k => [k, true]));
+  const s = seaOf(st); Object.assign(s, { on: true, cleared: 9, won6: true, won8: true, engine: true, clawDead: true, capOpen: true, lampLv: Math.max(1, s.lampLv || 0) }); if (!Number.isInteger(s.at)) s.at = 0;
+  if (st.lvl < lvMax()) { st.lvPend += lvMax() - st.lvl; st.lvl = lvMax(); } st.lvP = 0; for (let i = 0; st.lvPend > 0 && i < 99; i++) lvPick(st, ['hp', 'atk', 'bl'][i % 3]);
+  const old = st.pack || 'sack'; if (old !== 'gm') { const f = Object.keys(D.items).find(k => D.items[k].pack === old); st.pack = 'gm'; if (f && f !== 'gmbag') { const it = { k: f }; if (!addTo(st, 'stash', it)) addTo(st, 'bag', it); } }
+  st.hpMax = D.start.hp + (P(st, 'tough') ? 5 : 0) + 5 * lvB(st, 'hp'); st.energyMax = D.start.energy + (P(st, 'breath') ? 3 : 0); /* 패시브까지 다시 셈 */
+  st.hp = st.hpMax; st.energy = st.energyMax; checkGoal(st); log(st, '🎁 관리자 쿠폰: 코인·호박석 99,999,999 · 모든 챕터·의뢰·패시브 · 레벨 만렙 · GM 가방'); }
 function shopStock(st) { // v2.14: 1~5칸 랜덤(📌 고정 먼저) + 칼. DAY가 바뀌면 바뀌고, 같은 날에는 몇 번을 열어도 같음
   const sd = D.shopDay, all = Object.keys(D.shop).filter(k => !sd.no[k] && shopOpen(st, k)), fix = sd.fixed.filter(k => all.includes(k)), pool = all.filter(k => !fix.includes(k));
   const pins = (Array.isArray(st.shopPin) ? st.shopPin : []).filter(k => pool.includes(k)).slice(0, sd.pinMax); if (st.tm && pool.includes('can') && !pins.includes('can')) pins.push('can'); /* 튜토리얼: 통조림은 늘 (고정 칸은 안 씀) */
@@ -2035,7 +2055,7 @@ function migrate(st) { if (st && st.wTry && typeof st.wTry.b !== 'string' && typ
 }
 function load(txt) { const o = JSON.parse(txt); if (!o || o.app !== 'surv-rpg' || !o.st) E('저장 형식이 달라요'); const st = lvFix(migrate(o.st)); validate(st); return st; }
 
-root.SurvEngine = { atkInfo, ambInfo, ambWeapon, buyAmb, shopPin, buyN, buyMax, can, canS, intentHits, intentShow, dmgAfter, diceInfo, dicePre, diceRoll, diceClose, diceBest, upgradeStart, levelInfo, lvPick, storeUpInfo, storeUp, lvGain, lvDeath, startCombat, die, shopStock, openBox, boxInfo, equipAcc, unequipAcc, amberDrop, accOn: A, seaInfo4, lightLamp, challengeWhale, whaleInfo, seaInfo3, kelpBlocked, seaAdj, cutKelp, syncHelm, repairEngine, seaInfo2, upgradeLamp, intentHidden, shopOpen, seaInfo, setSail, voyage, submitMark, toggleLamp, ringBell, regionOpen, fogCalc, zoneOf, bossInfo, challengeBoss, todInfo, rest, nextGoal, starterDue, questInfo, questRun, tideInfo, flooded, exitCost, shipInfo, buildShip, eventInfo, eventAct, xboxes, openX, reserveSupply, cancelReserve, hasK, nestMsg, tierOf, reach, depthOf, clearLastRun, passiveInfo, submitPassive, checkPassives, boxesOf, placeItem, equipPack, craft, findSpot, fitsAt, dimsOf, area, bagCells, contDims, conts, norm, isPouch, pouchEmpty, D, ADJ, regionOf, swapTake, swapInfo, fits, deepBonus, riskOf, buyIntel, unlockMetro, checkGoal, newGame, startRun, move, search, take, drop, extract, combatAct, useItem, moveItem, sell, buy, equip, unequip, heal, upgrade, upgradeInfo, build, quest, deviceInfo, buildDevice, toggleLock, needs, distToExit, used, sellPrice, countBase, built, weapon, intentDmg, validate, save, load, stashCap };
+root.SurvEngine = { redeem, atkInfo, ambInfo, ambWeapon, buyAmb, shopPin, buyN, buyMax, can, canS, intentHits, intentShow, dmgAfter, diceInfo, dicePre, diceRoll, diceClose, diceBest, upgradeStart, levelInfo, lvPick, storeUpInfo, storeUp, lvGain, lvDeath, startCombat, die, shopStock, openBox, boxInfo, equipAcc, unequipAcc, amberDrop, accOn: A, seaInfo4, lightLamp, challengeWhale, whaleInfo, seaInfo3, kelpBlocked, seaAdj, cutKelp, syncHelm, repairEngine, seaInfo2, upgradeLamp, intentHidden, shopOpen, seaInfo, setSail, voyage, submitMark, toggleLamp, ringBell, regionOpen, fogCalc, zoneOf, bossInfo, challengeBoss, todInfo, rest, nextGoal, starterDue, questInfo, questRun, tideInfo, flooded, exitCost, shipInfo, buildShip, eventInfo, eventAct, xboxes, openX, reserveSupply, cancelReserve, hasK, nestMsg, tierOf, reach, depthOf, clearLastRun, passiveInfo, submitPassive, checkPassives, boxesOf, placeItem, equipPack, craft, findSpot, fitsAt, dimsOf, area, bagCells, contDims, conts, norm, isPouch, pouchEmpty, D, ADJ, regionOf, swapTake, swapInfo, fits, deepBonus, riskOf, buyIntel, unlockMetro, checkGoal, newGame, startRun, move, search, take, drop, extract, combatAct, useItem, moveItem, sell, buy, equip, unequip, heal, upgrade, upgradeInfo, build, quest, deviceInfo, buildDevice, toggleLock, needs, distToExit, used, sellPrice, countBase, built, weapon, intentDmg, validate, save, load, stashCap };
 // v2.1 배낭이 바뀌는 행동 뒤에는 잠수 헬멧을 지녔는지 바로 맞춤 [전략실장]
 for (const k of ['take', 'swapTake', 'drop', 'moveItem', 'combatAct', 'useItem', 'search', 'move', 'openX', 'eventAct']) { const f0 = root.SurvEngine[k]; root.SurvEngine[k] = function (st) { try { return f0.apply(this, arguments); } finally { if (st && st.run) syncHelm(st); } }; }
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -2418,7 +2438,7 @@ function renderBase() {
   h += '<!--§shop-->';
   // 상점
   h += `<div class="card"><b>🛒 선장 마루의 상점</b><div class="tabs">${[[1, '물건'], [2, '화물 상자'], [3, '봉인 상자']].map(([n, t]) => `<button class="${shopPage === n ? 'on' : ''}" data-a="shoppg" data-k="${n}">${t}</button>`).join('')}</div>${shopPage === 1 ? shopItemsHtml() : boxHtml(shopPage === 2 ? 'cargo' : 'sealed')}</div>`;
-  h += '<!--§log-->' + logCard() + '<!--§settings-->' + `<div class="card"><div class="btns sm"><button data-a="snd">${SND.on ? '🔊 소리 켜짐' : '🔇 소리 꺼짐'}</button><button data-a="help">📖 규칙 보기</button><button data-a="exp">저장 내보내기</button><button data-a="imp">불러오기</button><button class="danger" data-a="reset">새 게임</button></div>
+  h += '<!--§log-->' + logCard() + '<!--§settings-->' + `<div class="card"><div class="btns sm"><button data-a="snd">${SND.on ? '🔊 소리 켜짐' : '🔇 소리 꺼짐'}</button><button data-a="help">📖 규칙 보기</button><button data-a="exp">저장 내보내기</button><button data-a="imp">불러오기</button><button class="danger" data-a="reset">새 게임</button></div><div class="cpn"><b>🎟️ 쿠폰 등록</b><div class="cpn-row"><input id="cpnIn" type="text" maxlength="24" placeholder="쿠폰 번호를 넣어요" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="pri" data-a="cpn">등록</button></div>${st.gm ? '<div class="muted">🛠️ 관리자(GM) 모드예요</div>' : ''}</div>
   ${saveBox === 'exp' ? `<div class="muted" style="margin-top:6px">아래 글이 저장 데이터예요. 복사해서 메모장 등에 보관하세요. 다른 기기에서 「불러오기」에 붙여 넣으면 이어서 할 수 있어요.</div><textarea id="expTxt" readonly style="width:100%;min-height:90px;background:#101316;color:var(--ink);border:1px solid var(--line);border-radius:8px">${esc(G.save(st))}</textarea><div class="btns sm"><button data-a="copy">복사</button><button data-a="closebox">닫기</button></div>` : ''}
   ${saveBox === 'imp' ? `<div class="muted" style="margin-top:6px">내보낸 글을 붙여 넣고 「불러오기」를 누르세요. 지금 진행은 불러온 내용으로 바뀌어요(잘못된 글이면 바뀌지 않아요).</div><textarea id="impTxt" style="width:100%;min-height:90px;background:#101316;color:var(--ink);border:1px solid var(--line);border-radius:8px"></textarea><div class="btns sm"><button class="pri" data-a="doimp">불러오기</button><button data-a="closebox">닫기</button></div>` : ''}
   <div class="muted">리커버리 시험판 v${D.version} · 자동 저장은 이 기기·이 브라우저에만 돼요</div></div>`;
@@ -3390,7 +3410,9 @@ document.addEventListener('click', ev => {
   if (dcBusy() && !el.closest('#dcw')) return; /* v2.9 판이 떠 있으면 뒤 화면(키보드 포함) 막음 */ if (a === 'dcpick') { dcSel = +k; return dcSync(); } if (a === 'dcroll') return dcRoll(); if (a === 'dcclose') { let r = null; act(() => { r = G.diceClose(st); }); if (r) { dcRes = r; dcKeep(r); dcResAt = performance.now(); render(); } return; } if (a === 'dcok') { if (performance.now() - dcResAt < WG_HOLD) return; dcRes = null; dcKeep(null); return render(); } /* v2.9 주사위판 */
   if (a === 'wgclose') return wgHit(null); if (a === 'wgok') { if (performance.now() - wgResAt < WG_HOLD) return; wgRes = null; wgLast = null; return render(); } /* v2.7 */
   if (a === 'lvpick') return act(() => G.lvPick(st, k)); // v2.5 레벨업 고르기는 결과창·사건 중에도 됨
-  if (a === 'buy' && k) { buyQ = { k, n: 1 }; return render(); } if (a === 'buyamb' && k) { buyQ = { k, n: 1, amb: 1 }; return render(); } if (a === 'pin' && k) return act(() => G.shopPin(st, k)); /* v2.14 */
+  if (a === 'cpn') { const inp = document.getElementById('cpnIn'), v = inp ? inp.value : ''; let kind = ''; act(() => { kind = G.redeem(st, v); }); if (kind) { if (inp) inp.value = ''; toast(kind === 'gm' ? '🎁 관리자 쿠폰 적용! 코인·호박석 99,999,999 · 모든 챕터·의뢰·패시브 · 만렙 · GM 가방' : '🎁 쿠폰을 썼어요'); } return; } /* v2.15 쿠폰 */
+  
+if (a === 'buy' && k) { buyQ = { k, n: 1 }; return render(); } if (a === 'buyamb' && k) { buyQ = { k, n: 1, amb: 1 }; return render(); } if (a === 'pin' && k) return act(() => G.shopPin(st, k)); /* v2.14 */
   if (a === 'bqx') { buyQ = null; return render(); } if (a === 'bqup' && buyQ) { buyQ.n = Math.min(buyQ.amb ? 1 : 99, buyQ.n + 1); return render(); } if (a === 'bqdn' && buyQ) { buyQ.n = Math.max(1, buyQ.n - 1); return render(); }
   if (a === 'bqgo' && buyQ) { const q = buyQ, nm = D.items[q.k].n; let ok = false; const s0 = st.stash.filter(x => x.k === q.k).length; act(() => { if (q.amb) G.buyAmb(st, q.k); else G.buyN(st, q.k, q.n); ok = true; }); if (ok) { buyQ = null; const inS = st.stash.filter(x => x.k === q.k).length - s0; toast((q.amb ? '🟠 ' + nm + ' 1단계를 샀어요' : '🛒 ' + nm + ' ' + q.n + '개를 샀어요') + ' → ' + (inS >= q.n ? '보관함' : inS > 0 ? '보관함 ' + inS + '개 · 배낭 ' + (q.n - inS) + '개' : '배낭 (보관함이 꽉 찼어요)')); render(); } return; } /* v2.13 상점 수량 · v2.14 호박석 무기 */
   
