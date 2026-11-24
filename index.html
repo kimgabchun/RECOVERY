@@ -124,7 +124,7 @@ svg{display:block;width:100%;height:auto;background:#101316;border-radius:var(--
 .mapbox img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(2px) brightness(.42)}
 .mapbox svg{position:relative;background:#10131680;border:0;border-radius:0}
 .foe{width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px solid var(--line);flex:0 0 64px}
-.sndbtn{min-height:28px;padding:0 8px;font-size:14px;margin-left:auto}
+#hdr{position:relative;padding-right:40px}.gearbtn{position:absolute;right:0;top:0;min-height:30px;width:34px;padding:0;font-size:17px;line-height:1}.gearcard{width:100%;max-width:360px;margin:0;text-align:center}.gearcard .btns button{flex:1 1 100%}
 </style>
 <style id="v25">.lvov{position:fixed;inset:0;z-index:80;background:#000a;display:flex;align-items:center;justify-content:center;padding:16px max(16px,env(safe-area-inset-right)) 16px max(16px,env(safe-area-inset-left))}.lvov .card{width:100%;max-width:420px;margin:0}.lvtag{cursor:pointer}.lvcard{border-color:var(--acc,#f6c877)!important}.lvbtns button{flex:1 1 30%;min-width:0}.lvtag{white-space:nowrap;color:var(--acc,#f6c877)}.stup .btns.sm button{white-space:normal}.stup button.pri .muted{color:inherit;opacity:.7}</style>
 <style id="v27">.wgov{position:fixed;inset:0;z-index:85;overflow-y:auto;background:#000b;display:flex;align-items:center;justify-content:center;padding:16px max(16px,env(safe-area-inset-right)) 16px max(16px,env(safe-area-inset-left));touch-action:manipulation;-webkit-user-select:none;user-select:none}
@@ -2121,10 +2121,14 @@ function dcRoll() { const g = G.diceInfo(st); if (!g || !dcSel || dcAnim) return
   const step = () => { if (!dcAnim) return; if (!left) { dcAnim.t = setTimeout(finish, 200); return; } pos = pos % 12 + 1; left--; draw(); dcAnim.t = setTimeout(step, D.wDice.step); };
   draw(); ov.onclick = ev => { if (dcAnim) { ev.stopPropagation(); finish(); } }; dcAnim.t = setTimeout(step, 300); }
 
-function header() { header0(); dcSync(); const li = G.levelInfo(st), hd = $('#hdr'); { let ov = document.getElementById('lvovw'); if (!ov) { ov = document.createElement('div'); ov.id = 'lvovw'; document.body.appendChild(ov); } ov.innerHTML = !st.combat && !showHelp && !(st.lastRun && !st.run) && !(st.run && st.run.event) && !bossAsk ? lvBanner() : ''; /* 다른 창이 닫힌 뒤에 뜸 [전략실장] */ } if (hd) hd.insertAdjacentHTML('afterbegin', `<span class="lvtag" data-a="lvopen">⭐${li.label}${li.pend ? ' 🎁' : ''}</span> `); }
+let gearOpen = false; /* v2.11 */
+function gearSync() { let gv = document.getElementById('gearov'); if (!gv) { gv = document.createElement('div'); gv.id = 'gearov'; document.body.appendChild(gv); }
+  if (gearOpen && !st.run && !st.combat && !st.lastRun) gearOpen = false;
+  gv.innerHTML = gearOpen ? `<div class="lvov"><div class="card gearcard"><b>⚙️ 설정</b><div class="btns"><button data-a="snd">${SND.on ? '🔊 소리 켜짐' : '🔇 소리 꺼짐'}</button><button data-a="gearhelp">규칙 보기</button><button class="pri" data-a="gearx">닫기</button></div></div></div>` : ''; }
+function header() { header0(); dcSync(); gearSync(); const li = G.levelInfo(st), hd = $('#hdr'); { let ov = document.getElementById('lvovw'); if (!ov) { ov = document.createElement('div'); ov.id = 'lvovw'; document.body.appendChild(ov); } ov.innerHTML = !st.combat && !showHelp && !(st.lastRun && !st.run) && !(st.run && st.run.event) && !bossAsk ? lvBanner() : ''; /* 다른 창이 닫힌 뒤에 뜸 [전략실장] */ } if (hd) hd.insertAdjacentHTML('afterbegin', `<span class="lvtag" data-a="lvopen">⭐${li.label}${li.pend ? ' 🎁' : ''}</span> `); }
 function header0() {
   const r = st.run, c = st.combat;
-  $('#hdr').innerHTML = `❤️ <span class="${st.hp <= 10 ? 'bad' : ''}">${st.hp}/${st.hpMax}</span> ${r ? `⚡ <span class="${st.energy <= 3 ? 'bad' : ''}">${st.energy}/${st.energyMax}</span> ⚠️ 위험 ${r.risk}` : ''} 🎒 ${G.bagCells(st).use}/${G.bagCells(st).tot} 💰 ${st.coins}${r ? ` 🚪 출구까지 ${G.distToExit(r.node)}칸` : ''}${r && r.practice ? ' <span class="tag">연습</span>' : ''}${r && r.night !== undefined ? ` <span class="tag">${r.night ? '🌙 밤' : '☀️ 낮'}</span>` : ''}${c ? ' ⚔️' : ''}<button class="sndbtn" data-a="snd" aria-label="소리 켜기·끄기">${SND.on ? '🔊' : '🔇'}</button>`;
+  $('#hdr').innerHTML = `❤️ <span class="${st.hp <= 10 ? 'bad' : ''}">${st.hp}/${st.hpMax}</span> ${r ? `⚡ <span class="${st.energy <= 3 ? 'bad' : ''}">${st.energy}/${st.energyMax}</span> ⚠️ 위험 ${r.risk}` : ''} 🎒 ${G.bagCells(st).use}/${G.bagCells(st).tot} 💰 ${st.coins}${r ? ` 🚪 출구까지 ${G.distToExit(r.node)}칸` : ''}${r && r.practice ? ' <span class="tag">연습</span>' : ''}${r && r.night !== undefined ? ` <span class="tag">${r.night ? '🌙 밤' : '☀️ 낮'}</span>` : ''}${c ? ' ⚔️' : ''}<button class="gearbtn" data-a="gear" aria-label="설정">⚙️</button>`;
   $('#hdr').className = 'hs';
 }
 // ---------- v0.7 격자 배낭 ----------
@@ -2325,7 +2329,7 @@ function renderBase() {
   h += '<!--§shop-->';
   // 상점
   h += `<div class="card"><b>🛒 선장 마루의 상점</b><div class="tabs">${[[1, '물건'], [2, '화물 상자'], [3, '봉인 상자']].map(([n, t]) => `<button class="${shopPage === n ? 'on' : ''}" data-a="shoppg" data-k="${n}">${t}</button>`).join('')}</div>${shopPage === 1 ? `<div class="muted">📦 오늘 들어온 물건 (DAY ${st.day}) · 날이 바뀌면 물건이 바뀌어요. 칼은 늘 있어요.</div>` + G.shopStock(st).map(k => [k, D.shop[k]]).map(([k, p]) => `<div class="item"><div><div class="nm">${D.items[k].n}<span class="tag">${D.items[k].sh[0]}×${D.items[k].sh[1]}</span></div><div class="muted">${esc(D.items[k].use)} · 되팔면 ${D.items[k].p}</div></div><div class="btns sm"><button data-a="buy" data-k="${k}" ${st.coins < p ? 'disabled' : ''}>${p}코인</button></div></div>`).join('') : boxHtml(shopPage === 2 ? 'cargo' : 'sealed')}</div>`;
-  h += '<!--§log-->' + logCard() + '<!--§settings-->' + `<div class="card"><div class="btns sm"><button data-a="help">규칙 보기</button><button data-a="exp">저장 내보내기</button><button data-a="imp">불러오기</button><button class="danger" data-a="reset">새 게임</button></div>
+  h += '<!--§log-->' + logCard() + '<!--§settings-->' + `<div class="card"><div class="btns sm"><button data-a="snd">${SND.on ? '🔊 소리 켜짐' : '🔇 소리 꺼짐'}</button><button data-a="help">규칙 보기</button><button data-a="exp">저장 내보내기</button><button data-a="imp">불러오기</button><button class="danger" data-a="reset">새 게임</button></div>
   ${saveBox === 'exp' ? `<div class="muted" style="margin-top:6px">아래 글이 저장 데이터예요. 복사해서 메모장 등에 보관하세요. 다른 기기에서 「불러오기」에 붙여 넣으면 이어서 할 수 있어요.</div><textarea id="expTxt" readonly style="width:100%;min-height:90px;background:#101316;color:var(--ink);border:1px solid var(--line);border-radius:8px">${esc(G.save(st))}</textarea><div class="btns sm"><button data-a="copy">복사</button><button data-a="closebox">닫기</button></div>` : ''}
   ${saveBox === 'imp' ? `<div class="muted" style="margin-top:6px">내보낸 글을 붙여 넣고 「불러오기」를 누르세요. 지금 진행은 불러온 내용으로 바뀌어요(잘못된 글이면 바뀌지 않아요).</div><textarea id="impTxt" style="width:100%;min-height:90px;background:#101316;color:var(--ink);border:1px solid var(--line);border-radius:8px"></textarea><div class="btns sm"><button class="pri" data-a="doimp">불러오기</button><button data-a="closebox">닫기</button></div>` : ''}
   <div class="muted">리커버리 시험판 v${D.version} · 자동 저장은 이 기기·이 브라우저에만 돼요</div></div>`;
@@ -3031,7 +3035,7 @@ function shoreHtml() { const t = G.todInfo(st);
 function harborHtml() { const si = G.shipInfo(st);
   return `<div class="card"><b>⚓ 멀리 보이는 항구</b><div class="muted">${st.unlocked.harbor ? '방파제 수문이 열려 있어요. 「탐사 준비」에서 잠긴 항구로 갈 수 있어요.' : st.won3 ? '수문이 닫혀 있어요. 무전기의 의뢰 「방파제 수문」을 끝내면 열려요.' : '아직 갈 수 없어요. 정화 장치 시제품(3차 목표)을 먼저 만들어야 해요.'}</div><div class="muted" style="margin-top:6px">🚢 갈매기호 수리: ${si.done ? '다 고쳤어요' : `${si.stage}/${D.ship.length}단계`} (작업대에서)</div><div class="muted" style="margin-top:6px">🌊 밀물지기: ${st.won5 ? '쓰러뜨렸어요. 씨눈을 정화 장치에 끼웠어요' : st.won4 ? '잠긴 항구의 방파제 입구에서 도전할 수 있어요' : '배를 다 고치면 방파제 입구에서 만나요'}</div></div>`; }
 const SHEETS = { storage: ['📦 보관함', ['stash']], bench: ['🔧 작업대', ['weapon', 'bench', 'fac', 'device']],
-  radio: ['📻 의뢰 · 무전', ['quest', 'metro']], more: ['☰ 더 보기', ['goals', 'log', 'settings']], ship: ['🚢 갈매기호 · 마루의 상점', ['shop']] }; // v1.5 상점은 등대 밖 갈매기호로
+  radio: ['📻 의뢰 · 무전', ['quest', 'metro']], more: ['⚙️ 설정 · 기록', ['goals', 'log', 'settings']], ship: ['🚢 갈매기호 · 마루의 상점', ['shop']] }; // v1.5 상점은 등대 밖 갈매기호로
 function baseParts() { forceOpen = true; const full = renderBase(); forceOpen = false; const m = {}; full.split('<!--§').slice(1).forEach(p => { const i = p.indexOf('-->'), k2 = p.slice(0, i); m[k2] = (m[k2] || '') + p.slice(i + 3); });
   if (NEED_PARTS.some(k2 => !(k2 in m))) m.__broken = full; // 구역 표시가 빠지면 예전 화면 전체로 대신 [전략실장]
   return m; }
@@ -3162,8 +3166,7 @@ function renderScene() {
   const m = baseParts(), p0 = st.pack || 'sack', pim = RA['I_' + (p0 === 'sack' ? 'sack' : p0 + 'F')], b = G.bagCells(st);
   const t = st.tut || {}; const TUTN = TUT.find(([k2]) => !t[k2]); const tut = (!t.hide && TUTN) ? `<div class="tutmini"><span>🧭 다음: ${TUTN[1]}</span><button data-a="tuthide">숨기기</button></div>` : '';
   bgStyle();
-  let h = `<div class="scene bgim ${st.tod === 1 ? 'tn' : 'td'}"><div class="ttl">${SEAON() ? (outside ? '🌊 갈매기호 갑판' : '⚓ 갈매기호 선실') : outside ? '🌊 등대 바깥' : '🗼 등대 거점'}<small>DAY ${st.day}${todChip()}${seaChip()}${SEAON() ? '' : st.won5 ? ' · 🏁 1장 끝' : st.won4 ? ' · 🚢 4차 달성' : st.won3 ? ' · 🌟 3차 달성' : st.won2 ? ' · 🌱 2차 달성' : st.won ? ' · 🎉 1차 달성' : ''}</small></div>
-    <button class="more" data-a="sheet" data-k="more">☰ 더 보기</button>${tut}
+  let h = `<div class="scene bgim ${st.tod === 1 ? 'tn' : 'td'}"><div class="ttl">${SEAON() ? (outside ? '🌊 갈매기호 갑판' : '⚓ 갈매기호 선실') : outside ? '🌊 등대 바깥' : '🗼 등대 거점'}<small>DAY ${st.day}${todChip()}${seaChip()}${SEAON() ? '' : st.won5 ? ' · 🏁 1장 끝' : st.won4 ? ' · 🚢 4차 달성' : st.won3 ? ' · 🌟 3차 달성' : st.won2 ? ' · 🌱 2차 달성' : st.won ? ' · 🎉 1차 달성' : ''}</small></div>${tut}
     ${SEAON() ? seaSceneHtml() : outside ? outHtml() : RA.BG1 ? OBJS.map(objHtml).join('') + OBJS.map(o => `<span class="olab" style="left:${o.lp[0] / 7.2}%;top:${o.lp[1] / 12.8}%">${o.n}</span>`).join('') + '<div class="hitlayer" data-a="objhit" aria-label="거점 물건 누르기"></div>'
       : SPOTS.map(sp => `<button class="spot" data-a="${sp.id === 'stairs' ? 'passive' : 'sheet'}" data-k="${sp.id}" style="left:${sp.x}%;top:${sp.y}%"><span class="dot"></span>${sp.n}</button>`).join('')}
     <button class="exitbtn${tut ? ' up' : ''}" data-a="${outside ? 'goin' : 'goout'}">${RA.I_exit ? `<img src="${RA.I_exit}" alt="">` : ''}<span>${SEAON() ? (outside ? '선실로 →' : '← 갑판으로') : outside ? '등대 안으로 →' : '← 등대 나가기'}</span></button>
@@ -3214,6 +3217,8 @@ document.addEventListener('click', ev => {
   if (dcBusy() && !el.closest('#dcw')) return; /* v2.9 판이 떠 있으면 뒤 화면(키보드 포함) 막음 */ if (a === 'dcpick') { dcSel = +k; return dcSync(); } if (a === 'dcroll') return dcRoll(); if (a === 'dcclose') { let r = null; act(() => { r = G.diceClose(st); }); if (r) { dcRes = r; dcKeep(r); dcResAt = performance.now(); render(); } return; } if (a === 'dcok') { if (performance.now() - dcResAt < WG_HOLD) return; dcRes = null; dcKeep(null); return render(); } /* v2.9 주사위판 */
   if (a === 'wgclose') return wgHit(null); if (a === 'wgok') { if (performance.now() - wgResAt < WG_HOLD) return; wgRes = null; wgLast = null; return render(); } /* v2.7 */
   if (a === 'lvpick') return act(() => G.lvPick(st, k)); // v2.5 레벨업 고르기는 결과창·사건 중에도 됨
+  if (a === 'gear') { if (!st.run && !st.combat && !st.lastRun) { const to = sheet === 'more' ? '' : 'more'; sheetFresh = !!to; sheetSwitch = true; sheet = to; wPick = false; pPick = false; gearOpen = false; return render(); } gearOpen = !gearOpen; return render(); }
+  if (a === 'gearx') { gearOpen = false; return render(); } if (a === 'gearhelp') { gearOpen = false; showHelp = true; return render(); } /* v2.11 톱니 */
   if (a === 'lvlater') { lvLater = st.lvl; return render(); } if (a === 'lvopen') { lvLater = -1; return render(); }
   if (a === 'sttog') { stOpen = !stOpen; stSel = {}; return render(); }
   if (a === 'stsel') { const q = f + ':' + i + ':' + k; if (stSel[q]) delete stSel[q]; else stSel[q] = 1; return render(); }
