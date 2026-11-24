@@ -147,6 +147,21 @@ svg{display:block;width:100%;height:auto;background:#101316;border-radius:var(--
 @keyframes wgglow{from{text-shadow:0 0 4px #ffd34d}to{text-shadow:0 0 18px #fff3b0}}
 @media (prefers-reduced-motion:reduce){.wgfx img,.wgr-great,.wgr-down{animation:none}}</style>
 <style id="v28">[data-why]{opacity:.5;filter:grayscale(.7)}button[data-why]::after{content:" 🔒"}</style>
+<style id="v29">.dccard{max-width:440px}
+.dcb{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin:10px 0 6px}
+.dcc{position:relative;min-height:54px;padding:3px 2px;border-radius:8px;border:2px solid rgba(0,0,0,.35);display:flex;flex-direction:column;align-items:center;justify-content:center;font:inherit;color:#fff;line-height:1.1;text-shadow:0 1px 0 #000}
+.dcc small{font-size:10.5px;opacity:.8}.dcc b{font-size:12.5px}
+.dc-O{background:linear-gradient(#3fbf6f,#23824a)}.dc-G{background:linear-gradient(#fff3b0,#ffc533);color:#3a2a00;text-shadow:none;box-shadow:0 0 8px 2px #ffd34daa}.dc-F{background:linear-gradient(#a3413a,#6e2420)}
+.dcc.sel{outline:3px solid #7cb6dd;outline-offset:1px}
+.dcc.pc{transform:translateY(-3px);box-shadow:0 0 0 3px #fff inset}
+.dcc.land{animation:wgpop2 .6s ease-out 1}
+.dcpc{position:absolute;top:-10px;right:-2px;font-style:normal;font-size:18px;filter:drop-shadow(0 1px 1px #000)}
+.dcpre{min-height:22px;font-size:13.5px;text-align:center;margin:2px 0 4px}
+.dcdice{display:flex;align-items:center;justify-content:center;gap:8px;font-size:40px;line-height:1;margin:6px 0}
+.dcdice b{font-size:22px}.dcdice.roll span{animation:wgshake .35s 1}
+#dcw .wgov{z-index:60}
+.dccard .dcb,.dccard .dcdice,.dccard .wgtxt{position:relative;z-index:2}.dcdice span{color:#fff;text-shadow:0 2px 0 #000}
+</style>
 
 <style id="dot">
 /* ===== 도트판 화면 틀 (BOSS 승인 2026-11-20): 규칙은 v2.2 그대로, 모습만 바꿈 ===== */
@@ -1450,13 +1465,13 @@ function heal(st) {
 D.wUp = { max: 10, coins: { 3: 1000, 4: 2000, 5: 4000, 6: 8000, 7: 16000, 8: 32000, 9: 64000 }, ok: { 3: 100, 4: 90, 5: 80, 6: 70, 7: 60, 8: 50, 9: 40 }, pity: 5, bench: 2 }; /* v2.6 */
 const wFl = w => (w && w.fl) || 0, wChance = w => Math.min(100, D.wUp.ok[w.lv || 1] + wFl(w));
 D.wGauge = { great: 3, edge: 4, down: 50, sweep: lv => Math.round((0.8 - 0.07 * (lv - 3)) * 1000) / 1000 }; /* v2.7 */
-function gaugeInfo(st) { const t = st.wTry; if (!t) return null; return Object.assign({ sweep: D.wGauge.sweep(t.lv), gc: t.s + t.w / 2, n: D.items[t.k].n }, t); }
-function upgradeStart(st) { needBase(st); if (st.wTry) E('강화 게이지가 이미 떠 있어요'); const u = upgradeInfo(st); if (!u) E('장착한 무기가 없어요'); if (u.max) E('최고 단계예요'); if (!u.coin) E('재료 강화는 바로 올라요');
+function gaugeInfoOld(st) { const t = st.wTry; if (!t) return null; return Object.assign({ sweep: D.wGauge.sweep(t.lv), gc: t.s + t.w / 2, n: D.items[t.k].n }, t); }
+function upgradeStartOld(st) { needBase(st); if (st.wTry) E('강화 게이지가 이미 떠 있어요'); const u = upgradeInfo(st); if (!u) E('장착한 무기가 없어요'); if (u.max) E('최고 단계예요'); if (!u.coin) E('재료 강화는 바로 올라요');
   if (st.fac.bench < u.bench) E('작업대 2단계가 필요해요'); if (st.coins < u.coins) E('코인이 부족해요');
   st.coins -= u.coins; const w = u.chance, ed = D.wGauge.edge, room = 100 - 2 * ed - w; /* 코인은 게이지가 뜨기 전에 나감 — 다시 뽑기 막기 */
   const at = w >= 100 ? 0 : room > 0 ? ed + rngA(st) * room : (100 - w) / 2; /* 성공 칸은 매번 무작위, 바 끝에는 안 붙임 [전략실장] */
   st.wTry = { k: st.equip.k, lv: u.lv, w, s: Math.round(at * 100) / 100, g: D.wGauge.great, c: u.coins }; return gaugeInfo(st); }
-function upgradeHit(st, x) { needBase(st); const t = st.wTry; if (!t) E('강화 게이지가 없어요'); delete st.wTry; const w = st.equip, nm = D.items[t.k].n, gc = t.s + t.w / 2;
+function upgradeHitOld(st, x) { needBase(st); const t = st.wTry; if (!t) E('강화 게이지가 없어요'); delete st.wTry; const w = st.equip, nm = D.items[t.k].n, gc = t.s + t.w / 2;
   const base = { from: t.lv, s: t.s, w: t.w, g: t.g, gc };
   if (!w || w.k !== t.k || (w.lv || 1) !== t.lv) { const m = '무기가 바뀌어 강화를 그만뒀어요 (코인은 이미 씀)'; log(st, m); return Object.assign(base, { kind: 'keep', to: t.lv, msg: m, closed: true, x: null, fd: 0 }); }
   const closed = typeof x !== 'number' || !isFinite(x); if (!closed) x = Math.max(0, Math.min(100, x));
@@ -1468,16 +1483,52 @@ function upgradeHit(st, x) { needBase(st); const t = st.wTry; if (!t) E('강화 
   const fd = (kind === 'keep' || kind === 'down') && !closed ? Math.max(0, wFl(w) - f0) : 0; /* v2.8 이번에 늘어난 만큼 */
   const m = kind === 'great' ? `🌟 ${nm} 대성공! ${t.lv} → ${to}단계 (+${to - t.lv})` : kind === 'ok' ? `✨ ${nm} 강화 성공! ${t.lv} → ${to}단계` : kind === 'down' ? `💥 ${nm} 하락… ${t.lv} → ${to}단계` : closed ? `💨 ${nm} 강화를 그만뒀어요 — ${t.lv}단계 그대로` : `💨 ${nm} 실패 — ${t.lv}단계 그대로`;
   log(st, m); return Object.assign(base, { kind, to, x: closed ? null : x, msg: m, closed, fd, fl: wFl(w) }); }
-function wTryCheck(st, bad) { if (st.wTry === undefined) return; const t = st.wTry, e = st.equip;
+function wTryCheckOld(st, bad) { if (st.wTry === undefined) return; const t = st.wTry, e = st.equip;
   if (!t || typeof t !== 'object' || !D.items[t.k] || !D.items[t.k].w || !Number.isInteger(t.lv) || t.lv < 3 || t.lv >= D.wUp.max || typeof t.w !== 'number' || t.w <= 0 || t.w > 100 || typeof t.s !== 'number' || t.s < 0 || t.s + t.w > 100.001 || t.g !== D.wGauge.great || t.c !== D.wUp.coins[t.lv]) bad('강화 게이지');
   if (!isFinite(t.w) || !isFinite(t.s) || st.run || st.combat || !e || e.k !== t.k || (e.lv || 1) !== t.lv || t.w !== Math.min(100, D.wUp.ok[t.lv] + wFl(e))) bad('강화 게이지 너비');
   const ed = D.wGauge.edge; if (t.w >= 100 ? t.s !== 0 : t.w <= 100 - 2 * ed ? (t.s < ed - 0.01 || t.s + t.w > 100 - ed + 0.01) : Math.abs(t.s - (100 - t.w) / 2) > 0.01) bad('강화 게이지 자리'); }
+/* ===== v2.9 강화 주사위판 (BOSS 제안, 관문 1 승인 2026-11-24 "주사위판으로 바꿀거야 / 대성공은 한칸") =====
+   1~12칸 판(성공 O·대성공 G 1칸·실패 F)이 매번 섞여 나옴 → 시작 칸을 고름 → 주사위 2개 합만큼 오른쪽으로(12 다음 1) → 멈춘 칸이 결과.
+   성공 칸 수: 3→4 11 · 9 · 8 · 6 · 5 · 4 · 3 (잘 고르면 확정 성공률 90·80·70·60·50·40%와 비슷). 실패 보정 fl(%)은 그대로 쌓고 10%마다 성공 칸 +1(=실패 2번마다).
+   코인은 판이 뜰 때 나감, 결과는 굴린 순간 저장(다시 뽑기 막기). 실패는 유지·하락 반반(BOSS), 대성공 +2(10단계까지). */
+D.wDice = { n: { 3: 11, 4: 9, 5: 8, 6: 6, 7: 5, 8: 4, 9: 3 }, maxN: 10, per: 10, step: 300 };
+const DSUM = [0, 0, 1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1]; /* 주사위 두 개 합 2~12가 나오는 경우의 수 (/36) */
+function diceN(lv, fl) { return lv === 3 ? D.wDice.n[3] : Math.min(D.wDice.maxN, D.wDice.n[lv] + Math.floor((fl || 0) / D.wDice.per)); }
+function diceLand(s, sum) { return ((s - 1 + sum) % 12) + 1; }
+function dicePre(b, s) { let ok = 0, g = 0, f = 0; for (let r = 2; r <= 12; r++) { const c = b[diceLand(s, r) - 1]; if (c === 'G') g += DSUM[r]; else if (c === 'O') ok += DSUM[r]; else f += DSUM[r]; }
+  const p = x => Math.round(x / 36 * 1000) / 10; return { ok: p(ok), great: p(g), fail: p(f) }; }
+function diceInfo(st) { const t = st.wTry; if (!t || typeof t.b !== 'string') return null; return Object.assign({ n: D.items[t.k].n, pre: [...Array(12)].map((_, i) => dicePre(t.b, i + 1)) }, t); }
+function upgradeStart(st) { needBase(st); if (st.wTry) E('강화 판이 이미 떠 있어요'); const u = upgradeInfo(st); if (!u) E('장착한 무기가 없어요'); if (u.max) E('최고 단계예요'); if (!u.coin) E('재료 강화는 바로 올라요');
+  if (st.fac.bench < u.bench) E('작업대 2단계가 필요해요'); if (st.coins < u.coins) E('코인이 부족해요');
+  st.coins -= u.coins; const n = diceN(u.lv, wFl(st.equip)), cells = ['G']; for (let i = 0; i < n; i++) cells.push('O'); while (cells.length < 12) cells.push('F');
+  for (let i = 11; i > 0; i--) { const j = Math.floor(rngA(st) * (i + 1)); const x = cells[i]; cells[i] = cells[j]; cells[j] = x; } /* 판은 매번 섞음 */
+  st.wTry = { k: st.equip.k, lv: u.lv, b: cells.join(''), c: u.coins }; return diceInfo(st); }
+function diceEnd(st, t, kind, extra) { const w = st.equip, nm = D.items[t.k].n, closed = !!(extra && extra.closed); let to = t.lv;
+  if (kind === 'great') to = Math.min(D.wUp.max, t.lv + 2); else if (kind === 'ok') to = t.lv + 1;
+  else if (kind === 'fail') { if (t.lv > 3 && rngA(st) * 100 < D.wGauge.down) { kind = 'down'; to = t.lv - 1; } else kind = 'keep'; }
+  w.lv = to; const f0 = wFl(w); if (kind === 'great' || kind === 'ok') delete w.fl; else if (!closed) { const nf = Math.min(100 - D.wUp.ok[to], f0 + D.wUp.pity); if (nf > 0) w.fl = nf; else delete w.fl; }
+  const fd = (kind === 'keep' || kind === 'down') && !closed ? Math.max(0, wFl(w) - f0) : 0;
+  const m = kind === 'great' ? `🌟 ${nm} 대성공! ${t.lv} → ${to}단계 (+${to - t.lv})` : kind === 'ok' ? `✨ ${nm} 강화 성공! ${t.lv} → ${to}단계` : kind === 'down' ? `💥 ${nm} 하락… ${t.lv} → ${to}단계` : closed ? `💨 ${nm} 강화를 그만뒀어요 — ${t.lv}단계 그대로` : `💨 ${nm} 실패 — ${t.lv}단계 그대로`;
+  log(st, m); return Object.assign({ from: t.lv, bd: t.b, kind, to, msg: m, closed, fd, fl: wFl(w), cellsNext: kind === 'keep' || kind === 'down' ? diceN(to, wFl(w)) : 0 }, extra || {}); }
+function diceRoll(st, s) { needBase(st); const t = st.wTry; if (!t || typeof t.b !== 'string') E('강화 판이 없어요'); if (!Number.isInteger(s) || s < 1 || s > 12) E('시작 칸을 골라요');
+  const w = st.equip; delete st.wTry;
+  if (!w || w.k !== t.k || (w.lv || 1) !== t.lv) { const m = '무기가 바뀌어 강화를 그만뒀어요 (코인은 이미 씀)'; log(st, m); return { from: t.lv, to: t.lv, bd: t.b, kind: 'keep', closed: true, msg: m, fd: 0, fl: w ? wFl(w) : 0 }; }
+  const d1 = 1 + Math.floor(rngA(st) * 6), d2 = 1 + Math.floor(rngA(st) * 6), sum = d1 + d2, land = diceLand(s, sum), c = t.b[land - 1];
+  return diceEnd(st, t, c === 'G' ? 'great' : c === 'O' ? 'ok' : 'fail', { s, d1, d2, sum, land }); }
+function diceClose(st) { needBase(st); const t = st.wTry; if (!t || typeof t.b !== 'string') E('강화 판이 없어요'); delete st.wTry; const w = st.equip;
+  if (!w || w.k !== t.k || (w.lv || 1) !== t.lv) { const m = '무기가 바뀌어 강화를 그만뒀어요 (코인은 이미 씀)'; log(st, m); return { from: t.lv, to: t.lv, bd: t.b, kind: 'keep', closed: true, msg: m, fd: 0, fl: w ? wFl(w) : 0 }; }
+  return diceEnd(st, t, 'keep', { closed: true }); }
+function diceBest(b) { let bs = 1, bv = -1; for (let s = 1; s <= 12; s++) { const p = dicePre(b, s); if (p.ok + p.great > bv) { bv = p.ok + p.great; bs = s; } } return bs; } /* 봇·한 번 누르기 강화용: 가장 좋은 시작 칸 */
+function wTryCheck(st, bad) { if (st.wTry === undefined) return; const t = st.wTry, e = st.equip;
+  if (!t || typeof t !== 'object' || !D.items[t.k] || !D.items[t.k].w || !Number.isInteger(t.lv) || t.lv < 3 || t.lv >= D.wUp.max || typeof t.b !== 'string' || !/^[OGF]{12}$/.test(t.b) || t.c !== D.wUp.coins[t.lv] || Object.keys(t).some(k => !['k', 'lv', 'b', 'c'].includes(k))) bad('강화 판');
+  if (st.run || st.combat || !e || e.k !== t.k || (e.lv || 1) !== t.lv) bad('강화 판 무기');
+  const cnt = ch => t.b.split(ch).length - 1; if (cnt('G') !== 1 || cnt('O') !== diceN(t.lv, wFl(e))) bad('강화 판 칸 수'); }
 function upgradeInfo(st) { if (!st.equip) return null; const lv = st.equip.lv || 1; if (lv >= D.wUp.max) return { max: true };
   if (lv >= 3) { const c = D.wUp.coins[lv]; return { lv, coin: true, mats: {}, coins: c, bench: D.wUp.bench, chance: wChance(st.equip), fl: wFl(st.equip), ok: st.coins >= c && st.fac.bench >= D.wUp.bench }; } /* v2.6 코인 강화 */ const u = D.upgrade[lv]; return { lv, mats: u.mats, coins: u.coins, bench: u.bench || 1, ok: hasMats(st, u.mats) && st.coins >= u.coins && st.fac.bench >= (u.bench || 1) }; }
 function upgrade(st) {
   needBase(st); const u = upgradeInfo(st); if (!u) E('장착한 무기가 없어요'); if (u.max) E('최고 단계예요');
   if (st.fac.bench < u.bench) E('작업대 2단계가 필요해요'); if (!hasMats(st, u.mats)) E('재료가 부족해요'); if (st.coins < u.coins) E('코인이 부족해요');
-  if (u.coin) { upgradeStart(st); const r = upgradeHit(st, rngA(st) * 100); return Object.assign(r, { coin: true, ok: r.kind === 'ok' || r.kind === 'great', lv: r.to }); } /* v2.7: 화면은 upgradeStart → upgradeHit(누른 자리) */
+  if (u.coin) { upgradeStart(st); const r = diceRoll(st, diceBest(st.wTry.b)); /* v2.9 */ return Object.assign(r, { coin: true, ok: r.kind === 'ok' || r.kind === 'great', lv: r.to }); } /* v2.7: 화면은 upgradeStart → upgradeHit(누른 자리) */
   consume(st, u.mats); st.coins -= u.coins; st.equip.lv = u.lv + 1; log(st, `${D.items[st.equip.k].n} ${u.lv + 1}단계 강화!${u.lv + 1 === 3 ? ' 특수 효과 열림' : ''}`);
 }
 function build(st, f) {
@@ -1867,7 +1918,7 @@ function validate(st) {
   return true;
 }
 function save(st) { return JSON.stringify({ app: 'surv-rpg', v: 1, st }); }
-function migrate(st) { // v0.3: 예전 저장(v0.1·v0.2)에 없던 값 채우기 [전략실장 지적 수정]
+function migrate(st) { if (st && st.wTry && typeof st.wTry.b !== 'string' && typeof st.wTry.w === 'number') { st.coins = (st.coins || 0) + (st.wTry.c || 0); delete st.wTry; } /* v2.9 게이지 → 주사위판 */ // v0.3: 예전 저장(v0.1·v0.2)에 없던 값 채우기 [전략실장 지적 수정]
   st.unlocked = st.unlocked || { metro: false }; st.fac = st.fac || { bench: 1, storage: 0, clinic: 0 }; if (st.fac.scout === undefined) st.fac.scout = 0;
   if (!st.quests || typeof st.quests !== 'object' || Array.isArray(st.quests)) st.quests = {}; for (const q of Object.keys(st.quests)) if (!qOwn(q)) delete st.quests[q]; for (const q of Object.keys(D.quests)) st.quests[q] = st.quests[q] === true;
   { // v1.4: 보급 표시 없앰(팔 수 있게), 첫 귀환·실전 출발 기록, 항구 해금. 예전 저장에서 이미 열려 있던 항구는 그대로 [전략실장]
@@ -1918,7 +1969,7 @@ function migrate(st) { // v0.3: 예전 저장(v0.1·v0.2)에 없던 값 채우�
 }
 function load(txt) { const o = JSON.parse(txt); if (!o || o.app !== 'surv-rpg' || !o.st) E('저장 형식이 달라요'); const st = lvFix(migrate(o.st)); validate(st); return st; }
 
-root.SurvEngine = { can, canS, intentHits, intentShow, dmgAfter, gaugeInfo, upgradeStart, upgradeHit, levelInfo, lvPick, storeUpInfo, storeUp, lvGain, lvDeath, startCombat, die, shopStock, openBox, boxInfo, equipAcc, unequipAcc, amberDrop, accOn: A, seaInfo4, lightLamp, challengeWhale, whaleInfo, seaInfo3, kelpBlocked, seaAdj, cutKelp, syncHelm, repairEngine, seaInfo2, upgradeLamp, intentHidden, shopOpen, seaInfo, setSail, voyage, submitMark, toggleLamp, ringBell, regionOpen, fogCalc, zoneOf, bossInfo, challengeBoss, todInfo, rest, nextGoal, starterDue, questInfo, questRun, tideInfo, flooded, exitCost, shipInfo, buildShip, eventInfo, eventAct, xboxes, openX, reserveSupply, cancelReserve, hasK, nestMsg, tierOf, reach, depthOf, clearLastRun, passiveInfo, submitPassive, checkPassives, boxesOf, placeItem, equipPack, craft, findSpot, fitsAt, dimsOf, area, bagCells, contDims, conts, norm, isPouch, pouchEmpty, D, ADJ, regionOf, swapTake, swapInfo, fits, deepBonus, riskOf, buyIntel, unlockMetro, checkGoal, newGame, startRun, move, search, take, drop, extract, combatAct, useItem, moveItem, sell, buy, equip, unequip, heal, upgrade, upgradeInfo, build, quest, deviceInfo, buildDevice, toggleLock, needs, distToExit, used, sellPrice, countBase, built, weapon, intentDmg, validate, save, load, stashCap };
+root.SurvEngine = { can, canS, intentHits, intentShow, dmgAfter, diceInfo, dicePre, diceRoll, diceClose, diceBest, upgradeStart, levelInfo, lvPick, storeUpInfo, storeUp, lvGain, lvDeath, startCombat, die, shopStock, openBox, boxInfo, equipAcc, unequipAcc, amberDrop, accOn: A, seaInfo4, lightLamp, challengeWhale, whaleInfo, seaInfo3, kelpBlocked, seaAdj, cutKelp, syncHelm, repairEngine, seaInfo2, upgradeLamp, intentHidden, shopOpen, seaInfo, setSail, voyage, submitMark, toggleLamp, ringBell, regionOpen, fogCalc, zoneOf, bossInfo, challengeBoss, todInfo, rest, nextGoal, starterDue, questInfo, questRun, tideInfo, flooded, exitCost, shipInfo, buildShip, eventInfo, eventAct, xboxes, openX, reserveSupply, cancelReserve, hasK, nestMsg, tierOf, reach, depthOf, clearLastRun, passiveInfo, submitPassive, checkPassives, boxesOf, placeItem, equipPack, craft, findSpot, fitsAt, dimsOf, area, bagCells, contDims, conts, norm, isPouch, pouchEmpty, D, ADJ, regionOf, swapTake, swapInfo, fits, deepBonus, riskOf, buyIntel, unlockMetro, checkGoal, newGame, startRun, move, search, take, drop, extract, combatAct, useItem, moveItem, sell, buy, equip, unequip, heal, upgrade, upgradeInfo, build, quest, deviceInfo, buildDevice, toggleLock, needs, distToExit, used, sellPrice, countBase, built, weapon, intentDmg, validate, save, load, stashCap };
 // v2.1 배낭이 바뀌는 행동 뒤에는 잠수 헬멧을 지녔는지 바로 맞춤 [전략실장]
 for (const k of ['take', 'swapTake', 'drop', 'moveItem', 'combatAct', 'useItem', 'search', 'move', 'openX', 'eventAct']) { const f0 = root.SurvEngine[k]; root.SurvEngine[k] = function (st) { try { return f0.apply(this, arguments); } finally { if (st && st.run) syncHelm(st); } }; }
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -2035,7 +2086,42 @@ function wgHit(x) { if (!wgRun) return; wgRun = false; cancelAnimationFrame(wgRa
   wgRes = null; wgResAt = performance.now(); act(() => { wgRes = G.upgradeHit(st, x); }, null, x !== null ? 'S4' : null); if (!wgRes) { wgKey = ''; render(); } }
 document.addEventListener('pointerdown', e => { if (!wgRun || !e.target.closest || !e.target.closest('#wgw .wgtap')) return; e.preventDefault(); e.stopPropagation();
   const now = performance.now(), ts = typeof e.timeStamp === 'number' && Math.abs(now - e.timeStamp) < 500 ? e.timeStamp : now; wgHit(wgPos(ts)); }, true); /* 손가락이 닿는 순간의 초침 자리로 판정 [전략실장] */
-function header() { header0(); wgSync(); const li = G.levelInfo(st), hd = $('#hdr'); { let ov = document.getElementById('lvovw'); if (!ov) { ov = document.createElement('div'); ov.id = 'lvovw'; document.body.appendChild(ov); } ov.innerHTML = !st.combat && !showHelp && !(st.lastRun && !st.run) && !(st.run && st.run.event) && !bossAsk ? lvBanner() : ''; /* 다른 창이 닫힌 뒤에 뜸 [전략실장] */ } if (hd) hd.insertAdjacentHTML('afterbegin', `<span class="lvtag" data-a="lvopen">⭐${li.label}${li.pend ? ' 🎁' : ''}</span> `); }
+/* ===== v2.9 강화 주사위판 화면 (게이지 화면 대신) ===== */
+let dcSel = 0, dcKey = '', dcRes = null, dcAnim = null, dcResAt = 0, dcOpen = false;
+const DCK = 'recovery-dclast'; /* v2.9 굴린 결과창은 확인 누를 때까지 새로고침해도 다시 보임 (이 기기에만) */
+function dcKeep(r) { try { if (r) localStorage.setItem(DCK, JSON.stringify(r)); else localStorage.removeItem(DCK); } catch (e) { } }
+try { const x = JSON.parse(localStorage.getItem(DCK) || 'null'); if (x && x.kind) dcRes = x; } catch (e) { }
+function dcBusy() { return !!(dcAnim || dcRes || (st && st.wTry)); } /* 판·연출·결과창이 떠 있으면 뒤 화면은 못 누름 */
+const DCN = { O: '성공', G: '대성공', F: '실패' }, DIE = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+function dcBoard(b, sel, pc, land, pick) { return `<div class="dcb">${[...b].map((c, i) => { const n = i + 1;
+  return `<${pick ? 'button' : 'div'} class="dcc dc-${c}${sel === n ? ' sel' : ''}${pc === n ? ' pc' : ''}${land === n ? ' land' : ''}"${pick ? ` data-a="dcpick" data-k="${n}"` : ''}><small>${n}</small><b>${DCN[c]}</b>${pc === n ? '<i class="dcpc">♟</i>' : ''}</${pick ? 'button' : 'div'}>`; }).join('')}</div>`; }
+function dcSync() { let ov = document.getElementById('dcw'); if (!ov) { ov = document.createElement('div'); ov.id = 'dcw'; document.body.appendChild(ov); }
+  if (dcAnim) return; /* 말이 가는 중에는 그대로 */
+  const g = G.diceInfo(st);
+  if (g && !st.run && !st.combat) { const key = g.k + g.lv + g.b; if (key !== dcKey || !dcOpen) { dcKey = key; dcSel = 0; } dcOpen = true; dcRes = null; dcKeep(null);
+    const p = dcSel ? g.pre[dcSel - 1] : null;
+    ov.innerHTML = `<div class="wgov"><div class="card wgcard dccard"><b>🎲 ${esc(g.n)} ${g.lv} → ${g.lv + 1}단계 강화</b><div class="muted">칸 하나를 눌러 시작점으로 → 주사위 두 개 합만큼 오른쪽으로 가요 (12 다음은 1). 멈춘 칸이 결과예요.<br>대성공 +2 · 실패는 반은 그대로, 반은 −1단계</div>
+      ${dcBoard(g.b, dcSel, dcSel, 0, true)}
+      <div class="dcpre">${p ? `<b>${dcSel}번에서 출발</b> · 성공 ${p.ok}% · 대성공 ${p.great}% · 실패 ${p.fail}%` : '👆 시작할 칸을 골라요 (7칸 앞이 가장 잘 나와요)'}</div>
+      <div class="btns"><button class="pri wgbig" data-a="dcroll" ${dcSel ? '' : 'disabled'}>🎲 굴리기</button></div><div class="btns sm"><button data-a="dcclose">그만두기 (그대로 · 코인은 이미 씀)</button></div></div></div>`; return; }
+  dcOpen = false;
+  if (dcRes) { const r = dcRes, t = { great: '🌟 대성공!', ok: '✨ 강화 성공!', keep: r.closed ? '💨 그만뒀어요' : '💨 실패', down: '💥 하락…' }[r.kind];
+    const sub = r.kind === 'keep' ? `${r.from}단계 그대로${r.fd ? ' · 다음 판 성공 칸 ' + r.cellsNext + '개' + (r.fl % 10 ? ' (한 번 더 실패하면 +1)' : ' (+1)') : ''}` : `${r.from} → ${r.to}단계${r.kind === 'great' ? ` (+${r.to - r.from})` : ''}${r.kind === 'down' && r.fd ? ' · 다음 판 성공 칸 ' + r.cellsNext + '개' + (r.fl % 10 ? ' (한 번 더 실패하면 +1)' : ' (+1)') : ''}`;
+    ov.innerHTML = `<div class="wgov"><div class="card wgcard dccard wgr-${r.kind}">${r.bd ? dcBoard(r.bd, r.s || 0, r.land || 0, r.land || 0, false) : ''}${r.sum ? `<div class="dcdice"><span>${DIE[r.d1]}</span><span>${DIE[r.d2]}</span><b>= ${r.sum}</b></div>` : ''}<div class="wgfx"><img src="${WGA[r.kind === 'great' ? 'great' : r.kind === 'ok' ? 'ok' : r.kind === 'down' ? 'down' : 'keep']}" alt=""></div><div class="wgtxt"><b>${t}</b><div>${sub}</div></div><div class="btns"><button class="pri wgokb" data-a="dcok">확인</button></div></div></div>`; return; }
+  ov.innerHTML = ''; }
+function dcRoll() { const g = G.diceInfo(st); if (!g || !dcSel || dcAnim) return; const s = dcSel; let r = null;
+  act(() => { r = G.diceRoll(st, s); }, null, null); /* 결과는 굴린 순간 저장됨 */
+  if (!r) { dcKey = ''; return render(); }
+  if (!r.sum) { dcRes = r; dcKeep(r); dcResAt = performance.now(); return render(); }
+  dcKeep(r); /* 연출 중 새로고침해도 결과창은 다시 보임 */
+  const ov = document.getElementById('dcw'); let pos = s, left = r.sum;
+  dcAnim = { r, t: 0 };
+  const draw = () => { ov.innerHTML = `<div class="wgov"><div class="card wgcard dccard"><b>🎲 굴렸어요</b><div class="dcdice roll"><span>${DIE[r.d1]}</span><span>${DIE[r.d2]}</span><b>= ${r.sum}</b></div>${dcBoard(r.bd, s, pos, 0, false)}<div class="dcpre">${left ? `남은 칸 ${left} · 누르면 바로 결과` : ''}</div></div></div>`; };
+  const finish = () => { if (!dcAnim) return; clearTimeout(dcAnim.t); dcAnim = null; ov.onclick = null; dcRes = r; dcKeep(r); dcResAt = performance.now(); SND.sfx(r.kind === 'great' || r.kind === 'ok' ? 'S4' : 'S3'); render(); };
+  const step = () => { if (!dcAnim) return; if (!left) { dcAnim.t = setTimeout(finish, 200); return; } pos = pos % 12 + 1; left--; draw(); dcAnim.t = setTimeout(step, D.wDice.step); };
+  draw(); ov.onclick = ev => { if (dcAnim) { ev.stopPropagation(); finish(); } }; dcAnim.t = setTimeout(step, 300); }
+
+function header() { header0(); dcSync(); const li = G.levelInfo(st), hd = $('#hdr'); { let ov = document.getElementById('lvovw'); if (!ov) { ov = document.createElement('div'); ov.id = 'lvovw'; document.body.appendChild(ov); } ov.innerHTML = !st.combat && !showHelp && !(st.lastRun && !st.run) && !(st.run && st.run.event) && !bossAsk ? lvBanner() : ''; /* 다른 창이 닫힌 뒤에 뜸 [전략실장] */ } if (hd) hd.insertAdjacentHTML('afterbegin', `<span class="lvtag" data-a="lvopen">⭐${li.label}${li.pend ? ' 🎁' : ''}</span> `); }
 function header0() {
   const r = st.run, c = st.combat;
   $('#hdr').innerHTML = `❤️ <span class="${st.hp <= 10 ? 'bad' : ''}">${st.hp}/${st.hpMax}</span> ${r ? `⚡ <span class="${st.energy <= 3 ? 'bad' : ''}">${st.energy}/${st.energyMax}</span> ⚠️ 위험 ${r.risk}` : ''} 🎒 ${G.bagCells(st).use}/${G.bagCells(st).tot} 💰 ${st.coins}${r ? ` 🚪 출구까지 ${G.distToExit(r.node)}칸` : ''}${r && r.practice ? ' <span class="tag">연습</span>' : ''}${r && r.night !== undefined ? ` <span class="tag">${r.night ? '🌙 밤' : '☀️ 낮'}</span>` : ''}${c ? ' ⚔️' : ''}<button class="sndbtn" data-a="snd" aria-label="소리 켜기·끄기">${SND.on ? '🔊' : '🔇'}</button>`;
@@ -2220,7 +2306,7 @@ function renderBase() {
   h += `<div class="card"><b>🔧 작업대 ${st.fac.bench}단계 · 무기 강화</b>`;
   if (!w) h += '<div class="muted">무기를 장착하면 강화할 수 있어요</div>';
   else if (u.max) h += '<div class="muted">최고 단계(10)예요</div>';
-  else if (u.coin) h += `<div class="muted">${nmv((w))} → ${u.lv + 1}단계: 코인 ${u.coins.toLocaleString()} · <b>성공 칸 ${u.chance}%</b> (타이밍)${u.fl ? ` (실패 보정 +${u.fl})` : ''}${u.chance < 100 ? `<br>실패하면 반은 그대로, 반은 −1단계(3단계 아래로는 안 감) · 실패할 때마다 성공 칸 +${D.wUp.pity}` : ''}${st.coins < u.coins ? `<br>코인이 ${(u.coins - st.coins).toLocaleString()} 모자라요` : ''}${u.lv >= 4 ? '<br><span class="bad">쓰러지면 강화한 무기도 잃어요</span>' : ''}${st.fac.bench < u.bench ? '<br>작업대 2단계가 필요해요' : ''}</div><div class="btns"><button class="${u.ok ? 'pri' : ''}" data-a="upgrade" ${u.ok ? '' : 'disabled'}>강화 (${u.coins.toLocaleString()}코인 · ${u.chance}%)</button></div>`; /* v2.6 */
+  else if (u.coin) h += `<div class="muted">${nmv((w))} → ${u.lv + 1}단계: 코인 ${u.coins.toLocaleString()} · <b>🎲 주사위판: 성공 칸 ${u.lv === 3 ? 11 : Math.min(10, ({ 4: 9, 5: 8, 6: 6, 7: 5, 8: 4, 9: 3 })[u.lv] + Math.floor((u.fl || 0) / 10))}개 + 대성공 1칸</b> (판은 매번 섞여요)${u.fl ? ` (실패 보정 +${u.fl})` : ''}${u.chance < 100 ? `<br>실패하면 반은 그대로, 반은 −1단계(3단계 아래로는 안 감) · 실패 2번마다 성공 칸 +1` : ''}${st.coins < u.coins ? `<br>코인이 ${(u.coins - st.coins).toLocaleString()} 모자라요` : ''}${u.lv >= 4 ? '<br><span class="bad">쓰러지면 강화한 무기도 잃어요</span>' : ''}${st.fac.bench < u.bench ? '<br>작업대 2단계가 필요해요' : ''}</div><div class="btns"><button class="${u.ok ? 'pri' : ''}" data-a="upgrade" ${u.ok ? '' : 'disabled'}>🎲 강화 (${u.coins.toLocaleString()}코인)</button></div>`; /* v2.6 */
   else h += `<div class="muted">${nmv((w))} → ${u.lv + 1}단계: ${matText(u.mats)} · ${u.coins}코인${u.bench > 1 ? ' · 작업대 2단계 필요' : ''}</div><div class="btns"><button data-a="upgrade" ${u.ok ? '' : 'disabled'}>강화</button></div>`;
   for (const [ck, cd] of Object.entries(D.craft)) h += `<div class="muted" style="margin-top:8px">🎒 제작: ${cd.desc} — ${matText(cd.mats)} · ${cd.coins}코인</div><div class="btns"><button data-a="craft" data-k="${ck}"${WHY(G.can(st, 'craft', ck))}>만들기</button></div>`;
   h += '</div>';
@@ -3125,6 +3211,7 @@ document.addEventListener('click', ev => {
   const el = ev.target.closest('[data-a]'); if (!el) return; if (el.dataset.why) { toast('🔒 ' + el.dataset.why); return; } /* v2.8 */
   const a = el.dataset.a, k = el.dataset.k, f = el.dataset.f, i = el.dataset.i !== undefined ? +el.dataset.i : undefined, t = el.dataset.t;
   if (fpNote(a, k, f, i)) return;
+  if (dcBusy() && !el.closest('#dcw')) return; /* v2.9 판이 떠 있으면 뒤 화면(키보드 포함) 막음 */ if (a === 'dcpick') { dcSel = +k; return dcSync(); } if (a === 'dcroll') return dcRoll(); if (a === 'dcclose') { let r = null; act(() => { r = G.diceClose(st); }); if (r) { dcRes = r; dcKeep(r); dcResAt = performance.now(); render(); } return; } if (a === 'dcok') { if (performance.now() - dcResAt < WG_HOLD) return; dcRes = null; dcKeep(null); return render(); } /* v2.9 주사위판 */
   if (a === 'wgclose') return wgHit(null); if (a === 'wgok') { if (performance.now() - wgResAt < WG_HOLD) return; wgRes = null; wgLast = null; return render(); } /* v2.7 */
   if (a === 'lvpick') return act(() => G.lvPick(st, k)); // v2.5 레벨업 고르기는 결과창·사건 중에도 됨
   if (a === 'lvlater') { lvLater = st.lvl; return render(); } if (a === 'lvopen') { lvLater = -1; return render(); }
