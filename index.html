@@ -1555,7 +1555,7 @@ Object.assign(D.items, {
   dianeck: { n: '다이아 목걸이', c: '귀중품', s: 1, p: 15800, use: '팔기 (아주아주 드문 귀중품)', sh: [1, 1] } });
 D.rv = { mag: 5, need: { claw: 3, tide: 5, whale: 5 } }; /* 기획서 4번: 일반 적 1발 · 중간 보스(시추 집게) 3발 · 챕터 보스(밀물지기·안개고래) 5발 · 최종 보스 10발(아직 없음) */
 D.slot = { cost: 3, sym: ['revolver', 'dianeck', 'goldshroom', 'statue', 'ring', 'logbook'],
-  odds: [['revolver', 1], ['dianeck', 0.02], ['goldshroom', 0.2], ['statue', 3], ['ring', 5], ['logbook', 6]] }; /* 기획서 3번 표 (%) · 나머지 84.78% = 꽝 */
+  odds: [['revolver', 4], ['dianeck', 5], ['goldshroom', 10], ['statue', 15], ['ring', 25], ['logbook', 40]] }; /* BOSS 2026-11-25 확률표 (%) · 나머지 1% = 꽝 (처음엔 기획서 v0.2 3번 표: 1·0.02·0.2·3·5·6) */
 D.vspawn = { all: { goldshroom: 0.05, dianeck: 0.01 }, rich: { goldshroom: 0.15, dianeck: 0.07 } }; /* 기획서 5번: 모든 지점 5%·1% / hint에 '귀중품'이 있는 지점 15%·7% */
 let rvNoLuck = false; /* 리볼버로 쓰러뜨린 적은 행운의 주화 보너스 없음 (win → winExtra 동안만 켜짐) */
 const isRv = it => !!(it && D.items[it.k] && D.items[it.k].w && D.items[it.k].w.rv);
@@ -2286,7 +2286,7 @@ function slMsg(r) { if (!r) return ''; if (r.k === 'revolver') return '<b class=
   if (r.k) return `<b>✨ ${esc(D.items[r.k].n)} 3개!</b><br>${esc(D.items[r.k].n)} 1개 → 보관함 (팔면 ${G.sellPrice({ k: r.k }).toLocaleString()}코인)`;
   const a = r.reels; return a[0] === a[1] || a[1] === a[2] || a[0] === a[2] ? '<b>아깝다! 두 개만 맞았어요</b>' : '<b>안 맞았어요</b>'; }
 function slotCardHtml() { const s = G.slotInfo(st), im = RA['I_amber'] ? `<img class="thumb" src="${RA['I_amber']}" alt="">` : '🟠 ';
-  return `<div class="item"><div><div class="nm">${RA['I_slot'] ? `<img class="thumb" src="${RA['I_slot']}" alt="">` : '🎰 '}리볼버 뽑기 (슬롯머신)</div><div class="muted">한 번에 호박석 ${s.cost}개 · 1·2·3번 칸이 모두 리볼버면 <span class="lgd">[전설] 호박석 리볼버</span> (1%) · 다른 그림 3개가 맞으면 그 귀중품</div></div><div class="btns sm"><button class="pri" data-a="slopen">🎰 열기</button></div></div>
+  return `<div class="item"><div><div class="nm">${RA['I_slot'] ? `<img class="thumb" src="${RA['I_slot']}" alt="">` : '🎰 '}리볼버 뽑기 (슬롯머신)</div><div class="muted">한 번에 호박석 ${s.cost}개 · 1·2·3번 칸이 모두 리볼버면 <span class="lgd">[전설] 호박석 리볼버</span> (4%) · 다른 그림 3개가 맞으면 그 귀중품</div></div><div class="btns sm"><button class="pri" data-a="slopen">🎰 열기</button></div></div>
 <div class="muted">${im}가진 호박석 <b>${s.have.toLocaleString()}</b>개 (보관함+배낭)${s.ok ? '' : ` · <span class="bad">${esc(s.why)}</span>`}</div>`; }
 function slOddsHtml() { const s = G.slotInfo(st); return `<div class="slodds">${s.odds.map(([k, p]) => `<div class="row"><span>${k ? `${slIcon(k)} ${k === 'revolver' ? '<span class="lgd">[전설] 호박석 리볼버</span>' : esc(D.items[k].n)} 3개` : '안 맞음 (꽝)'}</span><b>${p}%</b></div>`).join('')}<div class="muted">확률은 늘 같아요 (천장 없음). 받은 물건은 보관함으로 가요.</div></div>`; }
 function slSync() { let ov = document.getElementById('slw'); if (!ov) { ov = document.createElement('div'); ov.id = 'slw'; document.body.appendChild(ov); }
@@ -3344,7 +3344,7 @@ const HELP = [
     '구역마다 해초 길, 잠긴 선장실, 등불 같은 장치가 있어요. 탐사 화면의 알림을 따라가요.']],
   ['revolver', '🎰 리볼버·뽑기', '호박석 리볼버와 리볼버 뽑기', () => [
     '마루의 상점 「🎰 리볼버 뽑기」에서 슬롯머신을 돌려요. 한 번에 호박석 3개예요.',
-    '1·2·3번 칸이 모두 리볼버면 <span class="lgd">[전설] 호박석 리볼버</span>를 받아요(1%, 늘 같음). 다른 그림 3개가 맞으면 그 귀중품을 받아요. 확률표는 뽑기 창에서 볼 수 있어요.',
+    '1·2·3번 칸이 모두 리볼버면 <span class="lgd">[전설] 호박석 리볼버</span>를 받아요(4%, 늘 같음). 다른 그림 3개가 맞으면 그 귀중품을 받아요. 확률표는 뽑기 창에서 볼 수 있어요.',
     '받은 물건은 보관함으로 가요. 보관함에 3칸이 비어 있어야 돌릴 수 있어요. 탐사 중·튜토리얼 중에는 못 돌려요.',
     '리볼버는 명중 횟수로 쓰러뜨려요: 일반 적 1발 · 중간 보스(시추 집게) 3발 · 챕터 보스(밀물지기·안개고래) 5발. 먼저 깎아 둔 만큼 발 수가 줄어요.',
     '탄창은 5발, 탄 1발 = 호박석 1개예요. 「🔄 장전」은 거점·탐사 중엔 그냥 되고, 전투 중엔 한 턴을 써요. 그 턴엔 적 공격을 막기·거리와 상관없이 그대로 맞아요.',
