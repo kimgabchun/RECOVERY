@@ -454,7 +454,7 @@ const D = {
   ],
   upgrade: { 1: { mats: { wrench: 1, gear: 2 }, coins: 40 }, 2: { mats: { wrench: 1, spring: 2, circuit: 1 }, coins: 100, bench: 2 } },
   facilities: {
-    bench2: { n: '작업대 2단계', mats: { saw: 1, motor: 1 }, coins: 60, desc: '무기 3단계 강화 가능' },
+    bench2: { n: '작업대 2단계', mats: { saw: 1, motor: 1 }, coins: 60, desc: '무기 3단계 강화 · 그 뒤 코인으로 10단계까지' },
     storage: { n: '보관함 확장', mats: { tape: 2, rope: 2, saw: 1 }, coins: 40, desc: '보관함 20 → 35칸' },
     clinic: { n: '의무실', mats: { motor: 1, battery: 2, circuit: 1 }, coins: 80, desc: '거점 치료 무료' },
     scout: { n: '정찰대', mats: { drill: 1, bearing: 2, fuse: 1, cable: 1 }, coins: 70, desc: '탐사 출발 지점을 고를 수 있음 (출구 아무 곳에서 시작)' },
@@ -1413,10 +1413,16 @@ function heal(st) {
   const free = !!st.fac.clinic; const n = free ? miss : Math.min(miss, st.coins * 2); if (n <= 0) E('코인이 부족해요');
   const cost = free ? 0 : Math.ceil(n / 2); st.hp += n; st.coins -= cost; log(st, `치료 +${n}${free ? ' (의무실 무료)' : ` (−${cost} 코인)`}`);
 }
-function upgradeInfo(st) { if (!st.equip) return null; const lv = st.equip.lv || 1; if (lv >= 3) return { max: true }; const u = D.upgrade[lv]; return { lv, mats: u.mats, coins: u.coins, bench: u.bench || 1, ok: hasMats(st, u.mats) && st.coins >= u.coins && st.fac.bench >= (u.bench || 1) }; }
+D.wUp = { max: 10, coins: { 3: 1000, 4: 2000, 5: 4000, 6: 8000, 7: 16000, 8: 32000, 9: 64000 }, ok: { 3: 100, 4: 90, 5: 80, 6: 70, 7: 60, 8: 50, 9: 40 }, pity: 5, bench: 2 }; /* v2.6 */
+const wFl = w => (w && w.fl) || 0, wChance = w => Math.min(100, D.wUp.ok[w.lv || 1] + wFl(w));
+function upgradeInfo(st) { if (!st.equip) return null; const lv = st.equip.lv || 1; if (lv >= D.wUp.max) return { max: true };
+  if (lv >= 3) { const c = D.wUp.coins[lv]; return { lv, coin: true, mats: {}, coins: c, bench: D.wUp.bench, chance: wChance(st.equip), fl: wFl(st.equip), ok: st.coins >= c && st.fac.bench >= D.wUp.bench }; } /* v2.6 코인 강화 */ const u = D.upgrade[lv]; return { lv, mats: u.mats, coins: u.coins, bench: u.bench || 1, ok: hasMats(st, u.mats) && st.coins >= u.coins && st.fac.bench >= (u.bench || 1) }; }
 function upgrade(st) {
   needBase(st); const u = upgradeInfo(st); if (!u) E('장착한 무기가 없어요'); if (u.max) E('최고 단계예요');
   if (st.fac.bench < u.bench) E('작업대 2단계가 필요해요'); if (!hasMats(st, u.mats)) E('재료가 부족해요'); if (st.coins < u.coins) E('코인이 부족해요');
+  if (u.coin) { const w = st.equip, nm = D.items[w.k].n; st.coins -= u.coins; const r = rngA(st) * 100; /* 실패해도 코인은 씀 — 하락 없음 */
+    if (r < u.chance) { w.lv = u.lv + 1; delete w.fl; const m = `✨ ${nm} ${w.lv}단계 강화 성공! (${u.chance}%)`; log(st, m); return { coin: true, ok: true, lv: w.lv, msg: m }; }
+    w.fl = wFl(w) + D.wUp.pity; const m = `💥 ${nm} 강화 실패 — ${u.lv}단계 그대로 · 다음 성공 +${w.fl}%`; log(st, m); return { coin: true, ok: false, lv: u.lv, msg: m }; }
   consume(st, u.mats); st.coins -= u.coins; st.equip.lv = u.lv + 1; log(st, `${D.items[st.equip.k].n} ${u.lv + 1}단계 강화!${u.lv + 1 === 3 ? ' 특수 효과 열림' : ''}`);
 }
 function build(st, f) {
@@ -1770,6 +1776,13 @@ function seaWin2(st, k, lh, ed) { if (!st.run || !st.sea) return;
 // 8구역: 덜 켠 등불 수만큼 기름이 모자라면, 상자를 뒤질 때 모자란 만큼 한 번에 나옴. 이 기름은 마루가 사 주지 않음(ns) [전략실장]
 function seaOilGift(st, n) { const r = st.run; if (!r || zoneOf(r.region) !== 8 || allLit(st)) return; const have = [...st.bag, ...st.pocket, ...[].concat(...Object.values(r.found).filter(Array.isArray))].filter(it => it && it.k === 'oil').length, need = LAMPS.length - litN(st) - have;
   if (need <= 0) return; for (let q = 0; q < need; q++) (r.found[n] = r.found[n] || []).push({ k: 'oil', ns: true }); log(st, `선원들이 남긴 등불 기름 ${need}통이 있어요 (등불을 켜는 데 써요)`); }
+function wCheck(st, bad) { /* v2.6 — 땅에 떨군 물건(run.found)까지, 보정 상한은 단계별(100 − 성공%) [전략실장] */
+  if (st.equip && D.items[st.equip.k] && !D.items[st.equip.k].w) bad('장착 무기');
+  const fd = st.run && st.run.found && typeof st.run.found === 'object' ? Object.values(st.run.found).filter(Array.isArray).flat() : [];
+  for (const it of [...(st.bag || []), ...(st.pocket || []), ...(st.stash || []), ...(st.equip ? [st.equip] : []), ...fd]) { if (!it || !D.items[it.k]) { if (fd.includes(it)) bad('떨군 물건'); continue; }
+    if (D.items[it.k].w) { const lv = it.lv === undefined ? 1 : it.lv; if (!Number.isInteger(lv) || lv < 1 || lv > D.wUp.max) bad('무기 단계');
+      if (it.fl !== undefined && (!Number.isInteger(it.fl) || it.fl < 0 || it.fl % D.wUp.pity || lv < 3 || lv >= D.wUp.max || it.fl > 100 - D.wUp.ok[lv])) bad('강화 보정'); }
+    else if (it.fl !== undefined || (it.lv !== undefined && it.lv !== 0)) bad('무기 아닌 물건의 단계'); } }
 function validate(st) {
   if (st.acc && (!D.items[st.acc.k] || !D.items[st.acc.k].acc)) st.acc = null; // v2.3
 
@@ -1795,7 +1808,7 @@ function validate(st) {
   if (!st.unlocked || typeof st.unlocked !== 'object' || (st.unlocked.harbor && !st.won3) || typeof st.fx !== 'boolean' || typeof st.sg !== 'boolean' || !Number.isInteger(st.rs) || st.rs < 0 || !!st.quests.q15 !== !!st.unlocked.harbor || (st.run && st.run.region === 'harbor' && !st.unlocked.harbor) || (st.rk !== undefined && (st.rk !== true || st.reserve === undefined))) bad('해금·첫 귀환 기록');
   if (!Number.isInteger(st.ship) || st.ship < 0 || st.ship > D.ship.length || (st.ship > 0 && !st.won3) || !!st.won4 !== (st.ship === D.ship.length)) bad('배 수리');
   if (!Number.isInteger(st.device) || st.device < 0 || st.device > D.device.length || (st.device > 0 && !st.won2)) bad('정화 장치');
-  if (!!st.won3 !== (st.device === D.device.length) || (st.won2 && !D.goal2Quests.every(q => st.quests[q])) || !Array.isArray(st.log)) bad('목표 기록'); /* v0.6 [전략실장] */ for (const it of allItems(st)) if (!D.items[it.k]) bad('물건 ' + it.k);
+  if (!!st.won3 !== (st.device === D.device.length) || (st.won2 && !D.goal2Quests.every(q => st.quests[q])) || !Array.isArray(st.log)) bad('목표 기록'); /* v0.6 [전략실장] */ for (const it of allItems(st)) if (!D.items[it.k]) bad('물건 ' + it.k); wCheck(st, bad);
   return true;
 }
 function save(st) { return JSON.stringify({ app: 'surv-rpg', v: 1, st }); }
@@ -1915,7 +1928,7 @@ function tutCard() {
 let rawSave = null, loadFail = false; // v2.0 불러오기에 실패하면 원래 저장 글을 따로 보관 [전략실장]
 try { const t = localStorage.getItem(KEY) || localStorage.getItem('recovery-v21') || localStorage.getItem('recovery-v20') || localStorage.getItem('recovery-v16') || localStorage.getItem('recovery-v15') || localStorage.getItem('recovery-v14') || localStorage.getItem('recovery-v13') || localStorage.getItem('recovery-v12') || localStorage.getItem('recovery-v11') || localStorage.getItem('recovery-v10') || localStorage.getItem('recovery-v09'); rawSave = t; st = t ? G.load(t) : G.newGame(); } catch (e) { st = G.newGame(); try { if (rawSave) { localStorage.setItem('recovery-broken', rawSave); loadFail = true; } } catch (e2) {} }
 
-const iname = it => D.items[it.k].n + (it.lv ? ` ${it.lv}단계` : '');
+const iname = it => D.items[it.k].n + (it.lv ? ` ${it.lv}단계` : '') + (it.fl ? ` (보정 +${it.fl}%)` : '');
 function itemTags(it) {
   const d = D.items[it.k], need = G.needs(st)[it.k];
   return `<span class="tag">${d.c} · ${d.sh[0]}×${d.sh[1]}</span>${it.b ? '<span class="tag">보급</span>' : ''}${st.locks[it.k] ? '<span class="tag lock">🔒</span>' : ''}${need ? `<span class="tag need">목표에 ${need}개 필요 · 보유 ${G.countBase(st, it.k)}</span>` : ''}${it.f ? '<span class="tag">이번에 주움</span>' : ''}`;
@@ -1968,7 +1981,7 @@ const CAT_ICON = { 무기: '⚔️', 의료: '💊', 식량: '🥫', 던지기: 
 function stashView(title, where, sub, btns) {
   const arr = st[where];
   if (!stashOpen && !forceOpen) return `<div class="card"><div class="row"><b>${title}</b><span class="muted">${sub}</span></div><div class="btns"><button class="pri" data-a="stashtog">📦 보관함 열기 (${arr.length}개)</button></div></div>`;
-  const groups = {}; arr.forEach((it, i) => { const c = D.items[it.k].c, key = it.k + '|' + (it.lv || 0) + '|' + (it.b ? 1 : 0); groups[c] = groups[c] || {}; (groups[c][key] = groups[c][key] || { it, idx: [] }).idx.push(i); });
+  const groups = {}; arr.forEach((it, i) => { const c = D.items[it.k].c, key = it.k + '|' + (it.lv || 0) + '|' + (it.fl || 0) + '|' + (it.b ? 1 : 0); groups[c] = groups[c] || {}; (groups[c][key] = groups[c][key] || { it, idx: [] }).idx.push(i); });
   const ord = c => { const i = CAT_ORDER.indexOf(c); return i < 0 ? 99 : i; };
   let h = `<div class="card"><div class="row"><b>${title}</b><span class="muted">${sub} ${forceOpen ? '' : '<button data-a="stashtog" style="min-height:30px;margin-left:6px">접기</button>'}</span></div>`;
   if (!arr.length) h += '<div class="muted">비어 있어요</div>';
@@ -2121,7 +2134,8 @@ function renderBase() {
   // 작업대
   h += `<div class="card"><b>🔧 작업대 ${st.fac.bench}단계 · 무기 강화</b>`;
   if (!w) h += '<div class="muted">무기를 장착하면 강화할 수 있어요</div>';
-  else if (u.max) h += '<div class="muted">최고 단계(3)예요</div>';
+  else if (u.max) h += '<div class="muted">최고 단계(10)예요</div>';
+  else if (u.coin) h += `<div class="muted">${nmv((w))} → ${u.lv + 1}단계: 코인 ${u.coins.toLocaleString()} · <b>성공 ${u.chance}%</b>${u.fl ? ` (실패 보정 +${u.fl})` : ''}${u.chance < 100 ? `<br>실패하면 단계는 그대로, 코인은 써요 · 실패할 때마다 다음 성공 +${D.wUp.pity}%` : ''}${st.coins < u.coins ? `<br>코인이 ${(u.coins - st.coins).toLocaleString()} 모자라요` : ''}${u.lv >= 4 ? '<br><span class="bad">쓰러지면 강화한 무기도 잃어요</span>' : ''}${st.fac.bench < u.bench ? '<br>작업대 2단계가 필요해요' : ''}</div><div class="btns"><button class="${u.ok ? 'pri' : ''}" data-a="upgrade" ${u.ok ? '' : 'disabled'}>강화 (${u.coins.toLocaleString()}코인 · ${u.chance}%)</button></div>`; /* v2.6 */
   else h += `<div class="muted">${nmv((w))} → ${u.lv + 1}단계: ${matText(u.mats)} · ${u.coins}코인${u.bench > 1 ? ' · 작업대 2단계 필요' : ''}</div><div class="btns"><button data-a="upgrade" ${u.ok ? '' : 'disabled'}>강화</button></div>`;
   for (const [ck, cd] of Object.entries(D.craft)) h += `<div class="muted" style="margin-top:8px">🎒 제작: ${cd.desc} — ${matText(cd.mats)} · ${cd.coins}코인</div><div class="btns"><button data-a="craft" data-k="${ck}">만들기</button></div>`;
   h += '</div>';
@@ -2861,7 +2875,7 @@ function bedHtml() { return `<div class="card"><b>🛏️ 치료</b><div class="
 // ---------- 장비 창 (보관함과 따로, BOSS 요청) ----------
 let wPick = false, pPick = false, packCat = '의료';
 const th = it => RA['I_' + it.k] ? `<img class="thumb" src="${RA['I_' + it.k]}" alt="">` : '';
-function groupLines(list, btn) { const g = {}; list.forEach(([f, i, it]) => { const key = it.k + '|' + (it.lv || 0) + '|' + (it.b ? 1 : 0); (g[key] = g[key] || { f, i, it, n: 0 }).n++; });
+function groupLines(list, btn) { const g = {}; list.forEach(([f, i, it]) => { const key = it.k + '|' + (it.lv || 0) + '|' + (it.fl || 0) + '|' + (it.b ? 1 : 0); (g[key] = g[key] || { f, i, it, n: 0 }).n++; });
   return Object.values(g).map(x => `<div class="item"><div><div class="nm">${th(x.it)}${nmv((x.it))}${x.n > 1 ? ` <span class="tag need">×${x.n}</span>` : ''}</div><div class="muted">${esc(D.items[x.it.k].use)} · ${D.items[x.it.k].sh[0]}×${D.items[x.it.k].sh[1]}</div></div><div class="btns sm">${btn(x.f, x.i, x.it)}</div></div>`).join(''); }
 const PACK_CATS = [['의료', d => d.heal || d.stim], ['식량', d => d.food], ['던지기', d => d.thr || d.smoke || d.trap], ['파우치', d => d.inner], ['기타', d => !(d.heal || d.stim || d.food || d.thr || d.smoke || d.trap || d.inner || d.w || d.pack)]];
 function boxHtml(kind) { const b = G.boxInfo(st, kind), ok = b.have >= b.cost, im = RA['I_amber'] ? `<img class="thumb" src="${RA['I_amber']}" alt="">` : '🟠 ';
@@ -3106,7 +3120,7 @@ document.addEventListener('click', ev => {
     else if (a === 'ca') G.combatAct(st, k, k === 'item' ? { from: f, i } : undefined);
     else if (a === 'use') G.useItem(st, f, i); else if (a === 'mv') G.moveItem(st, f, i, t);
     else if (a === 'sell') G.sell(st, f, i); else if (a === 'buy') G.buy(st, k); else if (a === 'equip') G.equip(st, f, i);
-    else if (a === 'unequip') G.unequip(st); else if (a === 'heal') G.heal(st); else if (a === 'upgrade') G.upgrade(st);
+    else if (a === 'unequip') G.unequip(st); else if (a === 'heal') G.heal(st); else if (a === 'upgrade') { const r = G.upgrade(st); if (r && r.msg) toast(r.msg); }
     else if (a === 'build') G.build(st, k); else if (a === 'device') G.buildDevice(st, k === 'coins'); else if (a === 'ship') G.buildShip(st); else if (a === 'quest') G.quest(st, k); else if (a === 'lock') G.toggleLock(st, k);
     else if (a === 'box') G.openBox(st, k); else if (a === 'acceq') G.equipAcc(st, f, i); else if (a === 'accun') G.unequipAcc(st); // v2.3
   }, TAG[a], snd);
