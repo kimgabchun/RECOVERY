@@ -1559,10 +1559,15 @@ function shopPin(st, k) { needBase(st); const P0 = (Array.isArray(st.shopPin) ? 
 D.packs.gm = { n: 'GM 무한 가방', w: 6, h: 10 };
 D.items.gmbag = { n: 'GM 무한 가방', c: '가방', s: 3, p: 0, nosell: true, use: '관리자 가방 · 메면 배낭 6×10', pack: 'gm', sh: [2, 3] };
 const CPN_H = s => { let h = 2166136261; for (const ch of s) { h ^= ch.codePointAt(0); h = Math.imul(h, 16777619) >>> 0; } return h; };
-const COUPONS = { 1135433081: 'gm' };
+const COUPONS = { 1135433081: 'gm', 1818244108: 'visit' }; /* v2.19 병문안 */
 function redeem(st, code) { if (st.tm) E('튜토리얼에서는 쿠폰을 쓸 수 없어요'); if (st.run || st.combat) E('거점에서만 쿠폰을 쓸 수 있어요');
-  const c = String(code === undefined ? '' : code).trim().toLowerCase(); if (!c) E('쿠폰 번호를 넣어 주세요'); const kind = COUPONS[CPN_H(c)]; if (!kind) E('없는 쿠폰이에요');
-  if (kind === 'gm') gmApply(st); return kind; }
+  const c = String(code === undefined ? '' : code).trim().toLowerCase().replace(/^[\[［【(]\s*|\s*[\]］】)]$/g, ''); /* v2.19 [괄호] 허용 */ if (!c) E('쿠폰 번호를 넣어 주세요'); const kind = COUPONS[CPN_H(c)]; if (!kind) E('없는 쿠폰이에요');
+  if (kind === 'gm') gmApply(st); else if (kind === 'visit') visitApply(st); return kind; }
+/* v2.19 병문안 쿠폰: 저장 하나에 한 번 · 리볼버를 넣을 자리(보관함, 없으면 배낭)가 없으면 아무것도 주지 않고 쿠폰도 안 씀 */
+function visitApply(st) { if (st.cpn && st.cpn.visit) E('이미 쓴 쿠폰이에요');
+  const it = { k: 'revolver', am: D.rv.mag }; if (!addTo(st, 'stash', it) && !addTo(st, 'bag', it)) E('보관함과 배낭이 꽉 찼어요. 리볼버 자리(1×2)를 비우고 다시 넣어 주세요');
+  st.coins += 100000; st.amb = (st.amb > 0 ? st.amb : 0) + 1000; /* 호박석 1,000개는 GM과 같은 호박석 주머니로 (보관함 칸을 안 차지함, 쓸 때 먼저 나감) */
+  st.cpn = Object.assign({}, st.cpn, { visit: true }); log(st, '🎁 병문안 쿠폰: 호박석 1,000개 · 코인 100,000 · 호박석 리볼버(5발)'); }
 function gmApply(st) { lvFix(st); const N = 99999999;
   st.gm = true; st.coins = N; st.amb = N; /* 호박석은 물건이라 9,999만 개를 쌓을 수 없어 GM 주머니 수로 둠 (상자·무기 살 때 먼저 씀) */
   st.won = st.won2 = st.won3 = st.won4 = st.won5 = true; st.unlocked = Object.assign({}, st.unlocked, { metro: true, harbor: true });
@@ -2644,7 +2649,7 @@ function renderBase() {
    ${w ? `<div class="btns sm">${rvBtn()}<button data-a="unequip">보관함에 넣기</button></div>` : ''}</div>`;
   h += '<!--§bag-->' + bagView() + heldBar() + listCard('🎒 배낭 물건', 'bag', `다음 탐사에 들고 가요 · 쓰러지면 가방째 잃어요`, (it, i) => `${D.items[it.k].pack ? `<button class="pri" data-a="pack" data-f="bag" data-i="${i}">메기</button>` : ''}<button data-a="mv" data-f="bag" data-i="${i}" data-t="stash">보관함</button>${G.area(it) === 1 ? `<button data-a="mv" data-f="bag" data-i="${i}" data-t="pocket"${WHY(G.can(st, 'moveItem', 'bag', i, 'pocket'))}>주머니</button>` : ''}${D.items[it.k].w ? `<button data-a="equip" data-f="bag" data-i="${i}">장착</button>` : ''}${D.items[it.k].heal || D.items[it.k].open ? `<button data-a="use" data-f="bag" data-i="${i}">쓰기</button>` : ''}<button data-a="sell" data-f="bag" data-i="${i}"${WHY(G.can(st, 'sell', 'bag', i))}>팔기</button>`);
   h += '<!--§pocket-->' + listCard('🛡️ 안전 주머니', 'pocket', `${st.pocket.length}/${D.start.pocketN}개 · 쓰러져도 지켜져요 (1×1만)`, (it, i) => `<button data-a="mv" data-f="pocket" data-i="${i}" data-t="stash">보관함</button><button data-a="mv" data-f="pocket" data-i="${i}" data-t="bag">배낭</button>`);
-  h += '<!--§stash-->' + stUpCard() + stashView('📦 보관함', 'stash', `${G.used(st.stash)}/${G.stashCap(st)}칸`, (it, i) => `${D.items[it.k].pack ? `<button class="pri" data-a="pack" data-f="stash" data-i="${i}">메기</button>` : ''}<button data-a="mv" data-f="stash" data-i="${i}" data-t="bag">배낭</button>${G.area(it) === 1 ? `<button data-a="mv" data-f="stash" data-i="${i}" data-t="pocket"${WHY(G.can(st, 'moveItem', 'stash', i, 'pocket'))}>주머니</button>` : ''}${D.items[it.k].w ? `<button data-a="equip" data-f="stash" data-i="${i}">장착</button>` : ''}${D.items[it.k].heal || D.items[it.k].open ? `<button data-a="use" data-f="stash" data-i="${i}">쓰기</button>` : ''}<button data-a="lock" data-k="${it.k}">${st.locks[it.k] ? '🔓' : '🔒'}</button><button data-a="sell" data-f="stash" data-i="${i}"${WHY(G.can(st, 'sell', 'stash', i))}>팔기</button>`);
+  h += '<!--§stash-->' + stUpCard() + stashView('📦 보관함', 'stash', `${G.used(st.stash)}/${G.stashCap(st)}칸${st.amb > 0 ? ' · 🟠 호박석 주머니 ' + st.amb.toLocaleString() + '개' : ''}`, (it, i) => `${D.items[it.k].pack ? `<button class="pri" data-a="pack" data-f="stash" data-i="${i}">메기</button>` : ''}<button data-a="mv" data-f="stash" data-i="${i}" data-t="bag">배낭</button>${G.area(it) === 1 ? `<button data-a="mv" data-f="stash" data-i="${i}" data-t="pocket"${WHY(G.can(st, 'moveItem', 'stash', i, 'pocket'))}>주머니</button>` : ''}${D.items[it.k].w ? `<button data-a="equip" data-f="stash" data-i="${i}">장착</button>` : ''}${D.items[it.k].heal || D.items[it.k].open ? `<button data-a="use" data-f="stash" data-i="${i}">쓰기</button>` : ''}<button data-a="lock" data-k="${it.k}">${st.locks[it.k] ? '🔓' : '🔒'}</button><button data-a="sell" data-f="stash" data-i="${i}"${WHY(G.can(st, 'sell', 'stash', i))}>팔기</button>`);
   h += '<!--§metro-->';
   // 갱도 (2지역 미리 보기)
   { const u = D.metroUnlock, sp = ['mycel', 'glowspore', 'cable', 'filter', 'safebox'].map(k => D.items[k].n).join('·');
@@ -3700,7 +3705,7 @@ document.addEventListener('click', ev => {
   if (dcBusy() && !el.closest('#dcw')) return; /* v2.9 판이 떠 있으면 뒤 화면(키보드 포함) 막음 */ if (v217Click(a, k, el)) return; /* v2.17 장전·리볼버 뽑기 */ if (a === 'dcpick') { dcSel = +k; return dcSync(); } if (a === 'dcroll') return dcRoll(); if (a === 'dcclose') { let r = null; act(() => { r = G.diceClose(st); }); if (r) { dcRes = r; dcKeep(r); dcResAt = performance.now(); render(); } return; } if (a === 'dcok') { if (performance.now() - dcResAt < WG_HOLD) return; dcRes = null; dcKeep(null); return render(); } /* v2.9 주사위판 */
   if (a === 'wgclose') return wgHit(null); if (a === 'wgok') { if (performance.now() - wgResAt < WG_HOLD) return; wgRes = null; wgLast = null; return render(); } /* v2.7 */
   if (a === 'lvpick') return act(() => G.lvPick(st, k)); // v2.5 레벨업 고르기는 결과창·사건 중에도 됨
-  if (a === 'cpn') { const inp = document.getElementById('cpnIn'), v = inp ? inp.value : ''; let kind = ''; act(() => { kind = G.redeem(st, v); }); if (kind) { if (inp) inp.value = ''; toast(kind === 'gm' ? '🎁 관리자 쿠폰 적용! 코인·호박석 99,999,999 · 모든 챕터·의뢰·패시브 · 만렙 · GM 가방' : '🎁 쿠폰을 썼어요'); } return; } /* v2.15 쿠폰 */
+  if (a === 'cpn') { const inp = document.getElementById('cpnIn'), v = inp ? inp.value : ''; let kind = ''; act(() => { kind = G.redeem(st, v); }); if (kind) { if (inp) inp.value = ''; toast(kind === 'gm' ? '🎁 관리자 쿠폰 적용! 코인·호박석 99,999,999 · 모든 챕터·의뢰·패시브 · 만렙 · GM 가방' : kind === 'visit' ? '🎁 병문안 쿠폰! 호박석 1,000개 · 코인 100,000 · 호박석 리볼버가 보관함에 왔어요' : '🎁 쿠폰을 썼어요'); } return; } /* v2.15 쿠폰 */
   
 if (a === 'accup') return act(() => G.accUpStart(st)); /* v2.16 장신구 강화 → 주사위판 */
   if (a === 'buy' && k) { buyQ = { k, n: 1 }; return render(); } if (a === 'buyamb' && k) { buyQ = { k, n: 1, amb: 1 }; return render(); } if (a === 'pin' && k) return act(() => G.shopPin(st, k)); /* v2.14 */
