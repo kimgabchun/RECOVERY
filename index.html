@@ -831,6 +831,42 @@ D.enemies.calf = { n: '새끼 안개고래', hp: 10, start: 2, far: true, desc: 
 D.enemies.whale = { n: '안개고래', hp: 165, /* v2.20 155 → 165 */ start: 1, far: true, fixed: true, desc: '2장의 변이체. 꼬리치기 → 안개 숨 → 들숨 → 삼키기 → 빈틈 두 번을 되풀이해요. 안개 숨을 뿜을 때마다 전투 안개가 짙어져요. 기름으로 걷을 수 있어요. 가죽이 두꺼워 떨어져서 치면 피해가 줄어요(−30%). 빈틈에 가까이 붙어서 치면 두 배예요. 물러날 수 없어요' };
 D.intents.nibble = { t: '물어뜯기 (막아도 그대로)', dmg: 1 }; D.intents.puff = { t: '포자 뿜기 (가까움·중간)', dmg: 2 }; D.intents.windup = { t: '다가오기 (돌진 준비 — 다음 턴에 들이받아요)', dmg: 0 }; D.intents.ram = { t: '들이받기 (가까움 · 물러나면 피함 · 치고 사라짐)', dmg: 7, range: 'near' };
 D.intents.tail = { t: '꼬리치기 (가까움·중간)', dmg: 10 }; D.intents.breath = { t: '안개 숨 (모든 거리 · 전투 안개 +1)', dmg: 3 }; /* v2.20 꼬리 9 → 10 */ D.intents.inhale = { t: '들숨 — 다음 턴에 삼켜요! (가까이 있으면 물러나요)', dmg: 0 }; D.intents.swallow = { t: '삼키기 (가까움 · 물러나 있으면 피함)', dmg: 16, range: 'near' };
+/* ===== v2.21 3장 「상륙」 첫 판 — 데이터 (업무-20261126-02 · 기획서 3장 v0.2 확정본 부록 A①② · B · C) =====
+   새 곳 11 · 새 적 2 · 새 물건 5. 그림은 아직 없음(결재 대기) → 화면은 그림 키를 정해 두고 비슷한 기존 그림을 빌려 씀 (03_결과/도구/v2.21/그림목록.md) */
+// C 새 물건 5개 — p는 '적힌 값'(판매가 배수 D.sellUp는 아래 한 곳에서 물건마다 한 번만 곱해짐: 줍는 물건 ×2). 카메라 60 → 팔면 120, 모형 캠핑카 90 → 180 (기획서 C '팔면' 값)
+Object.assign(D.items, {
+  firework: { n: '폭죽', c: '던지기', s: 1, p: 6, use: '던지기: 적 행동 끊기 · 부두 들개·포자떼·나방떼는 빛과 소리에 한 번에 흩어져요', thr: true, fw: true, sh: [1, 1] },
+  campfood: { n: '캠핑 비상식', c: '식량', s: 1, p: 10, use: '기력 +10', food: 10, sh: [1, 1] },
+  medkit: { n: '캠핑 구급함', c: '의료', s: 2, p: 20, use: '체력 +20', heal: 20, sh: [1, 2] },
+  camera: { n: '필름 카메라', c: '귀중품', s: 1, p: 60, use: '팔기', sh: [1, 1] },
+  minicamper: { n: '모형 캠핑카', c: '귀중품', s: 2, p: 90, use: '팔기', sh: [1, 2] } });
+// A① 부두 거리 4곳 · A② 해안 캠핑장 7곳 (위험 = danger, 🪜 = exit). 🔒 전시장은 셔터(shut) · 관리동은 셔터가 닫혔고 배터리가 어디에도 없으면 첫 상자에 배터리(batc) · 전시장 조사 = 9차(골조만 남은 캠핑카를 찾음, camper)
+Object.assign(D.nodes, {
+  L1A: { r: 'dock', n: '하선 부두', x: 60, y: 380, exit: true, danger: 0, loot: { rope: 2, oil: 1, stone: 2, tarp: 1 }, hint: '생활·던지기' },
+  L1B: { r: 'dock', n: '어판장', x: 70, y: 200, danger: 1, loot: { saltfish: 2, can: 2, water: 2, firework: 0.6 }, hint: '식량' },
+  L1C: { r: 'dock', n: '세관 창고', x: 150, y: 270, danger: 1, loot: { copper: 2, pipe: 2, cable: 1, battery: 1, camera: 0.5 }, hint: '재료 · 귀중품' },
+  L1D: { r: 'dock', n: '방파 계단', x: 230, y: 90, exit: true, danger: 1, loot: { stone: 2, flare: 1, firework: 1, bandage: 1 }, hint: '던지기' },
+  L2A: { r: 'camp', n: '캠핑장 정문', x: 50, y: 390, exit: true, danger: 1, loot: { rope: 1, stone: 2, water: 1, pipe: 1 }, hint: '생활' },
+  L2B: { r: 'camp', n: '관리동', x: 50, y: 250, danger: 1, batc: true, loot: { battery: 2, fuse: 1, copper: 1, campfood: 1 }, hint: '전자 · 셔터 배터리' },
+  L2C: { r: 'camp', n: '바비큐장', x: 210, y: 340, danger: 1, loot: { campfood: 2, can: 1, pipe: 2, firework: 1 }, hint: '식량·재료' },
+  L2D: { r: 'camp', n: '텐트촌', x: 60, y: 120, danger: 2, loot: { tarp: 1, medkit: 1, campfood: 1, camera: 0.6, rope: 1 }, hint: '의료 · 귀중품' },
+  L2E: { r: 'camp', n: '캠핑용품점', x: 240, y: 200, danger: 2, loot: { medkit: 1, firework: 2, battery: 1, minicamper: 0.6, copper: 1 }, hint: '의료·던지기 · 귀중품' },
+  L2F: { r: 'camp', n: '전시장', x: 150, y: 40, danger: 3, shut: true, camper: true, loot: { minicamper: 1, camera: 1, circuit: 1, copper: 2 }, hint: '🔒 셔터 · 골조 캠핑카 (9차) · 귀중품' },
+  L2G: { r: 'camp', n: '해변 산책로', x: 290, y: 90, exit: true, danger: 2, loot: { stone: 1, saltfish: 1, pearl: 0.5, flare: 1 }, hint: '던지기' } });
+D.regions.dock = { n: '본토 부두 거리', starts: ['L1A'], land: 1, ew: { dog: 5, gull: 2, ambusher: 2 } };
+D.regions.camp = { n: '해안 캠핑장', starts: ['L2A'], land: 1, ew: { cocoon: 5, dog: 3, spitter: 2 } };
+D.edges.push(['L1A', 'L1B'], ['L1B', 'L1C'], ['L1C', 'L1D'], ['L1A', 'L1C'],
+  ['L2A', 'L2B'], ['L2B', 'L2D'], ['L2D', 'L2F'], ['L2A', 'L2C'], ['L2C', 'L2E'], ['L2E', 'L2F'], ['L2D', 'L2G'], ['L2E', 'L2G']);
+// B 새 적 2종 (체력은 위험·낮밤으로 늘어남 — 지금 규칙)
+D.enemies.dog = { n: '부두 들개', hp: 12, start: 1, desc: '짖으면 다음 물기가 두 배예요(돌·병·폭죽을 던지면 끊겨요). 물러나도 바로 따라붙어요. 폭죽을 던지면 흩어져요' };
+D.enemies.cocoon = { n: '텐트 고치체', hp: 18, start: 1, desc: '고치를 두르면 받는 피해 −50%(망치는 바로 깨요). 두 턴 뒤 덮치기 9 → 빈틈' };
+D.intents.chase = { t: '따라붙기 (바로 가까이 붙음)', dmg: 0 }; D.intents.bark = { t: '짖기 — 다음 물기 두 배 (던지면 끊김)', dmg: 0 };
+D.intents.maul = { t: '물기 (가까움)', dmg: 4, range: 'near' }; D.intents.maul2 = { t: '물기 두 배 (가까움)', dmg: 4, range: 'near' };
+D.intents.cocoon = { t: '고치 두르기 (받는 피해 −50%)', dmg: 0 }; D.intents.brood = { t: '고치 속 웅크림 — 다음 턴에 덮쳐요 (받는 피해 −50%)', dmg: 0 }; D.intents.pounce = { t: '덮치기 (가까움·중간)', dmg: 9 };
+D.cancelable.push('bark');
+// K 상륙 글 3줄 · L 반복 의뢰 「고철 납품」
+D.landIntro = ['안개가 걷힌 바다를 건너 갈매기호가 본토 항구에 닿았어요.', '부두 너머 해안 도시는 포자에 덮여 조용해요. 해안 캠핑장 전시장에 캠핑카가 남아 있다는 무전이 들어왔어요.', '부두 거리와 캠핑장을 뒤져 캠핑카를 찾아요.'];
+D.scrap = { mats: { copper: 2, pipe: 1 }, coins: 50 };
 const BOXES = {};
 function boxesOf(n) {
   if (BOXES[n]) return BOXES[n]; const L = D.nodes[n].loot, g = {};
@@ -1045,7 +1081,7 @@ function startRun(st, region, start) { if (st.wTry) E('강화 게이지를 먼�
   const inner = Object.keys(D.nodes).filter(n => regionOf(n) === region && !D.nodes[n].exit);
   const rich = inner[Math.floor(rng(st) * inner.length)]; let nest = inner[Math.floor(rng(st) * inner.length)]; if (nest === rich) nest = inner[(inner.indexOf(rich) + 1) % inner.length];
   st.run = { region, node: start, prev: null, risk: 0, searched: {}, found: {}, visited: { [start]: true }, practice: false, noEvent: !st.rs, night: st.tod === 1, moves: 0, rich, nest, intel: !!st.intel, kills0: st.stats.kills, q13: true }; // v1.3: 새 의뢰는 v1.3에서 시작한 탐사만 셈
-  seaStart(st, R); // v2.0 안개·탐조등 (출발이 성립한 뒤)
+  seaStart(st, R); if (R.land) st.run.noEvent = true; /* v2.21 3장은 사건 없음(3장 사건은 다음 버전 후보) */ // v2.0 안개·탐조등 (출발이 성립한 뒤)
   vSpawn(st); /* v2.17 황금 버섯·다이아 목걸이 자리 (따로 된 난수) */
   if (st.reserve && !st.run.practice && regionOf(st.reserve) === region) { st.run.supply = st.reserve; delete st.reserve; delete st.rk; } // v1.1 보급 예약
   st.intel = false; st.rs = (st.rs || 0) + 1; // v1.4 실전 출발 횟수
@@ -1090,10 +1126,10 @@ function search(st, j) {
   if (j === undefined) j = bx.findIndex((_, q) => !op[q]); if (!bx[j]) E('없는 상자예요'); if (op[j]) E('이미 뒤진 상자예요');
   const lowBefore = D.nodes[n].danger >= 3 && st.hp <= st.hpMax / 2; // 조사 비용을 내기 전 체력으로 판단 [전략실장]
   useEnergy(st, 1); if (!st.run) return;
-  r.searched[n] = k + 1; op[j] = true; seaSearched(st, n); r.risk += riskOf(n); st.stats.searches++; pqAdd(st, 'boxes');
+  r.searched[n] = k + 1; op[j] = true; seaSearched(st, n); landSearched(st, n); /* v2.21 */ r.risk += riskOf(n); st.stats.searches++; pqAdd(st, 'boxes');
   if (lowBefore) r.deepLow = true;
   let cnt = 1 + (rng(st) < 0.6 ? 1 : 0) + (rng(st) < 0.2 ? 1 : 0) + (n === r.rich ? 1 : 0) + deepBonus(n) + (P(st, 'search') && rng(st) < 0.15 ? 1 : 0), got = []; // v0.2: 1~3개, v0.3: 풍부한 곳 +1, v0.4: 위험 2는 +1·위험 3은 +2
-  const due = partDue(st, n) ? D.partAt[n] : seaDue(st, n); if (due) (r.partGot = r.partGot || {})[n] = true;
+  const due = partDue(st, n) ? D.partAt[n] : (seaDue(st, n) || landDue(st, n)); /* v2.21 */ if (due) (r.partGot = r.partGot || {})[n] = true;
   const sd = due ? [] : starterDue(st); if (sd.length) { r.gN = (r.gN || 0) + 1; cnt = Math.max(cnt, sd.length); } // v1.4 첫 귀환 전 끈·테이프 보장
   if (st.tm) cnt = 2; /* v2.12 튜토리얼 */
   for (let q = 0; q < cnt; q++) { const it = st.tm ? ['battery', 'rope'][q] : (q === 0 && due) ? due : q < sd.length ? sd[q] : pickW(st, bx[j].loot); (r.found[n] = r.found[n] || []).push({ k: it }); got.push(D.items[it].n); }
@@ -1216,11 +1252,12 @@ function xboxes(st) {
   const r = st.run, out = []; if (!r) return out; const n = r.node, L = D.locked[n];
   if (L && !(r.lockOpen && r.lockOpen[n])) out.push({ k: 'lock', e: L.e, n: L.n, note: hasK(st, L.key) ? `${D.items[L.key].n} 사용 · 기력 1 · 위험 +2` : `${D.items[L.key].n} 필요`, ok: hasK(st, L.key) });
   if (r.hidden === n && !r.hiddenOpen) out.push({ k: 'hidden', e: '📦', n: '숨긴 상자', note: '기력 1 · 위험 +1', ok: true });
+  if (shutAdj(st)) { const hb = hasK(st, 'battery'); out.push({ k: 'shutB', e: '🔋', n: '전시장 셔터 · 배터리로 열기', note: hb ? '배터리 1개 · 조용히 바로' : '배터리가 필요해요 (관리동 상자)', ok: hb }, { k: 'shutH', e: '✋', n: '전시장 셔터 · 손으로 감기', note: st.energy >= 5 ? '기력 5 · 소리에 적이 꼭 와요' : `기력 5가 필요해요 (지금 ${st.energy})`, ok: st.energy >= 5 }); } /* v2.21 */
   if (r.supply === n && !r.supplyOpen) out.push({ k: 'supply', e: '🎁', n: '보급 상자', note: '예약한 보급품', ok: true });
   return out;
 }
 function openX(st, kind) {
-  needRun(st); const r = st.run, n = r.node, b = xboxes(st).find(x => x.k === kind); if (!b) E('없는 상자예요'); if (!b.ok) E(b.note); if (flooded(r, n)) E('물에 잠겨서 열 수 없어요');
+  needRun(st); const r = st.run, n = r.node, b = xboxes(st).find(x => x.k === kind); if (!b) E('없는 상자예요'); if (!b.ok) E(b.note); if (flooded(r, n)) E('물에 잠겨서 열 수 없어요'); if (kind === 'shutB' || kind === 'shutH') return shutOpen(st, kind); /* v2.21 */
   const got = [];
   if (kind === 'lock') { const L = D.locked[n]; useEnergy(st, 1); if (!st.run) return; if (!r.lockOpen || typeof r.lockOpen !== 'object') r.lockOpen = {}; r.lockOpen[n] = true; if (!takeK(st, L.key)) E('열쇠가 없어요'); /* 열린 기록을 먼저 [전략실장] */ r.risk += 2; for (let q = 0; q < 3; q++) got.push(putF(st, pickW(st, L.loot))); }
   else if (kind === 'hidden') { useEnergy(st, 1); if (!st.run) return; r.hiddenOpen = true; r.risk += 1; for (let q = 0; q < 2; q++) got.push(putF(st, q === 1 && rng(st) < 0.25 ? regionKey(r.region) : pickW(st, D.nodes[n].loot))); }
@@ -1231,7 +1268,7 @@ function openX(st, kind) {
 function reserveSupply(st, n) {
   needBase(st); if (!st.fx) E('보급 예약은 첫 귀환에 성공한 뒤부터 할 수 있어요'); if (st.reserve) E('이미 예약한 곳이 있어요');
   if (!D.nodes[n] || D.nodes[n].exit) E('예약할 수 없는 곳이에요'); if ((regionOf(n) === 'metro' && !st.unlocked.metro) || (regionOf(n) === 'harbor' && !st.unlocked.harbor)) E('아직 갈 수 없는 곳이에요');
-  if (!regionOpen(st, regionOf(n))) E('지금 배가 있는 곳에서는 갈 수 없는 곳이에요'); if (D.nodes[n].lock && !seaOf(st).capOpen) E('잠긴 곳에는 보급 상자를 둘 수 없어요'); if (st.coins < D.supplyCost) E('코인이 부족해요'); st.coins -= D.supplyCost; st.reserve = n; log(st, `보급 예약: ${D.nodes[n].n}에 보급 상자를 가져다 두기로 했어요 (−${D.supplyCost})`);
+  if (!regionOpen(st, regionOf(n))) E('지금 배가 있는 곳에서는 갈 수 없는 곳이에요'); if (D.nodes[n].lock && !seaOf(st).capOpen) E('잠긴 곳에는 보급 상자를 둘 수 없어요'); if (D.nodes[n].shut && !landOf(st).shut) E('잠긴 곳에는 보급 상자를 둘 수 없어요'); /* v2.21 */ if (st.coins < D.supplyCost) E('코인이 부족해요'); st.coins -= D.supplyCost; st.reserve = n; log(st, `보급 예약: ${D.nodes[n].n}에 보급 상자를 가져다 두기로 했어요 (−${D.supplyCost})`);
 }
 function cancelReserve(st) { needBase(st); if (!st.reserve) E('예약한 곳이 없어요'); delete st.reserve; st.coins += D.supplyCost; log(st, `보급 예약을 취소했어요 (+${D.supplyCost})`); }
 // ---------- v1.2 밀물·배 수리 ----------
@@ -1265,6 +1302,8 @@ function buildShip(st) {
   consume(st, i.mats); st.coins -= i.coins; st.ship = i.stage + 1; log(st, `🚢 갈매기호 수리 ${i.stage + 1}/${D.ship.length}: ${i.n} 완료! −${i.coins}`); checkGoal(st);
 }
 function intentOf(e) {
+  if (e.k === 'dog') { if (e.dist > 0) return 'chase'; if (e.pump) return 'maul2'; return e.cyc % 2 === 0 ? 'bark' : 'maul'; } /* v2.21 */
+  if (e.k === 'cocoon') return ['cocoon', 'brood', 'pounce', 'stagger'][e.cyc % 4]; /* v2.21 */
   if (e.k === 'moths') return 'nibble'; // v2.2
   if (e.k === 'wisp') { if (e.dist > 1) return 'approach'; return e.cyc % 2 === 0 ? 'puff' : 'drift'; }
   if (e.k === 'calf') return e.cyc === 0 ? 'windup' : 'ram';
@@ -1351,11 +1390,11 @@ function intentShow(st) { /* v2.8 화면에 보이는 '다음 행동 피해' = �
 function can(st, name, ...a) { /* v2.8 ① 이 행동을 엔진이 받아 줄지: 사본에서 해 보고 거절 글(없으면 '') */
   return canS(JSON.stringify(st), name, ...a); }
 function canS(snap, name, ...a) { /* v2.8 화면이 한 번 그릴 때 상태 사본 글은 한 번만 만듦 */
-  const f = ({ sell, craft, moveItem, heal, reserveSupply, search, combatAct, move, useItem, buy, buyN, buyAmb, shopPin, accUpStart, slotSpin, reload, equip, equipPack, openBox, openX, extract })[name]; if (!f) return '';
+  const f = ({ landGo, scrapDeliver, /* v2.21 */ sell, craft, moveItem, heal, reserveSupply, search, combatAct, move, useItem, buy, buyN, buyAmb, shopPin, accUpStart, slotSpin, reload, equip, equipPack, openBox, openX, extract })[name]; if (!f) return '';
   const c = JSON.parse(snap); try { f(c, ...a); return ''; } catch (e) { return e && e.game ? e.message : ''; } }
-const REACH = { spit: [1, 2], spout: [1, 2], weld: [1, 2], heavy: [0], ambush: [0], claw: [0], swing: [0], slam: [0], snap: [0], pinch: [0], smash: [0], ram: [0], cast: [0], grab: [0], bite: [0, 1], frenzy: [0, 1], sting: [0, 1], shock: [0, 1], gnaw: [0, 1], swingarm: [0, 1], tail: [0, 1], puff: [0, 1], wrap: [0, 1], clamp: [0], swallow: [0], undertow: [0, 1] }; /* v2.8 combatAct0의 닿는 거리와 같게 */
+const REACH = { maul: [0], maul2: [0], pounce: [0, 1], /* v2.21 */ spit: [1, 2], spout: [1, 2], weld: [1, 2], heavy: [0], ambush: [0], claw: [0], swing: [0], slam: [0], snap: [0], pinch: [0], smash: [0], ram: [0], cast: [0], grab: [0], bite: [0, 1], frenzy: [0, 1], sting: [0, 1], shock: [0, 1], gnaw: [0, 1], swingarm: [0, 1], tail: [0, 1], puff: [0, 1], wrap: [0, 1], clamp: [0], swallow: [0], undertow: [0, 1] }; /* v2.8 combatAct0의 닿는 거리와 같게 */
 function intentHits(st) { const c = st.combat; if (!c) return false; const e = c.e, it = e.intent; if (it === 'squeeze' || it === 'crush' || it === 'drag') return !!e.held; if (it === 'undertow') return e.dist <= 1; const R = REACH[it]; return R ? R.includes(e.dist) : true; }
-function intentDmg(e) { const d = D.intents[e.intent].dmg; return d ? Math.max(1, d + e.bonus) : 0; } // 낮의 −1로도 0은 안 됨
+function intentDmg(e) { const d = D.intents[e.intent].dmg; if (e.intent === 'maul2') return 2 * Math.max(1, d + e.bonus); /* v2.21 짖은 뒤 물기 두 배 */ return d ? Math.max(1, d + e.bonus) : 0; } // 낮의 −1로도 0은 안 됨
 function combatAct(st, act, arg) { // v1.6: 거절된 행동은 차례를 넘기지 않음(보스전의 물 높이가 차례 수로 정해지므로) [전략실장]
   if (!st.combat) E('전투 중이 아니에요'); const c = st.combat, t0 = c.turn;
   try { const a2 = seaJoltCheck(st, c, act, arg); const out = combatAct0(st, a2.act, arg); seaJoltAfter(st, c, a2); return out; } catch (err) { if (err && err.game && st.combat === c) c.turn = t0; throw err; }
@@ -1372,6 +1411,7 @@ function combatAct0(st, act, arg) {
     else if (e.intent === 'block' && w.breakBlock) L.push('망치로 방어를 깨뜨렸어요!');
     if (e.k === 'shell') { if (e.intent === 'stagger' || e.weak) { tot *= 2; L.push('빈틈을 찔렀어요! 두 배'); } else if (e.intent !== 'block') tot = Math.max(1, Math.ceil(tot * 0.6)); e.weak = false; } // v1.2 등껍질 (패시브 +1보다 먼저 [전략실장])
     if (isBoss(e)) { const ex = bossExposed(c.turn); tot = Math.max(1, Math.round(tot * (ex ? 2 : 1) * D.boss.mul)); if (ex) L.push('드러난 씨눈을 쳤어요! 두 배'); } // v1.6 두꺼운 몸 ×0.8, 씨눈 노출 ×2 (패시브 +1보다 먼저)
+    if (e.k === 'cocoon' && (e.intent === 'cocoon' || e.intent === 'brood')) { if (w.breakBlock) { e.intent = 'stagger'; e.cyc = 3; L.push('망치로 고치를 깼어요! 고치체가 휘청여요'); } else { tot = Math.max(1, Math.round(tot * 0.5)); L.push('고치가 받아내요 (피해 −50%)'); } } /* v2.21 */
     if (P(st, 'arm')) tot += 1; tot += lvB(st, 'atk'); /* v2.5 레벨 공격 +1씩 */ tot += accN(st, 'wrist'); if (A(st, 'glove') && !c.accFirst) { const gd = 3 * accN(st, 'glove'); tot += gd; L.push('기습 장갑: 첫 공격 +' + gd); } c.accFirst = true; // 단련된 팔: 공격 한 번에 +1, 적의 막기 계산 뒤 [전략실장]
     if (e.held) { e.held = false; L.push(isBoss(e) ? '사슬을 끊고 빠져나왔어요' : e.k === 'net' ? '그물을 찢고 빠져나왔어요' : '덩굴을 끊고 빠져나왔어요'); if (e.intent === 'squeeze' || e.intent === 'crush' || e.intent === 'drag') e.intent = 'stagger'; } // 맞히면 풀리고 그 차례 조이기도 끊김 [전략실장]
     c.lastHit = st.equip ? 'weapon' : 'fist';
@@ -1399,6 +1439,7 @@ function combatAct0(st, act, arg) {
       return; }
     if (def.trap) { if (isBoss(e) && e.stunUsed) E('밀물지기는 한 번 기절한 뒤로는 덫이 안 통해요'); if (e.k === 'gull') E('날아다니는 갈매기에게는 덫이 안 통해요'); if (e.stunImm > 0) { c.turn--; E('적이 경계하고 있어 덫이 안 통해요 (조금 뒤에 다시)'); } e.stunned = true; e.stunImm = 3; if (isBoss(e)) e.stunUsed = true; L.push('덫! 적이 걸려 움직이지 못해요'); }
     else if (def.stim) { if (st.hp <= 2) { c.turn--; E('체력이 너무 낮아요'); } st.hp -= 2; st.energy = Math.min(st.energyMax, st.energy + 6); L.push('각성제 사용 기력 +6, 체력 −2'); }
+    else if (def.fw && ['dog', 'swarm', 'moths'].includes(e.k)) { e.hp = 0; c.lastHit = 'throw'; L.push(`${def.n}! 빛과 소리에 ${D.enemies[e.k].n}이(가) 흩어졌어요`); } /* v2.21 */
     else if (def.thr) { if (D.cancelable.includes(e.intent) && !(e.k === 'gull' && it.k !== 'stone' && it.k !== 'bottle')) { e.intent = 'stagger'; L.push(`${def.n} 던지기! 적의 행동을 끊었어요`); if (e.k === 'moths' && (it.k === 'flare' || it.k === 'bottle')) { e.hp = 0; c.lastHit = 'throw'; L.push('불빛과 소리에 나방떼가 흩어졌어요'); } pqAdd(st, 'cancel'); if (P(st, 'throw')) { e.hp -= 2; L.push('투척 감각: 2 피해'); c.lastHit = 'throw'; } } else L.push(`${def.n} 던졌지만 소용없었어요 (돌진·침·기습·모여들기·휘감기·사슬 감기만 끊을 수 있음)`); }
     else if (def.heal) { if (it.k === 'antidote' && st.run && st.run.spore > 0) { const s0 = st.run.spore; seaAntidote(st); L.push(`해독제: 포자 −${s0 - (st.run.spore || 0)}`); } /* v2.8 */ const hv = def.heal + (P(st, 'medic') ? 3 : 0) + 2 * accN(st, 'herb'); const h0 = st.hp; st.hp = Math.min(st.hpMax, st.hp + hv); L.push(`${def.n} 사용 체력 +${st.hp - h0}`); } /* v2.8 */
     else if (def.food) { const e0 = st.energy; st.energy = Math.min(st.energyMax, st.energy + def.food); L.push(`${def.n} 사용 기력 +${st.energy - e0}`); } /* v2.8 */
@@ -1453,6 +1494,12 @@ function combatAct0(st, act, arg) {
     else if (it === 'breath') { hit(d + (c.mist || 0) * D.whale.bm); c.mist = Math.min(3, (c.mist || 0) + 1); L.push(`전투 안개가 짙어졌어요 (${c.mist})`); }
     else if (it === 'inhale') L.push('고래가 숨을 크게 들이쉬어요 — 다음 턴에 삼켜요!');
     else if (it === 'swallow') { if (e.dist === 0) hit(d); else L.push('삼키기를 피했어요'); }
+    else if (it === 'chase') { e.dist = 0; L.push('들개가 바로 따라붙었어요'); } /* v2.21 */
+    else if (it === 'bark') { e.pump = true; L.push('들개가 사납게 짖어요 — 다음 물기는 두 배!'); }
+    else if (it === 'maul' || it === 'maul2') { if (e.dist === 0) hit(d); else L.push(`${D.intents[it].t} 빗나감 (거리)`); }
+    else if (it === 'cocoon') L.push('고치체가 고치를 둘렀어요 (받는 피해 −50%)');
+    else if (it === 'brood') L.push('고치 속에서 웅크려요 — 다음 턴에 덮쳐요!');
+    else if (it === 'pounce') { if (e.dist <= 1) hit(d); else L.push('덮치기가 닿지 않았어요 (거리)'); }
     else if (it === 'stagger') { L.push('적이 휘청였어요'); if (e.k === 'net' && e.held) { e.held = false; L.push('그물이 풀렸어요'); } }
     if (e.k === 'swarm') { if (it === 'frenzy') e.gathered = false; if (['bite', 'gather', 'frenzy', 'stagger'].includes(it)) e.cyc++; }
     if (e.k === 'charger') e.alt = it === 'heavy'; // 강타 뒤에는 숨 고르기(빈틈) 한 턴
@@ -1462,6 +1509,8 @@ function combatAct0(st, act, arg) {
     if (e.k === 'jelly') e.cyc++; if (e.k === 'net') e.alt = it === 'drag'; // v2.0 보완
     if ((e.k === 'eel' || e.k === 'crabs' || e.k === 'claw') && it !== 'approach') e.cyc++; if (e.k === 'crabs') seaWet(st, e); // v2.1
     if ((e.k === 'wisp' || e.k === 'calf' || e.k === 'whale') && it !== 'approach') e.cyc++; // v2.2
+    if (e.k === 'dog') { if (it !== 'chase') e.cyc++; if (it !== 'bark') e.pump = false; if (e.dist > 0) { e.dist = 0; L.push('들개가 바로 따라붙었어요'); } } /* v2.21 짖기를 끊으면(빈틈) 두 배도 사라짐 · 물러나도 바로 따라붙음 */
+    if (e.k === 'cocoon') e.cyc++; /* v2.21 */
     if (it === 'ambush') e.first = false;
   }
   if (e.k === 'ambusher' && e.first && e.intent !== 'ambush') e.first = false;
@@ -1540,6 +1589,48 @@ function v220Mig(st) {
       for (let i = 11; i >= 0 && o > need; i--) if (b[i] === 'O') { b[i] = 'F'; o--; } t.b = b.join(''); } }
   if (st.stX !== undefined) { let ov = 0; try { ov = Math.max(0, used(st.stash || []) - stashCap(st)); } catch (x) {} if (Number.isInteger(st.stX) && st.stX > 0 && ov > 0) st.stX = Math.min(st.stX, ov); else delete st.stX; }
 }
+/* ===== v2.21 3장 「상륙」 — 규칙 (기획서 3장 v0.2 확정본 부록 A①② · K · L) =====
+   st.land = { on 본토 항구에 닿은 적 있음, here 지금 갈매기호가 본토 항구에 있음, shut 전시장 셔터 열림(영구), frame 9차(전시장에서 골조만 남은 캠핑카를 찾음 — BOSS 방향 조정 2026-11-26 03:00, 캠핑카는 전시장에 그대로), rq 고철 납품을 낸 날(0 = 아직) }
+   예전 저장에는 st.land가 없고, 처음 「본토 항구로」를 누를 때 생김. 2장(안개고래)을 안 끝낸 저장은 3장이 잠김 */
+function land0() { return { on: false, here: false, shut: false, frame: false, rq: 0 }; }
+const LAND_OFF = land0();
+const landOf = st => (st && st.land) || LAND_OFF;
+const landHere = st => !!(st && st.land && st.land.here);
+const isLandR = rk => !!(D.regions[rk] && D.regions[rk].land);
+// 조타실 「본토 항구로 (3장)」: 안개고래 처치(8차) 뒤 거점에서만 · 반나절
+function landGo(st) { needBase(st); const s = seaOf(st); if (!s.on || !s.won8) E('안개고래를 쓰러뜨려야 본토 항구로 갈 수 있어요 (2장 끝)'); if (landHere(st)) E('갈매기호가 이미 본토 항구 부두에 있어요');
+  const first = !landOf(st).on; st.land = Object.assign(land0(), st.land || {}, { on: true, here: true }); halfDay(st, st.tod === 1);
+  log(st, first ? `⚓ 3장 「상륙」 — ${D.landIntro.join(' ')}` : `⚓ 갈매기호가 본토 항구 부두에 닻을 내렸어요 (DAY ${st.day} ${st.tod === 1 ? '밤' : '낮'})`); return first; }
+// 셔터 (A②): 텐트촌·캠핑용품점(전시장 옆)에서 — 배터리 1개(조용히 바로) / 손으로 감기(기력 5, 소리에 적이 한 번 꼭 옴). 한 번 열면 영구
+function shutAdj(st) { const r = st.run; return !!r && isLandR(r.region) && !landOf(st).shut && (ADJ[r.node] || []).some(m => D.nodes[m].shut); }
+function shutOpen(st, kind) { const r = st.run; if (st.combat) E('전투 중이에요'); if (!shutAdj(st)) E('여기엔 열 셔터가 없어요');
+  if (kind === 'shutB') { if (!hasK(st, 'battery')) E('배터리가 없어요 (배낭·안전 주머니에 1개 · 관리동 상자에서 나와요)'); takeK(st, 'battery'); norm(st); st.land.shut = true; log(st, '🔋 배터리로 전시장 셔터를 조용히 올렸어요 (이제 계속 열려 있어요)'); return; }
+  if (st.energy < 5) E(`기력이 모자라요 (손으로 감기: 기력 5 · 지금 ${st.energy})`);
+  st.energy -= 5; st.land.shut = true; r.risk += 1; log(st, `✋ 손으로 전시장 셔터를 감아 올렸어요 (기력 −5 · 이제 계속 열려 있어요). 끼익거리는 소리가 울려요… 위험도 ${r.risk}`);
+  seaEnc(st, pickW(st, D.regions[r.region].ew)); if (st.combat) st.combat.lines.unshift('셔터 소리를 듣고 적이 달려왔어요!'); }
+// 관리동 첫 상자: 셔터가 닫혀 있고 배터리가 어디에도(보관함·배낭·주머니·이번 탐사 바닥) 없으면 배터리 1개가 꼭 나옴
+function landDue(st, n) { const r = st.run; if (!r || !isLandR(r.region) || !D.nodes[n].batc || landOf(st).shut || (r.partGot && r.partGot[n]) || holds(st, 'battery') || onFloor(st, 'battery')) return ''; return 'battery'; }
+// 전시장 조사 → 9차: 골조만 남은 캠핑카를 찾음 (기록만 남김 · 캠핑카는 전시장에 그대로 · 쓰러져도 안 잃음)
+function landSearched(st, n) { if (!D.nodes[n].camper || !st.land || st.land.frame) return; st.land.frame = true; log(st, '🏁 9차 목표 달성! 전시장에서 골조만 남은 캠핑카를 찾았어요. 엔진·바퀴·문·배터리·패널이 모두 없어요. 이걸 모으면 다시 달릴 수 있어요'); }
+// L 중계소 반복 의뢰 「고철 납품」: 하루 1번, 구리선 2 + 파이프 1 → 50코인 (보관함·배낭에서)
+function scrapInfo(st) { const L = landOf(st), sc = D.scrap; return { open: !!L.on, done: L.rq === st.day, mats: sc.mats, coins: sc.coins, ok: !!L.on && L.rq !== st.day && hasMats(st, sc.mats) && !st.run }; }
+function scrapDeliver(st) { needBase(st); const L = landOf(st), sc = D.scrap; if (!L.on) E('본토 항구에 닿은 뒤 중계소 무전으로 받는 의뢰예요');
+  if (L.rq === st.day) E(`오늘은 이미 냈어요 (DAY ${st.day + 1}에 다시)`); if (!hasMats(st, sc.mats)) E('재료가 부족해요 (구리선 2 · 파이프 1 — 보관함이나 배낭)');
+  consume(st, sc.mats); st.coins += sc.coins; st.land.rq = st.day; log(st, `📻 중계소 「고철 납품」: 구리선 2 · 파이프 1을 보내고 ${sc.coins}코인을 받았어요 (하루 1번)`); }
+function landInfo(st) { const L = landOf(st), s = seaOf(st); return { open: !!(s.on && s.won8), on: !!L.on, here: !!L.here, shut: !!L.shut, frame: !!L.frame, canGo: !!(s.on && s.won8 && !L.here && !st.run), intro: D.landIntro.slice(), scrap: scrapInfo(st) }; }
+function landGoalNext(st) { const L = landOf(st);
+  if (!L.on) return { t: '3장: 본토 항구로', d: '갑판 조타실에서 「본토 항구로 (3장)」 (반나절)', ok: !st.run };
+  if (L.frame) return { t: '🏁 9차 달성 — 골조만 남은 캠핑카를 찾았어요', d: '부품을 모아 고치는 일은 다음 이야기예요. 부두 거리·캠핑장은 계속 탐사할 수 있어요', ok: false };
+  if (!L.here) return { t: '본토 항구로 돌아가기', d: '갑판 조타실에서 「본토 항구로 (3장)」', ok: !st.run };
+  if (!L.shut) return { t: '캠핑장 전시장 셔터 열기', d: '텐트촌이나 캠핑용품점에서 배터리 1개로 열거나 손으로 감아요(기력 5 · 적이 와요). 배터리는 관리동 상자에 있어요', ok: false };
+  return { t: '캠핑장 전시장 조사하기', d: '열린 전시장을 조사하면 캠핑카를 찾아요 (9차)', ok: false }; }
+// 저장 검사: 손댄 값은 거부 (모르는 칸·글자·순서가 안 맞는 진행)
+function landValidate(st, bad) { const r = st.run;
+  if (st.land === undefined) { if (r && isLandR(r.region)) bad('3장 탐사'); return; }
+  const L = st.land, s = seaOf(st), b = v => typeof v === 'boolean';
+  if (!L || typeof L !== 'object' || Array.isArray(L) || Object.keys(L).some(k => !['on', 'here', 'shut', 'frame', 'rq'].includes(k)) || !b(L.on) || !b(L.here) || !b(L.shut) || !b(L.frame) || !Number.isInteger(L.rq) || L.rq < 0 || L.rq > st.day) bad('3장 기록');
+  if (L.on && !(s.on && s.won8)) bad('3장 기록 (2장을 안 끝냄)'); if ((L.here || L.shut || L.frame || L.rq) && !L.on) bad('3장 기록 (상륙 전)'); if (L.frame && !L.shut) bad('3장 기록 (9차)');
+  if (r && isLandR(r.region) && !L.here) bad('3장 탐사'); }
 function die(st, why) { if (st.tm) { st.hp = 1; log(st, '연습 판이라 쓰러지지 않아요 (체력 1)'); return; } /* v2.12 튜토리얼 */ if (!(st.run && st.run.practice)) lvDeath(st); /* v2.5 쓰러지면 막대 −5 */
   const r = st.run, d0 = { lostN: 0 }; st.stats.deaths++; /* v2.20 결과창 */
   if (r && r.practice) { for (const w of ['bag', 'pocket']) { const n0 = st[w].length; st[w] = st[w].filter(it => !it.f); d0.lostN += n0 - st[w].length; } norm(st); log(st, `${why} — 연습이라 잃은 건 없어요 (연습 중 주운 물건만 사라짐)`); }
@@ -1582,7 +1673,7 @@ function sell(st, from, i) {
 /* ===== v2.14 상점 개편 (BOSS 2026-11-24): 1~5칸 = 코인 랜덤(챕터·종류 상관없이), 6칸 = 칼 고정, 7칸 = 호박석 무기(하루 1개). 📌 고정은 2칸까지 =====
    값 = 되파는 값 × 1.25를 5코인 단위로 올림(기존 9개 값은 그대로). 뺀 것: 귀중품·장신구·열쇠·호박석·무기(7칸 따로)·이야기 진행 물건 (전략실장 동의) */
 const SHOP_CATS = ['생활', '공구', '기계', '전자', '의료', '식량', '던지기', '특산', '파우치', '가방'];
-const SHOP_NO = { hugepackF: 1, slingF: 1, hikeF: 1, tacpackF: 1, /* v2.20 새 가방은 뽑기에서만 */ /* v2.18 특대 배낭은 뽑기에서만 (상점 자동 목록에서 뺌) */ genpart: 1, filter: 1, helmet: 1, drillbit: 1, fuel: 1, pump: 1, prop: 1, rudder: 1, anchorbit: 1, whaleoil: 1 };
+const SHOP_NO = { firework: 1, campfood: 1, medkit: 1, camera: 1, minicamper: 1, /* v2.21 3장 물건은 3장 곳에서만 */ hugepackF: 1, slingF: 1, hikeF: 1, tacpackF: 1, /* v2.20 새 가방은 뽑기에서만 */ /* v2.18 특대 배낭은 뽑기에서만 (상점 자동 목록에서 뺌) */ genpart: 1, filter: 1, helmet: 1, drillbit: 1, fuel: 1, pump: 1, prop: 1, rudder: 1, anchorbit: 1, whaleoil: 1 };
 for (const [k, d] of Object.entries(D.items)) if (D.shop[k] === undefined && SHOP_CATS.includes(d.c) && !SHOP_NO[k] && !d.nosell && d.p > 0) D.shop[k] = Math.max(5, Math.ceil(d.p * 1.25 / 5) * 5);
 D.shopW = { pouchS: 3, bandage: 3, can: 3, water: 3, rope: 3, tape: 3, gear: 3, battery: 3, oil: 3 }; /* 기본 보급(예전 상점 9가지)은 3배 잘 나옴 — 붕대·재료를 너무 못 사지 않게 (밸런스 봇) */
 D.shopDay.n = 5; D.shopDay.pinMax = 2; D.shopZone = {}; D.ambW = { spear: 8, hammer: 10, harpoon: 10 };
@@ -1968,9 +2059,9 @@ const onFloor = (st, k) => !!st.run && Object.values(st.run.found || {}).some(L 
 function takeAny(st, k) { for (const w of ['stash', 'bag', 'pocket']) { const i = st[w].findIndex(it => it.k === k); if (i >= 0) { st[w].splice(i, 1); norm(st); return true; } } return false; }
 // 지금 그 지역으로 탐사를 나갈 수 있는지 (배가 있는 곳만)
 function regionOpen(st, rk) { const s = seaOf(st), z = zoneOf(rk);
-  if (z) return s.on && s.at === z; if (s.on && s.at !== 0) return false;
+  if (isLandR(rk)) return landHere(st); if (landHere(st)) return false; /* v2.21 */ if (z) return s.on && s.at === z; if (s.on && s.at !== 0) return false;
   return rk === 'metro' ? !!st.unlocked.metro : rk === 'harbor' ? !!st.unlocked.harbor : true; }
-function seaGate(st, rk) { const s = seaOf(st), z = zoneOf(rk);
+function seaGate(st, rk) { const s = seaOf(st), z = zoneOf(rk); if (isLandR(rk)) { if (!landHere(st)) E('갈매기호가 본토 항구에 있을 때만 갈 수 있어요 (갑판 조타실 「본토 항구로」)'); return; } if (landHere(st)) E('갈매기호가 본토 항구에 있어요. 갑판 조타실에서 출항해야 갈 수 있어요'); /* v2.21 */
   if (z && !s.on) E('아직 바다로 나가지 않았어요');
   if (z && s.at !== z) E(`갈매기호가 ${D.seaNames[s.at]}에 있어요. 조타실에서 먼저 출항해요`);
   if (!z && s.on && s.at !== 0) E(`갈매기호가 ${D.seaNames[s.at]}에 있어요. 등대섬으로 돌아가야 갈 수 있어요`); }
@@ -1987,7 +2078,7 @@ function seaAmbush(st, base) { const r = st.run, c = st.combat; if (!r || !c || 
 function toggleLamp(st, k) { needBase(st); const s = seaOf(st); if (!s.on) E('탐조등은 갈매기호 갑판에 있어요');
   if (s.lamp && (!k || k === (s.lampK || 'oil'))) { s.lamp = false; delete s.lampK; return; } // 같은 기름을 다시 누르면 끔
   k = k || (holds(st, 'oil') ? 'oil' : 'whaleoil'); if (k !== 'oil' && k !== 'whaleoil') E('탐조등에 쓸 수 없는 물건이에요'); if (!holds(st, k)) E('기름이 없어요 (구역에서 줍거나 마루에게 사요)'); s.lamp = true; s.lampK = k; }
-function seaLock(st, to) { syncHelm(st); if (D.nodes[to].door && !allLit(st)) E(`기록선 문이 잠겨 있어요. 등불 ${LAMPS.length}개를 모두 켜야 열려요 (${litN(st)}/${LAMPS.length})`); if (st.run && kelpBlocked(st, st.run.node, to)) E('해초가 길을 막고 있어요. 먼저 끊어야 해요'); if (D.nodes[to].lock && !seaOf(st).capOpen && !hasK(st, 'keyC')) E('선장실이 잠겨 있어요. 기관실에서 선장실 열쇠를 찾아요'); }
+function seaLock(st, to) { syncHelm(st); if (D.nodes[to].shut && !landOf(st).shut) E('전시장 셔터가 닫혀 있어요 — 텐트촌·캠핑용품점에서 배터리로 열거나 손으로 감아요'); /* v2.21 */ if (D.nodes[to].door && !allLit(st)) E(`기록선 문이 잠겨 있어요. 등불 ${LAMPS.length}개를 모두 켜야 열려요 (${litN(st)}/${LAMPS.length})`); if (st.run && kelpBlocked(st, st.run.node, to)) E('해초가 길을 막고 있어요. 먼저 끊어야 해요'); if (D.nodes[to].lock && !seaOf(st).capOpen && !hasK(st, 'keyC')) E('선장실이 잠겨 있어요. 기관실에서 선장실 열쇠를 찾아요'); }
 function seaStep(st, to) { const s = st.sea, r = st.run; if (!s || !r || !zoneOf(r.region)) return;
   if (D.nodes[to].lock && !s.capOpen) { takeK(st, 'keyC'); norm(st); s.capOpen = true; log(st, '🔐 선장실 열쇠로 문을 열었어요 (이제 계속 열려 있어요)'); }
   s.chart[to] = true; seaSpore(st, 1); if (D.nodes[to].guard && !s.clawDead && !st.combat) { startCombat(st, 'claw'); log(st, '⚙️ 시추 집게가 꼭대기를 지키고 있어요!'); } }
@@ -2007,22 +2098,22 @@ function setSail(st) { needBase(st); const s = st.sea; if (s.on) E('이미 바�
   s.on = true; s.at = 1; halfDay(st, st.tod === 1); let g = 0; for (let i = 0; i < 2; i++) if (addTo(st, 'stash', { k: 'oil' })) g++;
   log(st, `🚢 갈매기호가 등대섬을 떠났어요 — 2장 「포자 바다」. 첫 구역은 ${D.seaNames[1]}${g ? ` · 마루가 기름 ${g}통을 줬어요` : ''}`); }
 function voyage(st, z) { needBase(st); const s = st.sea; if (!s.on) E('아직 바다로 나가지 않았어요');
-  if (!Number.isInteger(z) || z < 0 || z > seaMax(st)) E('아직 갈 수 없는 구역이에요 (항로 표지를 조타실에 내야 해요. 8구역부터는 엔진도 고쳐야 해요)'); if (z === s.at) E('이미 그곳에 있어요');
-  s.at = z; halfDay(st, st.tod === 1); log(st, `⛵ ${D.seaNames[z]}에 닻을 내렸어요 (DAY ${st.day} ${st.tod === 1 ? '밤' : '낮'})`); }
+  if (!Number.isInteger(z) || z < 0 || z > seaMax(st)) E('아직 갈 수 없는 구역이에요 (항로 표지를 조타실에 내야 해요. 8구역부터는 엔진도 고쳐야 해요)'); if (z === s.at && !landHere(st)) E('이미 그곳에 있어요');
+  s.at = z; if (st.land) st.land.here = false; /* v2.21 본토 항구를 떠남 */ halfDay(st, st.tod === 1); log(st, `⛵ ${D.seaNames[z]}에 닻을 내렸어요 (DAY ${st.day} ${st.tod === 1 ? '밤' : '낮'})`); }
 function submitMark(st) { needBase(st); const s = st.sea; if (!s.on) E('아직 바다로 나가지 않았어요'); if (s.cleared >= D.seaZones.length - 1) E('항로 표지를 모두 냈어요');
   if (!takeAny(st, 'seamark')) E('항로 표지가 없어요. 이 구역의 📍 표지 칸을 조사해요');
   s.cleared++; if (s.cleared === 4) { s.won6 = true; log(st, '🏁 6차 목표 달성! 1~4구역 항로를 열었어요. 조타실에서 5구역 해초 숲으로 갈 수 있어요'); } else if (s.cleared === 7) log(st, '📍 5~7구역 항로를 모두 열었어요. 조타실에서 갈매기호 엔진을 고쳐요'); else if (s.cleared === 9) log(st, '📍 9구역까지 항로를 열었어요. 10구역 「짙은 바다」에 안개고래가 있어요');
   else log(st, `📍 항로 표지를 해도에 옮겼어요. 조타실에서 ${D.seaNames[s.cleared + 1]}(으)로 출항할 수 있어요`); }
 function seaInfo(st) { const s = seaOf(st), mx = seaMax(st), night = st.tod === 1, fz = (z, n) => Math.max(1, Math.min(3, D.regions[D.seaZones[z]].fog + (n ? 1 : 0)));
-  const zones = D.seaNames.map((n, z) => ({ z, n, fog: z ? D.regions[D.seaZones[z]].fog : 0, cleared: z > 0 && z <= s.cleared, here: s.on && s.at === z, open: s.on && z <= mx }));
+  const zones = D.seaNames.map((n, z) => ({ z, n, fog: z ? D.regions[D.seaZones[z]].fog : 0, cleared: z > 0 && z <= s.cleared, here: s.on && s.at === z && !landHere(st), open: s.on && z <= mx }));
   const hasMark = holds(st, 'seamark'), r = st.run, rz = r ? zoneOf(r.region) : 0;
   return { on: s.on, at: s.at, cleared: s.cleared, max: mx, won6: !!s.won6, lamp: !!s.lamp, oil: oilCount(st), hasMark, capOpen: !!s.capOpen, canSail: !s.on && !!st.won5 && !st.run, zones,
-    dests: s.on ? zones.filter(x => x.open && x.z !== s.at).map(x => ({ z: x.z, n: x.n, night: !night, day: night ? st.day + 1 : st.day, fog: x.z ? fz(x.z, !night) : 0 })) : [],
+    dests: s.on ? zones.filter(x => x.open && (x.z !== s.at || landHere(st))).map(x => ({ z: x.z, n: x.n, night: !night, day: night ? st.day + 1 : st.day, fog: x.z ? fz(x.z, !night) : 0 })) : [],
     hereFog: s.on && s.at ? fogCalc(st, D.seaZones[s.at], false) : 0, hereFogLamp: s.on && s.at ? fogCalc(st, D.seaZones[s.at], true) : 0, hereFogGo: s.on && s.at ? fogCalc(st, D.seaZones[s.at], s.lamp ? ([...st.stash, ...st.bag, ...st.pocket].some(it => it.k === (s.lampK === 'whaleoil' ? 'whaleoil' : 'oil')) ? (s.lampK === 'whaleoil' ? 2 : 1) : 0) : 0) : 0, /* v2.8 */
     run: rz ? { z: rz, fog: r.fog || 1, lamp: !!r.lamp, bell: !!D.nodes[r.node].bell && !(r.bell && r.bell[r.node]), due: seaDue(st, r.node) } : null }; }
 function seaGoalNext(st) { const s = seaOf(st);
   if (!s.on) return st.won5 ? { t: '2장: 바다로 출항', d: '등대 밖 갈매기호를 누르고 「바다로 출항」', ok: true } : null;
-  if (s.won8) return null;
+  if (s.won8) return landGoalNext(st); /* v2.21 */
   if (s.cleared >= 9 && !holds(st, 'seamark')) return { t: '안개고래 쓰러뜨리기', d: '10구역 가장 안쪽 「안개의 눈」에서 도전해요', ok: false };
   if (s.cleared >= 7 && !s.engine && !holds(st, 'seamark')) return { t: '갈매기호 엔진 고치기', d: '갑판 조타실: 연료통 2 · 시추 날 1 · 150코인', ok: hasMats(st, D.engineUp.mats) && st.coins >= D.engineUp.coins };
   if (holds(st, 'seamark')) return { t: '항로 표지 내기', d: '갑판 조타실에서 「항로 표지 내기」', ok: true };
@@ -2032,7 +2123,7 @@ function seaValidate(st, bad) { const s = st.sea, pl = o => !!o && typeof o === 
   if (typeof s.on !== 'boolean' || (s.on && !st.won5) || !Number.isInteger(s.cleared) || s.cleared < 0 || s.cleared > N || !Number.isInteger(s.at) || s.at < 0 || s.at > Math.min(N, s.cleared + 1)
     || (!s.on && (s.at !== 0 || s.cleared !== 0 || s.capOpen)) || typeof s.lamp !== 'boolean' || typeof s.capOpen !== 'boolean' || !!s.won6 !== (s.cleared >= 4) || !pl(s.chart)) bad('바다 기록');
   for (const [k, v] of Object.entries(s.chart)) if (!Object.prototype.hasOwnProperty.call(D.nodes, k) || !zoneOf(regionOf(k)) || v !== true) bad('해도');
-  const r = st.run; if (r) { const z = zoneOf(r.region); if (z ? !(s.on && s.at === z && [1, 2, 3].includes(r.fog)) : (s.on && s.at !== 0)) bad('바다 탐사');
+  const r = st.run; if (r) { const z = zoneOf(r.region); if (z ? !(s.on && s.at === z && !landHere(st) && [1, 2, 3].includes(r.fog)) : isLandR(r.region) ? !landHere(st) : (s.on && (s.at !== 0 || landHere(st)))) bad('바다 탐사'); /* v2.21 */
     if (z && (!pl(r.bell) || Object.entries(r.bell).some(([k, v]) => v !== true || !Object.prototype.hasOwnProperty.call(D.nodes, k) || !D.nodes[k].bell || regionOf(k) !== r.region))) bad('종 기록'); } }
 function seaMigrate(st) { const pl = o => !!o && typeof o === 'object' && !Array.isArray(o), own = (o, k) => Object.prototype.hasOwnProperty.call(o, k), N = D.seaZones.length - 1; let s = st.sea;
   if (!pl(s) || s.on !== true || !st.won5) s = st.sea = sea0(); // 예전 저장(v1.6까지)은 1장 상태 그대로
@@ -2041,7 +2132,7 @@ function seaMigrate(st) { const pl = o => !!o && typeof o === 'object' && !Array
     const c = {}; if (pl(s.chart)) for (const k of Object.keys(s.chart)) if (own(D.nodes, k) && zoneOf(regionOf(k)) && s.chart[k] === true) c[k] = true; s.chart = c; }
   const r = st.run; if (r) { const z = zoneOf(r.region);
     if (z) { if (!(s.on && s.at === z)) E('저장 형식이 달라요 (바다 구역)'); if (![1, 2, 3].includes(r.fog)) r.fog = D.regions[r.region].fog; { const b = {}; if (pl(r.bell)) for (const k of Object.keys(r.bell)) if (own(D.nodes, k) && D.nodes[k].bell && regionOf(k) === r.region && r.bell[k] === true) b[k] = true; r.bell = b; } r.lamp = r.lamp === true; r.noEvent = true; if (r.event) r.event = null; }
-    else { if (s.on && s.at !== 0) E('저장 형식이 달라요 (바다 구역)'); delete r.fog; delete r.bell; delete r.lamp; } } }
+    else { if (!isLandR(r.region) && s.on && s.at !== 0) E('저장 형식이 달라요 (바다 구역)'); delete r.fog; delete r.bell; delete r.lamp; } } }
 // ---------- v2.0 보완: 바다 적·바다 물건 ----------
 const spill = (st, it) => { const c = unplace(Object.assign({}, it)); if (c.f) delete c.f; else c.o = true; const r = st.run; (r.found[r.node] = r.found[r.node] || []).push(c); };
 // 갈고리 갈매기 (BOSS 지시): 한 턴에 못 잡으면 무조건 하나. 배낭 물건(파우치 포함)·장착 무기·메고 있는 가방 가운데 고르게 뽑음. 항로 표지·선장실 열쇠는 못 가져감.
@@ -2211,7 +2302,7 @@ function validate(st) {
   if (!st.unlocked || typeof st.unlocked !== 'object' || (st.unlocked.harbor && !st.won3) || typeof st.fx !== 'boolean' || typeof st.sg !== 'boolean' || !Number.isInteger(st.rs) || st.rs < 0 || !!st.quests.q15 !== !!st.unlocked.harbor || (st.run && st.run.region === 'harbor' && !st.unlocked.harbor) || (st.rk !== undefined && (st.rk !== true || st.reserve === undefined))) bad('해금·첫 귀환 기록');
   if (!Number.isInteger(st.ship) || st.ship < 0 || st.ship > D.ship.length || (st.ship > 0 && !st.won3) || !!st.won4 !== (st.ship === D.ship.length)) bad('배 수리');
   if (!Number.isInteger(st.device) || st.device < 0 || st.device > D.device.length || (st.device > 0 && !st.won2)) bad('정화 장치');
-  if (!!st.won3 !== (st.device === D.device.length) || (st.won2 && !D.goal2Quests.every(q => st.quests[q])) || !Array.isArray(st.log)) bad('목표 기록'); /* v0.6 [전략실장] */ for (const it of allItems(st)) if (!D.items[it.k]) bad('물건 ' + it.k); wCheck(st, bad); wTryCheck(st, bad); rvCheck(st, bad); /* v2.17 */
+  if (!!st.won3 !== (st.device === D.device.length) || (st.won2 && !D.goal2Quests.every(q => st.quests[q])) || !Array.isArray(st.log)) bad('목표 기록'); /* v0.6 [전략실장] */ for (const it of allItems(st)) if (!D.items[it.k]) bad('물건 ' + it.k); wCheck(st, bad); wTryCheck(st, bad); rvCheck(st, bad); /* v2.17 */ landValidate(st, bad); /* v2.21 */
   return true;
 }
 function save(st) { return JSON.stringify({ app: 'surv-rpg', v: 1, st }); }
@@ -2267,7 +2358,7 @@ function migrate(st) { if (st && st.wTry && typeof st.wTry.b !== 'string' && typ
 }
 function load(txt) { const o = JSON.parse(txt); if (!o || o.app !== 'surv-rpg' || !o.st) E('저장 형식이 달라요'); const st = lvFix(migrate(o.st)); validate(st); return st; }
 
-root.SurvEngine = { pocketCap, fleeCost, slotInfo, slotSpin, reload, rvInfo, rvNeed, vSpawn, accUpInfo, accUpStart, redeem, atkInfo, ambInfo, ambWeapon, buyAmb, shopPin, buyN, buyMax, can, canS, intentHits, intentShow, dmgAfter, diceInfo, dicePre, diceRoll, diceClose, diceBest, upgradeStart, levelInfo, lvPick, storeUpInfo, storeUp, lvGain, lvDeath, startCombat, die, shopStock, openBox, boxInfo, equipAcc, unequipAcc, amberDrop, accOn: A, seaInfo4, lightLamp, challengeWhale, whaleInfo, seaInfo3, kelpBlocked, seaAdj, cutKelp, syncHelm, repairEngine, seaInfo2, upgradeLamp, intentHidden, shopOpen, seaInfo, setSail, voyage, submitMark, toggleLamp, ringBell, regionOpen, fogCalc, zoneOf, bossInfo, challengeBoss, todInfo, rest, nextGoal, starterDue, questInfo, questRun, tideInfo, flooded, exitCost, shipInfo, buildShip, eventInfo, eventAct, xboxes, openX, reserveSupply, cancelReserve, hasK, nestMsg, tierOf, reach, depthOf, clearLastRun, passiveInfo, submitPassive, checkPassives, boxesOf, placeItem, equipPack, craft, findSpot, fitsAt, dimsOf, area, bagCells, contDims, conts, norm, isPouch, pouchEmpty, D, ADJ, regionOf, swapTake, swapInfo, fits, deepBonus, riskOf, buyIntel, unlockMetro, checkGoal, newGame, startRun, move, search, take, drop, extract, combatAct, useItem, moveItem, sell, buy, equip, unequip, heal, upgrade, upgradeInfo, build, quest, deviceInfo, buildDevice, toggleLock, needs, distToExit, used, sellPrice, countBase, built, weapon, intentDmg, validate, save, load, stashCap };
+root.SurvEngine = { landGo, landInfo, scrapDeliver, landGoalNext, landOf, landHere, shutAdj, /* v2.21 */ pocketCap, fleeCost, slotInfo, slotSpin, reload, rvInfo, rvNeed, vSpawn, accUpInfo, accUpStart, redeem, atkInfo, ambInfo, ambWeapon, buyAmb, shopPin, buyN, buyMax, can, canS, intentHits, intentShow, dmgAfter, diceInfo, dicePre, diceRoll, diceClose, diceBest, upgradeStart, levelInfo, lvPick, storeUpInfo, storeUp, lvGain, lvDeath, startCombat, die, shopStock, openBox, boxInfo, equipAcc, unequipAcc, amberDrop, accOn: A, seaInfo4, lightLamp, challengeWhale, whaleInfo, seaInfo3, kelpBlocked, seaAdj, cutKelp, syncHelm, repairEngine, seaInfo2, upgradeLamp, intentHidden, shopOpen, seaInfo, setSail, voyage, submitMark, toggleLamp, ringBell, regionOpen, fogCalc, zoneOf, bossInfo, challengeBoss, todInfo, rest, nextGoal, starterDue, questInfo, questRun, tideInfo, flooded, exitCost, shipInfo, buildShip, eventInfo, eventAct, xboxes, openX, reserveSupply, cancelReserve, hasK, nestMsg, tierOf, reach, depthOf, clearLastRun, passiveInfo, submitPassive, checkPassives, boxesOf, placeItem, equipPack, craft, findSpot, fitsAt, dimsOf, area, bagCells, contDims, conts, norm, isPouch, pouchEmpty, D, ADJ, regionOf, swapTake, swapInfo, fits, deepBonus, riskOf, buyIntel, unlockMetro, checkGoal, newGame, startRun, move, search, take, drop, extract, combatAct, useItem, moveItem, sell, buy, equip, unequip, heal, upgrade, upgradeInfo, build, quest, deviceInfo, buildDevice, toggleLock, needs, distToExit, used, sellPrice, countBase, built, weapon, intentDmg, validate, save, load, stashCap };
 // v2.1 배낭이 바뀌는 행동 뒤에는 잠수 헬멧을 지녔는지 바로 맞춤 [전략실장]
 for (const k of ['take', 'swapTake', 'drop', 'moveItem', 'combatAct', 'useItem', 'search', 'move', 'openX', 'eventAct']) { const f0 = root.SurvEngine[k]; root.SurvEngine[k] = function (st) { try { return f0.apply(this, arguments); } finally { if (st && st.run) syncHelm(st); } }; }
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -2279,7 +2370,8 @@ for (const k of ['take', 'swapTake', 'drop', 'moveItem', 'combatAct', 'useItem',
 'use strict';
 const G = window.SurvEngine, D = G.D, KEY = 'recovery-v22';
 const RA = window.RA || {};
-const FOE = { charger: 'E1', ambusher: 'E2', spitter: 'E3', swarm: 'E4', vine: 'E5', shell: 'E6', tide: 'E7', gull: 'E8', jelly: 'E9', net: 'E10', eel: 'E11', crabs: 'E12', drone: 'E13', claw: 'E14', moths: 'E15', wisp: 'E16', calf: 'E17', whale: 'E18' }, AREA = { city: 'A3', metro: 'A4', harbor: 'A5', z1: 'A6', z2: 'A7', z3: 'A8', z4: 'A9', z5: 'A10', z6: 'A11', z7: 'A12', z8: 'A13', z9: 'A14', z10: 'A15' };
+{ const AL = { DK1D: 'A5', DK1N: 'A5', A16: 'A5', A17: 'A3', E19: 'E1', E20: 'E2', I_firework: 'I_flare', I_campfood: 'I_can', I_medkit: 'I_painkiller', I_camera: 'I_watch', I_minicamper: 'I_statue' }; for (const [k, o] of Object.entries(AL)) if (!RA[k] && RA[o]) RA[k] = RA[o]; } /* v2.21 3장 그림 자리 */
+const FOE = { charger: 'E1', ambusher: 'E2', spitter: 'E3', swarm: 'E4', vine: 'E5', shell: 'E6', tide: 'E7', gull: 'E8', jelly: 'E9', net: 'E10', eel: 'E11', crabs: 'E12', drone: 'E13', claw: 'E14', moths: 'E15', wisp: 'E16', calf: 'E17', whale: 'E18', dog: 'E19', cocoon: 'E20' }, AREA = { dock: 'A16', camp: 'A17', city: 'A3', metro: 'A4', harbor: 'A5', z1: 'A6', z2: 'A7', z3: 'A8', z4: 'A9', z5: 'A10', z6: 'A11', z7: 'A12', z8: 'A13', z9: 'A14', z10: 'A15' };
 // ---------- v0.5 소리 (게임 저장과 따로, 이 기기에만 기억) ----------
 const SND = (() => {
   const SK = 'recovery-sound', MV = 0.35, SV = 0.8, mus = {}, fx = new Set();
@@ -2784,7 +2876,7 @@ function renderBase() {
   h += '<!--§fac-->';
   // 시설
   h += `<div class="card"><b>🏗️ 시설</b>${Object.entries(D.facilities).map(([f, d]) => `<div class="item"><div><div class="nm">${d.n} ${G.built(st, f) ? '✅' : ''}</div><div class="muted">${d.desc}${G.built(st, f) ? '' : ` · ${matText(d.mats)} · ${d.coins}코인`}</div></div>${G.built(st, f) ? '' : `<div class="btns sm"><button data-a="build" data-k="${f}">짓기</button></div>`}</div>`).join('')}</div>`;
-  h += '<!--§quest-->';
+  h += '<!--§quest-->' + scrapCard(); /* v2.21 중계소 반복 의뢰 */
   // 의뢰
   { const qi = G.questInfo(st), GR = [['city', '🗼 등대·시가지', true, ''], ['metro', '⛏️ 균사 갱도', true, st.unlocked.metro ? '' : '갱도 승강기를 고치면 갈 수 있어요.'], ['harbor', '🌊 잠긴 항구', !!st.won3, st.won3 ? '' : '3차 목표(정화 장치 시제품)를 끝내면 열려요.']];
     h += `<div class="card"><div class="row"><b>📜 의뢰</b><span class="muted">${qi.filter(x => x.done).length}/${qi.length} 완료</span></div><div class="muted">무전으로 들어온 부탁이에요. 보상은 조합 장부에 적혀 마루가 대신 줘요. ★ 3개가 2차 목표예요. 처치·탐사 의뢰는 실전에서 귀환해야 인정돼요.</div>`;
@@ -3248,6 +3340,11 @@ const FPH = {
   HRV1: { w: 34, r: 2 }, HRV2: { w: 36, l: 46 }, HRV3: { w: 36, l: 46 }, HRV4: { w: 41, l: 43 }, HRV5: { w: 86, l: 7 }, HRVL: { w: 62, l: 19 },
 };
 const FPE = { charger: 'ECH', ambusher: 'EAM', spitter: 'ESP', swarm: 'ESW', gull: 'EGU', jelly: 'EJE', vine: 'EVI', shell: 'ESH', tide: 'ETI', net: 'ENE', eel: 'EEL', crabs: 'ECR', drone: 'EDR', claw: 'ECL', moths: 'EMO', wisp: 'EWI', calf: 'ECF', whale: 'EWH' }; // v2.2 남은 적 9종 // v1.9 갈매기·해파리 정면 그림
+/* v2.21 3장 「상륙」 새 곳 11곳·새 적 2종: 그림이 결재 대기라 기존 1인칭 장면·누끼·누르는 곳·적 그림을 빌려 씀 (키 목록: 03_결과/도구/v2.21/그림목록.md).
+   그림이 오면 FPA의 S_L1A… · FPC/FPS의 L1A… · FPE의 dog·cocoon을 새 키로 넣으면 아래 빌려 쓰기는 저절로 건너뜀 */
+{ const AL = { L1A: 'H1', L1B: 'H2', L1C: 'H3', L1D: 'H4', L2A: 'E1', L2B: 'N1', L2C: 'N2', L2D: 'N3', L2E: 'N4', L2F: 'N5', L2G: 'E2' };
+  for (const [n, o] of Object.entries(AL)) { if (!FPS[n] && FPS[o]) FPS[n] = FPS[o]; if (!FPA['S_' + n] && FPA['S_' + o]) FPA['S_' + n] = FPA['S_' + o]; if (typeof FPC !== 'undefined' && !FPC[n] && FPC[o]) FPC[n] = FPC[o]; }
+  if (!FPE.dog) FPE.dog = 'ECH'; if (!FPE.cocoon) FPE.cocoon = 'EAM'; }
 // v1.7 귀중품 이름 색 (BOSS 지시 2026-11-22): 파는 값 70 이상 보라, 100 이상 주황, 150 이상 빨강. 다른 물건은 그대로
 const nmv = it => { const t = esc(iname(it)); if (it && D.items[it.k] && D.items[it.k].leg) return `<span class="lgd">${t}</span>`; /* v2.17 전설 = 주황 */ if (!it || !D.items[it.k] || D.items[it.k].c !== '귀중품') return t; const p = G.sellPrice(it); return p >= 150 ? `<span class="v3">${t}</span>` : p >= 100 ? `<span class="v2">${t}</span>` : p >= 70 ? `<span class="v1">${t}</span>` : t; };
 let fpOff = false; try { fpOff = localStorage.getItem('fp-off') === '1'; } catch (e) { }
@@ -3289,7 +3386,7 @@ function fpArrows() {
     side[Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'L' : 'R') : (dy < 0 ? 'U' : 'D')].push(id); }
   // v2.2 자동 시험이 찾음: 잠긴 선장실(열쇠 없음)·등불을 다 켜기 전의 기록선은 화살표를 눌러도 못 감 → 🔒을 붙여 미리 알림 (엔진 seaLock과 같은 판정)
   const sea = st.sea || {}, LMP = Object.keys(D.nodes).filter(n => D.nodes[n].lamp), litN = LMP.filter(n => sea.lit && sea.lit[n] === true).length;
-  const shut = id => (D.nodes[id].lock && !sea.capOpen && !G.hasK(st, 'keyC')) || (D.nodes[id].door && litN < LMP.length);
+  const shut = id => (D.nodes[id].lock && !sea.capOpen && !G.hasK(st, 'keyC')) || (D.nodes[id].door && litN < LMP.length) || (D.nodes[id].shut && !(st.land && st.land.shut)); /* v2.21 캠핑장 전시장 셔터 */
   const lbl = id => `${shut(id) ? '🔒' : ''}${D.nodes[id].n}${D.nodes[id].exit ? '🚪' : ''}`;
   let h = '';
   // 화살표는 천장 쪽(위)과 맨 아래 왼쪽에만 둬서 뒤질 곳 핀(그림 가운데 높이)과 겹치지 않게 함
@@ -3621,7 +3718,7 @@ const OUT = [
   { id: 'shore', n: '시간 보내기', lp: [487, 704], p: [[428.8,735.4],[428.6,733.6],[429.4,729.5],[432.1,723.8],[431.6,708.3],[432.7,704.5],[431.4,698.6],[432.6,691.5],[433.9,689.1],[442.6,685.9],[451.6,680.4],[474.3,663],[492.6,659.4],[509.5,653.2],[518.5,648.9],[526.4,645.8],[528.4,645.5],[530.6,646.2],[531,645.8],[530.7,643.4],[531.4,634.2],[532,630.9],[533.2,629],[535,627.8],[537.6,627.1],[539.1,627.7],[539.8,638.4],[541.6,641.8],[542,643.6],[540.6,660.5],[541.9,671.6],[545.2,690.7],[544.9,695.7],[545.7,697.6],[549.2,700.8],[550.2,702.7],[550.4,704.8],[549.1,710.6],[550.7,719.6],[551.9,721.3],[554.7,723.4],[555.7,725.3],[555.4,727.4],[552.6,731.3],[547.8,734.7],[541.3,736.7],[536.3,739.4],[534.9,740.9],[534.1,744.7],[533.6,745.3],[532.1,745.7],[528.4,745.3],[522.7,743.9],[518.2,744.7],[511.3,744.1],[508.6,742.6],[503.3,736.4],[497.6,734.6],[491.5,734.8],[475.5,736.6],[472.6,737.4],[467.9,739.5],[463.7,739.1],[449.5,740.5],[440.4,740.5],[434.8,741.7],[432.9,740.5]], pd: [[428.6,736.4],[431.2,722.7],[430.4,720.7],[427.8,717.4],[427.1,710.3],[427.9,708.5],[430.5,705.5],[430.7,701.6],[431.4,698.5],[433.7,691.7],[435.2,689.2],[436.8,688.2],[442.7,686.3],[449.9,682.7],[454.9,679.1],[460.2,673.8],[468.9,668.5],[473.4,664.3],[475.4,663.2],[491.5,660.2],[499.5,657.6],[512.6,652.7],[530.3,644.2],[531.2,642.8],[532.1,639.4],[532.2,629],[532.6,626.7],[533.8,624.5],[535.6,623],[536.6,622.8],[538.5,623.8],[540.2,627.6],[540.6,637.7],[543.1,644.4],[541.7,660.5],[543.9,676.4],[545.3,683.2],[545.8,688.8],[549,695.3],[549.7,699.4],[551.7,703.2],[549.7,709.5],[549.7,711.6],[550.8,714.6],[553.8,717.6],[556,724.6],[555.7,726.6],[554.3,728.1],[550.8,730.4],[548.7,734.9],[536.4,740.9],[531.6,745.1],[528.4,745.3],[522.5,743.7],[516.7,745.7],[510.4,743.5],[508,738.1],[504.9,733.7],[503.1,732.7],[488.5,734.7],[483.6,736.4],[477.5,736],[454.6,740.3],[439.5,740.7],[434.7,742.4],[431.3,741.4],[429.5,740.3],[428.7,738.4]] } ];
 function polyOf(o) { return st.tod === 1 ? o.p : (o.pd || o.p); } // 지금 낮·밤에 맞는 누끼 선
 function rectOf(P) { let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (const q of P) { if (q[0] < x0) x0 = q[0]; if (q[0] > x1) x1 = q[0]; if (q[1] < y0) y0 = q[1]; if (q[1] > y1) y1 = q[1]; } return [Math.max(0, Math.floor(x0) - 1), Math.max(0, Math.floor(y0) - 1), Math.min(720, Math.ceil(x1) + 1), Math.min(1280, Math.ceil(y1) + 1)]; }
-function bgKey() { const night = st.tod === 1; if (SEAON()) return outside ? (night ? 'SD1N' : 'SD1D') : (night ? 'SC1N' : 'SC1D'); return outside ? (night ? 'BG2N' : 'BG2D') : (night ? 'BG1' : 'BG1D'); }
+function bgKey() { const night = st.tod === 1; if (DOCKV()) return night ? 'DK1N' : 'DK1D'; /* v2.21 부두 */ if (SEAON()) return outside ? (night ? 'SD1N' : 'SD1D') : (night ? 'SC1N' : 'SC1D'); return outside ? (night ? 'BG2N' : 'BG2D') : (night ? 'BG1' : 'BG1D'); }
 function bgStyle() { let k = bgKey(); if (!RA[k]) k = 'BG1'; if (!RA[k]) return; let e = document.getElementById('bgim-css'); if (!e) { e = document.createElement('style'); e.id = 'bgim-css'; document.head.appendChild(e); }
   if (e.dataset.k !== k) { e.dataset.k = k; e.textContent = '.scene.bgim,.obj .bgim{background-image:url("' + RA[k] + '") !important}'; } }
 function outHtml() { return OUT.map(objHtml).join('') + OUT.map(o => `<span class="olab" style="left:${o.lp[0] / 7.2}%;top:${o.lp[1] / 12.8}%">${o.n}</span>`).join('') + '<div class="hitlayer" data-a="objhit" aria-label="등대 바깥 누르기"></div>'; }
@@ -3713,11 +3810,34 @@ const SEA_OUT = [
   { id: 'lamp', n: '탐조등', lp: [148, 440], p: NK.deck_n.lamp, pd: NK.deck_d.lamp, hit: RECT(78, 288, 220, 495) },
   { id: 'door', n: '승선 사다리', lp: [60, 700], p: NK.deck_n.door, pd: NK.deck_d.door, hit: RECT(0, 555, 105, 880) },
   { id: 'shore', n: '시간 보내기', lp: [612, 640], p: NK.deck_n.shore, pd: NK.deck_d.shore, hit: RECT(512, 542, 714, 755) } ];
-function sceneObjs() { return SEAON() ? (outside ? SEA_OUT : SEA_IN) : (outside ? OUT : OBJS); }
-function seaSceneHtml() { return sceneObjs().map(objHtml).join('') + sceneObjs().map(o => `<span class="olab" style="left:${o.lp[0] / 7.2}%;top:${o.lp[1] / 12.8}%">${o.n}</span>`).join('') + `<div class="hitlayer" data-a="objhit" aria-label="${outside ? '갑판' : '선실'} 누르기"></div>`; }
-function seaChip() { return SEAON() ? ` · ${st.sea.at ? st.sea.at + '구역 ' : '⚓ '}${D.seaNames[st.sea.at]}${st.sea.won8 ? ' · 🏁 2장 끝' : st.sea.engine ? ' · 🏁 7차 달성' : st.sea.won6 ? ' · 🏁 6차 달성' : ''}` : ''; }
+/* ===== v2.21 3장 「상륙」 화면: 조타실 「본토 항구로」 · 상륙 글 3줄 · 부두 화면(낮·밤, 9차까지) · 갑판 「부두로 내리기」 · 중계소 「고철 납품」 =====
+   그림은 아직 없음(결재 대기): 부두 배경 키 DK1D·DK1N → 지금은 잠긴 항구 그림(A5)을 빌려 씀. 누르는 곳은 이름표만(그림이 오면 누끼로 바꿈) */
+let dockV = false, landIntroOn = false;
+const LANDHERE = () => !!(st.land && st.land.here && st.sea && st.sea.on);
+const DOCKV = () => dockV && LANDHERE();
+const DOCK = [ // 그림이 없어 누끼 대신 넉넉한 누르기 구역 + 이름표 (720×1280 기준)
+  { id: 'deckup', n: '갈매기호 (승선)', lp: [520, 560], hit: RECT(380, 400, 720, 760) },
+  { id: 'door', n: '탐사 출발', lp: [160, 760], hit: RECT(0, 600, 330, 900) } ];
+const dockObjs = () => DOCK;
+function dockSceneHtml() { return dockObjs().map(o => `<span class="olab" style="left:${o.lp[0] / 7.2}%;top:${o.lp[1] / 12.8}%">${o.n}</span>`).join('') + '<div class="hitlayer" data-a="objhit" aria-label="부두 누르기"></div>'; }
+function landIntroHtml() { const L = G.landInfo(st);
+  return `<div class="dim rdim"></div><div class="rmodal" role="dialog" aria-label="상륙"><div class="rhead">⚓ 3장 「상륙」</div>${L.intro.map(t => `<div style="margin:6px 0">${esc(t)}</div>`).join('')}<div class="btns"><button class="pri" data-a="landok" style="min-height:52px;font-size:18px">부두로 내리기</button></div></div>`; }
+function landHelmCard() { const L = G.landInfo(st); if (!L.open) return '';
+  if (L.here) return '<div class="card" style="border-color:var(--good)"><b>⚓ 본토 항구 부두에 닻을 내렸어요</b><div class="muted">갑판의 「부두로 내리기」로 부두에 내려요. 아래 「출항」으로 바다 구역·등대섬에 돌아갈 수 있어요.</div></div>';
+  return `<div class="card" style="border-color:var(--good)"><b>⚓ 3장 「상륙」 — 본토 항구로</b><div class="muted">안개가 걷힌 바다 너머 본토 항구로 가요. 반나절이 걸려요. 보관함·작업대·코인은 그대로예요.${L.on ? ' 다시 오면 부두 거리·캠핑장을 이어서 탐사해요.' : ''}</div><div class="btns"><button class="pri" data-a="landgo"${WHY(G.can(st, 'landGo'))}>⚓ 본토 항구로 (3장)</button></div></div>`; }
+function landGoalCards() { const L = G.landInfo(st); if (!L.on) return ''; let h = '';
+  if (L.frame) h += '<div class="card goal">🏁 9차 목표 달성 — 골조만 남은 캠핑카를 찾았어요!<div class="muted" style="font-weight:400">해안 캠핑장 전시장에 캠핑카 골조가 그대로 있어요. 엔진·바퀴·문·배터리·패널이 모두 없어요. 이걸 모으면 다시 달릴 수 있어요 (다음 이야기).</div></div>';
+  else h += `<div class="card goal">⚓ 3장 「상륙」 — 캠핑카 찾기<div class="muted" style="font-weight:400">${L.shut ? '전시장 셔터가 열렸어요. 전시장을 조사하면 9차 목표예요.' : '해안 캠핑장 전시장의 셔터를 열어요: 배터리 1개(조용히) 또는 손으로 감기(기력 5 · 적이 와요). 배터리는 관리동 상자에 있어요.'}</div></div>`;
+  return h; }
+function landDoorCard() { if (!LANDHERE()) return '';
+  return '<div class="card"><b>⚓ 본토 항구 부두</b><div class="muted">부두 거리·해안 캠핑장으로 탐사를 나가요. 바다 구역·등대섬은 갑판 조타실에서 출항해야 갈 수 있어요.</div></div>'; }
+function scrapCard() { const x = G.landInfo(st).scrap; if (!x.open) return '';
+  return `<div class="card"><b>📻 중계소 반복 의뢰 「고철 납품」</b><div class="muted">하루 1번 · 구리선 2 · 파이프 1 → ${x.coins}코인 (보관함·배낭에서)${x.done ? ` · 오늘은 냈어요 (DAY ${st.day + 1}에 다시)` : ''}</div><div class="btns"><button class="${x.ok ? 'pri' : ''}" data-a="scrap"${x.ok ? '' : WHY(G.can(st, 'scrapDeliver') || '오늘은 낼 수 없어요')}>📦 고철 보내기 (+${x.coins})</button></div></div>`; }
+function sceneObjs() { if (DOCKV()) return dockObjs(); /* v2.21 */ return SEAON() ? (outside ? SEA_OUT : SEA_IN) : (outside ? OUT : OBJS); }
+function seaSceneHtml() { return sceneObjs().map(objHtml).join('') + sceneObjs().map(o => `<span class="olab" style="left:${o.lp[0] / 7.2}%;top:${o.lp[1] / 12.8}%">${o.id === 'door' && outside && LANDHERE() ? '부두로 내리기' : o.n}</span>`).join('') + `<div class="hitlayer" data-a="objhit" aria-label="${outside ? '갑판' : '선실'} 누르기"></div>`; }
+function seaChip() { return SEAON() ? LANDHERE() ? ` · ⚓ 본토 항구${st.land.frame ? ' · 🏁 9차 달성' : ''}` /* v2.21 */ : ` · ${st.sea.at ? st.sea.at + '구역 ' : '⚓ '}${D.seaNames[st.sea.at]}${st.sea.won8 ? ' · 🏁 2장 끝' : st.sea.engine ? ' · 🏁 7차 달성' : st.sea.won6 ? ' · 🏁 6차 달성' : ''}` : ''; }
 function seaGoalHtml() { const s = G.seaInfo(st), x = G.seaInfo3(st), y = G.seaInfo4(st); let h = '';
-  if (y.won8) h += `<div class="card goal">🏁 8차 목표 달성 — 2장 「포자 바다」 끝!<div class="muted" style="font-weight:400">${RA.I_seedeye2 ? `<img class="seedi" src="${RA.I_seedeye2}" alt="">` : ''}안개고래의 씨눈을 정화 장치에 끼웠어요. 본토 앞바다의 안개가 걷혔어요. 3장 「상륙」은 다음 이야기예요. 지나온 구역과 등대섬은 계속 탐사할 수 있어요.</div></div>`;
+  if (y.won8) h += `<div class="card goal">🏁 8차 목표 달성 — 2장 「포자 바다」 끝!<div class="muted" style="font-weight:400">${RA.I_seedeye2 ? `<img class="seedi" src="${RA.I_seedeye2}" alt="">` : ''}안개고래의 씨눈을 정화 장치에 끼웠어요. 본토 앞바다의 안개가 걷혔어요. 3장 「상륙」: 갑판 조타실에서 「본토 항구로」 가요. 지나온 구역과 등대섬은 계속 탐사할 수 있어요.</div></div>`; h = landGoalCards() + h; /* v2.21 */
   if (x.engine) h += `<div class="card goal">🏁 7차 목표 달성 — 갈매기호 엔진을 고쳤어요!${y.won8 ? '' : `<div class="muted" style="font-weight:400">다음은 8~10구역이에요 (항로 ${s.cleared}/9). 10구역 「짙은 바다」의 안개고래를 쓰러뜨리면 2장이 끝나요.</div>`}</div>`;
   if (s.won6) h += `<div class="card goal">🏁 6차 목표 달성 — 1~4구역 항로를 열었어요!${x.engine ? '' : `<div class="muted" style="font-weight:400">다음은 5~7구역이에요 (항로 ${s.cleared}/9). 세 구역 표지를 다 내고 엔진을 고치면 7차 목표예요.</div>`}</div>`;
   else if (s.on) h += `<div class="card goal">🌫 2장 「포자 바다」 — 항로 ${s.cleared}/9<div class="muted" style="font-weight:400">구역마다 📍 항로 표지를 찾아 조타실에 내면 다음 구역으로 가요.</div></div>`;
@@ -3729,7 +3849,7 @@ function shopHint() { return SEAON() ? '<div class="card"><b>🛒 상점은 어�
   : '<div class="card"><b>🛒 상점은 어디?</b><div class="muted">선장 마루의 상점은 등대 밖 갈매기호에 있어요. 왼쪽 아래 「← 등대 나가기」를 눌러요.</div></div>'; }
 function chartHtml() { const s = G.seaInfo(st);
   let h = `<div class="card"><div class="row"><b>🗺️ 해도 — 항로 ${s.cleared}/9</b><span class="muted">${(st.sea || {}).won8 ? '🏁 2장 끝' : s.engine ? '🏁 7차 달성' : s.won6 ? '🏁 6차 달성' : ''}</span></div>` + s.zones.map(x => `<div class="item"><div><div class="nm">${x.z ? x.z + '구역 ' : '⚓ '}${x.n}${x.here ? ' <span class="tag need">지금 여기</span>' : ''}${x.cleared ? ' ✅' : ''}</div><div class="muted">${!x.z ? '1장 지역(시가지·갱도·항구)에 갈 수 있어요' : !x.open ? '🔒 앞 구역의 항로 표지를 내면 열려요' : `안개 짙기 ${x.fog}${x.z === 10 ? ((st.sea || {}).won8 ? ' · 🐋 안개고래를 물리쳤어요' : ' · 🐋 안개고래를 물리쳐야 해요') : x.cleared ? ' · 항로 표지 냄' : ' · 📍 항로 표지를 찾아야 해요'}`}</div></div></div>`).join('')
-    + '<div class="item"><div><div class="nm">3장 「상륙」</div><div class="muted">🔒 다음 이야기예요</div></div></div><div class="muted">다른 구역으로 가려면 갑판의 조타실에서 출항해요.</div></div>';
+    + `<div class="item"><div><div class="nm">3장 「상륙」${G.landInfo(st).here ? ' <span class="tag need">지금 여기</span>' : ''}${G.landInfo(st).frame ? ' 🏁 9차' : ''}</div><div class="muted">${G.landInfo(st).on ? '⚓ 본토 항구 · 부두 거리 · 해안 캠핑장' : G.landInfo(st).open ? '⚓ 열렸어요 — 갑판 조타실 「본토 항구로 (3장)」' : '🔒 안개고래를 쓰러뜨리면 열려요'}</div></div></div>` /* v2.21 */ + '<div class="muted">다른 구역으로 가려면 갑판의 조타실에서 출항해요.</div></div>';
   h += `<div class="card"><b>🌫 안개 규칙</b><div class="muted">· 처음 가는 칸은 지도에 ?로 보여요. 밟으면 해도에 남아요.<br>· 안개가 짙으면 적이 가까이에서 먼저 덮쳐요. 짙기 2: 한 칸 가까이·전투 시작 때 체력 −${D.fogHit} / 짙기 3: 두 칸 가까이·체력 −${D.fogHit * 2}. 밤엔 짙기 +1 (최대 3).<br>· 갑판의 탐조등을 켜고 나가면(기름 1통) 짙기 −1, 고래 기름이면 −2. 출발 칸 옆 칸이 미리 보여요(강화하면 2칸).<br>· 🔔 종 부표를 울리면 주변 2칸이 걷히고 짙기 −1, 대신 위험 +${D.bellRisk}.<br>· 📍 항로 표지를 잃어도 그 칸에 다시 나와요.</div><div class="btns"><button data-a="passive">🧬 패시브 (${Object.keys(st.passives || {}).length}/${Object.keys(D.passives).length})</button></div></div>`;
   return h + mapHtml(); }
 function lampHtml() { const s = G.seaInfo(st), x = G.seaInfo2(st), on = k => s.lamp && x.lampK === k;
@@ -3739,17 +3859,18 @@ function lampUpHtml() { const x = G.seaInfo2(st), up = x.lampUp;
   return `<div class="card"><b>🔧 탐조등 강화 ${up.done ? '✅ 1단계' : '0/1'}</b><div class="muted">${up.done ? '탐조등을 켜면 출발 칸에서 2칸까지 미리 보여요.' : `켜면 2칸까지 미리 보이게 돼요: ${matText(up.mats)} · ${up.coins}코인`}</div>${up.done ? '' : `<div class="btns"><button class="pri" data-a="lampup" ${up.ok ? '' : 'disabled'}>강화하기</button></div>`}</div>`; }
 function helmHtml() { const s = G.seaInfo(st), x = G.seaInfo3(st), y = G.seaInfo4(st), up = x.engineUp, all = s.cleared >= 9;
   let h = `<div class="card"><b>☸️ 조타실 — 지금 ${s.at ? s.at + '구역 ' : ''}${D.seaNames[s.at]}</b>`;
-  if (y.won8) h += '<div class="muted">🏁 2장 「포자 바다」를 끝냈어요. 3장 「상륙」은 다음 이야기예요.</div>';
+  if (y.won8) h += '<div class="muted">🏁 2장 「포자 바다」를 끝냈어요. 3장 「상륙」: 아래 「본토 항구로」를 눌러요.</div>';
   else if (s.hasMark && !all) h += '<div class="muted">📍 항로 표지를 가져왔어요. 해도에 옮기면 다음 구역 항로가 열려요.</div><div class="btns"><button class="pri" data-a="markin">📍 항로 표지 내기</button></div>';
   else if (all) h += '<div class="muted">9구역까지 항로를 모두 열었어요. 10구역 「짙은 바다」의 가장 안쪽 「안개의 눈」에서 안개고래에게 도전해요.</div>';
   else if (s.cleared >= 7 && !x.engine) h += '<div class="muted">8구역부터는 엔진을 고쳐야 갈 수 있어요.</div>';
   else h += `<div class="muted">${D.seaNames[s.cleared + 1]}의 📍 항로 표지를 찾아 와야 다음 구역으로 갈 수 있어요. 표지를 잃어도 그 칸에 다시 나와요.</div>`;
   h += '</div>';
   if (s.cleared >= 4) h += `<div class="card"><b>🛠 갈매기호 엔진 ${up.done ? '✅ 고침 (7차 목표)' : '— 고장'}</b><div class="muted">${up.done ? '엔진이 다시 돌아요. 8구역부터 갈 수 있어요.' : `${up.open ? '' : '5~7구역 항로 표지를 모두 낸 뒤에 고칠 수 있어요. '}재료: ${matText(up.mats)} · ${up.coins}코인 (연료통은 7구역 연료 창고, 시추 날은 시추 집게에게서)`}</div>${up.done ? '' : `<div class="btns"><button class="pri" data-a="engine" ${up.ok ? '' : 'disabled'}>엔진 고치기</button></div>`}</div>`;
+  h += landHelmCard(); /* v2.21 */
   h += '<div class="card"><b>⛵ 출항</b><div class="muted">출항하면 반나절이 흘러요. 지나온 구역과 등대섬으로 돌아갈 수 있어요.</div>'
     + s.dests.map(d => `<div class="item"><div><div class="nm">${d.z ? d.z + '구역 ' : '⚓ '}${d.n}</div><div class="muted">도착: DAY ${d.day} ${d.night ? '🌙 밤' : '☀️ 낮'}${d.z ? ` · 안개 짙기 ${d.fog}` : ' · 1장 지역'}</div></div><div class="btns sm"><button class="pri" data-a="voyage" data-k="${d.z}">출항</button></div></div>`).join('') + '</div>';
   return h; }
-function seaDoor() { const s = G.seaInfo(st); if (!s.on) return '';
+function seaDoor() { const s = G.seaInfo(st); if (!s.on) return ''; if (LANDHERE()) return landDoorCard(); /* v2.21 */
   if (!s.at) return '<div class="card"><b>⚓ 등대섬 앞바다</b><div class="muted">승선 사다리로 1장 지역에 갈 수 있어요. 바다 구역은 갑판 조타실에서 출항해요.</div></div>';
   const f = s.hereFogGo; /* v2.8 고른 기름(고래 기름 −2)까지 반영 */
   return `<div class="card"><b>🌫 ${s.at}구역 ${D.seaNames[s.at]} · 안개 짙기 ${f}</b><div class="muted">${f > 1 ? `적이 ${f - 1}칸 가까이에서 덮쳐요 (전투 시작 때 체력 −${(f - 1) * D.fogHit}).` : '안개가 옅어요.'} 처음 가는 칸은 ?로 보여요.${s.at === 10 ? ((st.sea || {}).won8 ? '' : ' 🐋 짙은 바다의 안개고래를 찾아 물리쳐요.') : s.cleared < s.at ? (s.hasMark ? ' 📍 항로 표지를 갖고 있어요 — 조타실에 내요.' : ' 📍 항로 표지를 찾아 돌아와요.') : ''}</div>
@@ -3758,16 +3879,16 @@ function seaRunCard() { const s = G.seaInfo(st), x = s.run; if (!x) return ''; c
   return `<div class="card"><b>🌫 안개 짙기 ${x.fog}</b> <span class="muted">${x.fog > 1 ? `적이 ${x.fog - 1}칸 가까이에서 덮쳐요 (전투 시작 때 체력 −${(x.fog - 1) * D.fogHit})` : '적이 보통 거리에서 나타나요'}${x.lamp ? ' · 🔦 탐조등' : ''}</span>
   ${x.due === 'seamark' ? '<div class="muted">📍 여기에 항로 표지가 있어요. 상자를 조사하면 나와요.</div>' : ''}${x.due === 'keyC' ? '<div class="muted">🗝️ 선장실 열쇠가 여기 있어요. 상자를 조사하면 나와요.</div>' : ''}
   ${n.bell ? `<div class="btns sm"><button data-a="bell" ${x.bell ? '' : 'disabled'}>${x.bell ? `🔔 종 울리기 (위험 +${D.bellRisk}${x.fog > 1 ? ' · 짙기 −1' : ''} · 주변 2칸 걷힘)` : '🔔 이미 울린 종이에요'}</button></div>` : ''}</div>`; }
-function seaIcon(id) { const n = D.nodes[id], s = st.sea || {}, z = D.regions[G.regionOf(id)].zone || 0; if (!z) return '';
+function seaIcon(id) { const n = D.nodes[id], s = st.sea || {}, z = D.regions[G.regionOf(id)].zone || 0; if (n.shut || n.camper) return (n.shut && !G.landInfo(st).shut ? '🔒' : '') + (n.camper && !G.landInfo(st).frame ? '🚐' : ''); /* v2.21 */ if (!z) return '';
   return (n.mark && (s.cleared || 0) < z ? '📍' : '') + (n.bell ? '🔔' : '') + (n.lock && !s.capOpen ? '🔒' : '') + (n.lamp ? (s.lit && s.lit[id] ? '🏮' : '🕯') : '') + (n.door && !G.seaInfo4(st).allLit ? '🚪' : '') + (n.whale ? '🐋' : '') + (n.guard && !s.clawDead ? '⚙️' : ''); }
 function renderScene() {
   const m = baseParts(), p0 = st.pack || 'sack', pim = RA['I_' + (p0 === 'sack' ? 'sack' : p0 + 'F')], b = G.bagCells(st);
   const t = st.tut || {}; const TUTN = TUT.find(([k2]) => !t[k2]); const tut = (false && !t.hide && TUTN) ? `<div class="tutmini"><span>🧭 다음: ${TUTN[1]}</span><button data-a="tuthide">숨기기</button></div>` : '';
   bgStyle();
-  let h = `<div class="scene bgim ${st.tod === 1 ? 'tn' : 'td'}"><div class="ttl">${SEAON() ? (outside ? '🌊 갈매기호 갑판' : '⚓ 갈매기호 선실') : outside ? '🌊 등대 바깥' : '🗼 등대 거점'}<small>DAY ${st.day}${todChip()}${seaChip()}${SEAON() ? '' : st.won5 ? ' · 🏁 1장 끝' : st.won4 ? ' · 🚢 4차 달성' : st.won3 ? ' · 🌟 3차 달성' : st.won2 ? ' · 🌱 2차 달성' : st.won ? ' · 🎉 1차 달성' : ''}</small></div>${tut}
-    ${SEAON() ? seaSceneHtml() : outside ? outHtml() : RA.BG1 ? OBJS.map(objHtml).join('') + OBJS.map(o => `<span class="olab" style="left:${o.lp[0] / 7.2}%;top:${o.lp[1] / 12.8}%">${o.n}</span>`).join('') + '<div class="hitlayer" data-a="objhit" aria-label="거점 물건 누르기"></div>'
+  let h = `<div class="scene bgim ${st.tod === 1 ? 'tn' : 'td'}"><div class="ttl">${DOCKV() ? '⚓ 본토 항구 부두' : SEAON() ? (outside ? '🌊 갈매기호 갑판' : '⚓ 갈매기호 선실') : outside ? '🌊 등대 바깥' : '🗼 등대 거점'}<small>DAY ${st.day}${todChip()}${seaChip()}${SEAON() ? '' : st.won5 ? ' · 🏁 1장 끝' : st.won4 ? ' · 🚢 4차 달성' : st.won3 ? ' · 🌟 3차 달성' : st.won2 ? ' · 🌱 2차 달성' : st.won ? ' · 🎉 1차 달성' : ''}</small></div>${tut}
+    ${DOCKV() ? dockSceneHtml() : SEAON() ? seaSceneHtml() : outside ? outHtml() : RA.BG1 ? OBJS.map(objHtml).join('') + OBJS.map(o => `<span class="olab" style="left:${o.lp[0] / 7.2}%;top:${o.lp[1] / 12.8}%">${o.n}</span>`).join('') + '<div class="hitlayer" data-a="objhit" aria-label="거점 물건 누르기"></div>'
       : SPOTS.map(sp => `<button class="spot" data-a="${sp.id === 'stairs' ? 'passive' : 'sheet'}" data-k="${sp.id}" style="left:${sp.x}%;top:${sp.y}%"><span class="dot"></span>${sp.n}</button>`).join('')}
-    <button class="exitbtn${tut ? ' up' : ''}" data-a="${outside ? 'goin' : 'goout'}">${RA.I_exit ? `<img src="${RA.I_exit}" alt="">` : ''}<span>${SEAON() ? (outside ? '선실로 →' : '← 갑판으로') : outside ? '등대 안으로 →' : '← 등대 나가기'}</span></button>
+    <button class="exitbtn${tut ? ' up' : ''}" data-a="${outside ? 'goin' : 'goout'}">${RA.I_exit ? `<img src="${RA.I_exit}" alt="">` : ''}<span>${DOCKV() ? '갈매기호 갑판으로 →' : SEAON() ? (outside ? '선실로 →' : '← 갑판으로') : outside ? '등대 안으로 →' : '← 등대 나가기'}</span></button>
     <div class="scenebar"><button class="bagbtn" data-a="sheet" data-k="bag">${pim ? `<img src="${pim}" alt="">` : '🎒'} 장비</button><button class="go" data-a="sheet" data-k="door">탐사 준비 →</button></div></div>`;
   if (sheet) {
     const S = SHEETS[sheet]; let title = '', body = '';
@@ -3788,7 +3909,7 @@ function renderScene() {
     h += `<div class="dim" data-a="sheet" data-k=""></div><div class="sheet ${sheetFresh ? 'fresh' : ''}"><div class="sheet-h"><b>${title}</b><button data-a="sheet" data-k="">닫기 ✕</button></div><div class="sheet-body">${body}</div></div>`;
     sheetFresh = false;
   }
-  if (st.lastRun) h += resultHtml();
+  if (st.lastRun) h += resultHtml(); else if (landIntroOn && !st.run) h += landIntroHtml(); /* v2.21 */
   return h;
 }
 function render() {
@@ -3836,7 +3957,10 @@ if (a === 'helpcat') { helpCat = k; window.scrollTo(0, 0); return render(); } if
     const n1 = st.run && st.run.node === nd0 ? (st.run.found[nd0] || []).length : 0; if (n1 > n0) startReveal(n0, n1 - n0, { e: '❗', n: nm }); return; }
   if (a === 'xbox') { if (reveal || !st.run) return; quietFoe = true; const r0 = st.run, nd0 = r0.node, n0 = (r0.found[nd0] || []).length, b = G.xboxes(st).find(x => x.k === k); act(() => G.openX(st, k));
     const n1 = st.run && st.run.node === nd0 ? (st.run.found[nd0] || []).length : 0; if (b && n1 > n0) startReveal(n0, n1 - n0, b); return; }
-  if (a === 'reserve') { rsvOpen = false; return act(() => G.reserveSupply(st, k)); } if (a === 'unreserve') return act(() => G.cancelReserve(st)); if (a === 'rsvtog') { rsvOpen = !rsvOpen; return render(); } if (a === 'bossask') { bossAsk = true; return render(); } if (a === 'bossno') { bossAsk = false; return render(); } if (a === 'bossgo') { bossAsk = false; window.scrollTo(0, 0); return act(() => G.challengeBoss(st)); } if (a === 'goout' || a === 'goin') { outside = a === 'goout'; sheet = ''; return render(); } if (a === 'out') { if (k === 'in') { outside = false; sheet = ''; } else { sheetFresh = true; sheetSwitch = true; sheet = k; } return render(); } if (a === 'rest') return act(() => G.rest(st)); if (a === 'qtog') { const L = G.questInfo(st).filter(x => x.grp === k), cur = qfold[k] === undefined ? L.every(x => x.done) : qfold[k]; qfold[k] = !cur; return render(); }
+  if (a === 'reserve') { rsvOpen = false; return act(() => G.reserveSupply(st, k)); } if (a === 'unreserve') return act(() => G.cancelReserve(st)); if (a === 'rsvtog') { rsvOpen = !rsvOpen; return render(); } if (a === 'bossask') { bossAsk = true; return render(); } if (a === 'bossno') { bossAsk = false; return render(); } if (a === 'bossgo') { bossAsk = false; window.scrollTo(0, 0); return act(() => G.challengeBoss(st)); } if (a === 'goin' && DOCKV()) { dockV = false; outside = true; sheet = ''; return render(); } if (a === 'goout' || a === 'goin') { outside = a === 'goout'; sheet = ''; dockV = false; return render(); } if (a === 'dockoff') { dockV = false; outside = true; sheet = ''; return render(); } if (a === 'dockon') { if (LANDHERE()) { dockV = true; outside = true; sheet = ''; } return render(); } /* v2.21 */ if (a === 'out') { if (k === 'in') { outside = false; sheet = ''; } else { sheetFresh = true; sheetSwitch = true; sheet = k; } return render(); } if (a === 'rest') return act(() => G.rest(st)); if (a === 'qtog') { const L = G.questInfo(st).filter(x => x.grp === k), cur = qfold[k] === undefined ? L.every(x => x.done) : qfold[k]; qfold[k] = !cur; return render(); }
+  if (a === 'landgo') { let first = false; act(() => { first = G.landGo(st); }); if (LANDHERE()) { sheet = ''; outside = true; dockV = !first; landIntroOn = first; window.scrollTo(0, 0); } return render(); } /* v2.21 */
+  if (a === 'landok') { landIntroOn = false; if (LANDHERE()) { dockV = true; outside = true; sheet = ''; } return render(); }
+  if (a === 'scrap') return act(() => G.scrapDeliver(st));
   if (a === 'setsail') return act(() => { G.setSail(st); outside = false; sheet = ''; window.scrollTo(0, 0); }); // v2.0
   if (a === 'voyage') return act(() => { G.voyage(st, +k); sheet = ''; });
   if (a === 'markin') return act(() => G.submitMark(st)); if (a === 'lamp') return act(() => G.toggleLamp(st, k || undefined)); if (a === 'lampup') return act(() => G.upgradeLamp(st)); if (a === 'bell') return act(() => G.ringBell(st));
@@ -3844,7 +3968,7 @@ if (a === 'helpcat') { helpCat = k; window.scrollTo(0, 0); return render(); } if
   if (a === 'light') return act(() => G.lightLamp(st)); if (a === 'whale') { window.scrollTo(0, 0); return act(() => G.challengeWhale(st)); } if (a === 'mistoil') return act(() => G.combatAct(st, 'lampoil', { k })); // v2.2
   if (a === 'snd') { SND.toggle(); return render(); }
   if (a === 'sheet') { sheetFresh = !!k && k !== sheet; sheetSwitch = k !== sheet; sheet = k || ''; wPick = false; pPick = false; return render(); } // 다른 창이면 맨 위부터 [전략실장]
-  if (a === 'objhit') { const o = hitObj(ev); if (!o) return; const nd = document.querySelector('.obj[data-k=' + o.id + ']'); if (nd) nd.classList.add('pressed'); /* 누른 표시를 잠깐 보여 준 뒤 열기 */ setTimeout(() => { if (o.a === 'passive') { showPassive = true; window.scrollTo(0, 0); } else if (o.id === 'in') { outside = false; sheet = ''; } else { sheetFresh = true; sheetSwitch = true; sheet = o.id; wPick = false; pPick = false; } render(); }, 150); return; }
+  if (a === 'objhit') { const o = hitObj(ev); if (!o) return; const nd = document.querySelector('.obj[data-k=' + o.id + ']'); if (nd) nd.classList.add('pressed'); /* 누른 표시를 잠깐 보여 준 뒤 열기 */ setTimeout(() => { if (o.a === 'passive') { showPassive = true; window.scrollTo(0, 0); } else if (o.id === 'in') { outside = false; sheet = ''; } else if (o.id === 'deckup') { dockV = false; outside = true; sheet = ''; } else if (o.id === 'door' && outside && LANDHERE() && !DOCKV()) { dockV = true; sheet = ''; } /* v2.21 */ else { sheetFresh = true; sheetSwitch = true; sheet = o.id; wPick = false; pPick = false; } render(); }, 150); return; }
   if (a === 'wpick') { wPick = !wPick; return render(); } if (a === 'ppick') { pPick = !pPick; return render(); } if (a === 'pcat') { packCat = k; return render(); }
   if (a === 'equip') wPick = false; if (a === 'mv' && t === 'pocket') pPick = false;
   if (a === 'passive') { showPassive = true; window.scrollTo(0, 0); return render(); } if (a === 'closepassive') { showPassive = false; return render(); }
