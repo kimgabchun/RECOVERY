@@ -2580,6 +2580,7 @@ for (const k of ['cable', 'fuse']) D.codex[k] = { get: (D.codex[k] || {}).get, u
 const pzMatsTxt = part => Object.entries((D.pz[part] || D.pz.engine).mats || D.pz.engine.mats).map(([m, n]) => D.items[m].n + ' ' + n).join(' · ');
 const pzMatsMsg = part => `재료가 부족해요 (${pzMatsTxt(part)} — 보관함이나 배낭)`; const pzMatsMsg2 = part => `선은 이어지는데 재료가 모자라요 (${pzMatsTxt(part || 'engine')})`;
 const landShopK2 = st => (st && st.land && st.land.p13) ? ['boots'] : []; // 고무장화: 3장 13차 뒤 마루 상점에 늘
+D.version = '2.25.1'; /* v2.25.1 캠핑카 거점 보완 */
 function die(st, why) { if (st.tm) { st.hp = 1; log(st, '연습 판이라 쓰러지지 않아요 (체력 1)'); return; } /* v2.12 튜토리얼 */ if (!(st.run && st.run.practice)) lvDeath(st); /* v2.5 쓰러지면 막대 −5 */
   const r = st.run, d0 = { lostN: 0 }; st.stats.deaths++; /* v2.20 결과창 */
   if (r && r.practice) { for (const w of ['bag', 'pocket']) { const n0 = st[w].length; st[w] = st[w].filter(it => !it.f); d0.lostN += n0 - st[w].length; } norm(st); log(st, `${why} — 연습이라 잃은 건 없어요 (연습 중 주운 물건만 사라짐)`); }
@@ -5405,7 +5406,7 @@ function dbAskHtml() { if (!dbAsk || !st.run) return ''; const hb = (st.bag || [
 function depotCardHtml() { const x = G.depotInfo(st), g = G.depotGoal(st); if (!g) return ''; let h = `<div class="card goal dbcard">🔋 3장 — ${esc(g.t)}${x.s3 && RA.I_s3 ? `<img class="thumb" src="${RA.I_s3}" alt="3장 씨눈" title="3장 씨눈">` : ''}<div class="muted" style="font-weight:400">${esc(g.d)}</div>`;
   if (x.s3 && !x.sin) h += `<div class="btns"><button class="pri" data-a="seedin">🌱 3장 씨눈을 정화 장치에 끼우기</button></div>`;
   if (x.p15 && !x.mv) { h += `<div class="muted" style="font-weight:400">⚡ 전기 <b>${x.el}/${x.elMax}</b> ${'▮'.repeat(x.el)}${'▯'.repeat(x.elMax - x.el)} · 출발에 ${x.need}</div><div class="btns"><button data-a="elspread"${WHY(G.can(st, 'panelSpread'))}>☀️ 패널 펼치고 저녁까지 쉬기 (+4)</button><button class="pri" data-a="cityleave"${WHY(G.can(st, 'cityLeave'))}>🚐 도시 빠져나가기 (밤)</button></div>`; }
-  if (x.mv) h += `<div class="muted" style="font-weight:400">${x.cv ? '🚐 지금 캠핑카 거점 · 보관함·작업판·쉬기·무전기·마루 상점은 그대로 써요' : '⚓ 지금 갈매기호(부두) · 조타실로 바다·등대섬에 가요'}</div><div class="btns">${x.cv ? '<button data-a="walkdock">🚶 부두로 걸어가기 (반나절)</button>' : `<button data-a="walkcv"${WHY(G.can(st, 'walkCamper'))}>🚶 캠핑카로 걸어가기 (반나절)</button>`}<button disabled data-why="4장 「내륙 도로」는 다음 이야기">🔒 해도 보기 — 4장 「내륙 도로」는 다음 이야기</button></div>`;
+  if (x.mv) h += `<div class="muted" style="font-weight:400">${x.cv ? '🚐 지금 캠핑카 거점 · 보관함·작업판·쉬기·치료·패시브·무전기·마루 상점은 그대로 써요' : '⚓ 지금 갈매기호(부두) · 조타실로 바다·등대섬에 가요'}</div><div class="btns">${x.cv ? '<button data-a="walkdock">🚶 부두로 걸어가기 (반나절)</button>' : `<button data-a="walkcv"${WHY(G.can(st, 'walkCamper'))}>🚶 캠핑카로 걸어가기 (반나절)</button>`}<button disabled data-why="4장 「내륙 도로」는 다음 이야기">🔒 해도 보기 — 4장 「내륙 도로」는 다음 이야기</button></div>`;
   return h + '</div>' + (departShow ? departHtml() : ''); }
 /* v2.25 보완: 천둥고치 처치 보상 창(3장 씨눈 아이콘) · 캠핑카 거점 화면(머리글·실내 그림·누르는 자리) */
 let dbWinShow = false;
@@ -5413,8 +5414,8 @@ function dbWinHtml() { if (!dbWinShow) return ''; return `<div class="dim rdim">
   <div class="dbrw">${RA.I_s3 ? `<img src="${RA.I_s3}" alt="">` : '🌱'}<div><b>3장 씨눈</b><div class="muted">기록 · 쓰러져도 안 잃어요 · 정화 장치에 끼우면 포자 띠를 넘어요</div></div></div>
   <div class="dbrw">${RA.I_cbat ? `<img src="${RA.I_cbat}" alt="">` : '🔋'}<div><b>자동차 배터리</b><div class="muted">배터리 거치대에 있어요 — 거치대를 눌러 배낭에 넣고 귀환해요 (15차)</div></div></div>
   <div class="dbrw">${RA.I_amber ? `<img src="${RA.I_amber}" alt="">` : '🟠'}<div><b>호박석 ${D.amber.boss}개</b></div></div><div class="btns"><button class="pri" data-a="dbwinx">확인</button></div></div>`; }
-const CAMP_SPOTS = [['cin', '🚪 실내', 28, 44], ['radio', '📻 무전기', 66, 30], ['storage', '📦 보관함', 80, 50], ['cwork', '🚐 작업판', 50, 66], ['bench', '🔧 작업대', 74, 74], ['shore', '😴 쉬기', 24, 70], ['ship', '🛒 마루 상점', 30, 22]];
-function camperSceneHtml() { return CAMP_SPOTS.map(([id, n, x, y]) => `<button class="spot" data-a="sheet" data-k="${id}" style="left:${x}%;top:${y}%"><span class="dot"></span>${n}</button>`).join(''); }
+const CAMP_SPOTS = [['cin', '🚪 실내', 28, 44], ['radio', '📻 무전기', 66, 30], ['storage', '📦 보관함', 80, 50], ['cwork', '🚐 작업판', 50, 66], ['bench', '🔧 작업대', 74, 74], ['shore', '😴 쉬기', 24, 70], ['ship', '🛒 마루 상점', 30, 22], ['bed', '🛏️ 치료', 22, 57], ['passive', '🧬 패시브', 80, 62]]; /* v2.25.1 */
+function camperSceneHtml() { return CAMP_SPOTS.map(([id, n, x, y]) => `<button class="spot" data-a="${id === 'passive' ? 'passive' : 'sheet'}" data-k="${id}" style="left:${x}%;top:${y}%"><span class="dot"></span>${n}</button>`).join(''); }
 function camperHtml2_0() { /* v2.22 것 — v2.22.5부터 안 씀 */ const x = G.camperInfo(st);
   if (!x.frame) return '<div class="card"><b>🚐 캠핑카</b><div class="muted">아직 캠핑카를 찾지 못했어요. 해안 캠핑장 전시장을 조사해요 (9차).</div></div>';
   const tot = x.parts.reduce((a, p) => a + p.need, 0), have = x.parts.reduce((a, p) => a + p.have, 0);
@@ -5585,6 +5586,7 @@ function renderScene() {
     else if (sheet === 'cwork') { title = '🚐 골조 캠핑카 작업판'; body = camperHtml2(); } /* v2.22 */ else if (sheet === 'cin') { title = '🚐 캠핑카 실내'; body = intHtml(); } /* v2.24.3 */
     else if (sheet === 'harbor') { title = '⚓ 항구 소식'; body = harborHtml(); }
     if (sheet === 'ship' && !m.__broken) body = sailCard() + body; // v2.0 바다로 출항
+    if (G.atCamper(st) && !m.__broken) { if (sheet === 'ship') { title = '🛒 마루의 상점'; body = mapHtml() + body; } else if (sheet === 'shore') title = '😴 쉬기'; } /* v2.25.1 캠핑카 거점: 배와 같은 해도 정보(mapHtml · buyIntel) · 창 제목 */
     if (sheet === 'more' && !confirmReset && !m.__broken) body = shopHint() + body;
     h += `<div class="dim" data-a="sheet" data-k=""></div><div class="sheet ${sheetFresh ? 'fresh' : ''}"><div class="sheet-h"><b>${title}</b><button data-a="sheet" data-k="">닫기 ✕</button></div><div class="sheet-body">${body}</div></div>`;
     sheetFresh = false;
