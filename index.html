@@ -200,6 +200,7 @@ svg{display:block;width:100%;height:auto;background:#101316;border-radius:var(--
 .bq-v{min-width:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px solid var(--line);background:#0b1119}.bq-v b{font-size:28px;line-height:1}.bq-v small{font-size:12px;color:var(--muted)}
 .bq-sum{text-align:center;font-size:15px}.bq-why{text-align:center;margin-top:4px}.bqcard .btns button{min-height:48px;font-size:16px}
 </style>
+<style id="v224">.roofpv .rhead{margin-bottom:4px}.roofpv .cxul{margin:4px 0 0 16px;padding:0;font-size:12.5px;line-height:1.45}.roofpv .stl{border-top:2px dashed #8fa3bb55;margin-top:6px;padding-top:6px}.roofpv .sth{font-weight:800;font-size:12px;color:#9fb0c4}.roofc .muted{line-height:1.45}</style>
 <style id="v2231">.cxcard .row{display:flex;justify-content:space-between;align-items:center}.cxtabs{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0}.cxtabs button{flex:1 1 30%;min-height:40px;padding:4px 6px;font-size:12px}.cxtabs button.on{background:var(--acc,#e0a040);color:#111;border-color:var(--acc,#e0a040)}.cxtabs small{display:block;font-size:10px;opacity:.8}.cxgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;max-width:100%}.cxgrid .sgi{position:relative;min-height:0;padding:0;border:2px dashed #ffffff3a}.cxgrid .sgi span{font-size:10px}.cxgrid .sgi:not(.got){opacity:.55}.cxok{position:absolute;right:3px;top:1px;font-style:normal;color:#7fd18f;font-weight:800;font-size:14px;text-shadow:0 1px 2px #000}.cxpop .cxul{margin:2px 0 0 16px;padding:0;font-size:12.5px;line-height:1.4}.cxpop .cxul li{margin:1px 0}.cxpop .stl{border-top:2px dashed #8fa3bb55;margin-top:6px;padding-top:6px}.cxpop .sth{font-weight:800;font-size:12px;color:#9fb0c4}</style>
 <style id="v223">.bmprow{grid-template-columns:auto minmax(0,1fr) auto}.bmprow .thumb{width:34px;height:34px;object-fit:contain;image-rendering:pixelated}.bmprow button{grid-column:1/4;min-height:40px}</style>
 <style id="v2226">.cframe.cvl{position:relative;width:100%;aspect-ratio:640/430;margin:0 0 8px}.cvl img{position:absolute;display:block;max-width:none;image-rendering:auto}.cvl .cvb{left:0;top:0;width:100%;height:100%}.cvl .cvp.none{filter:grayscale(1) brightness(1.6);opacity:.18}.cvl .cvp.got{filter:grayscale(1) brightness(1.4) drop-shadow(0 0 3px #e2a33b) drop-shadow(0 0 2px #e2a33b);opacity:.45;animation:cvgot 1.8s ease-in-out infinite}@keyframes cvgot{50%{opacity:.7;filter:grayscale(1) brightness(1.5) drop-shadow(0 0 7px #ffb300) drop-shadow(0 0 3px #ffb300)}}.cvl .cvp.flash{animation:cfflash 1s ease-out}.cfdock .cframe.cvl{margin:0}</style>
@@ -971,7 +972,46 @@ D.cancelable.push('gcall', 'bcall');
 D.gbossCyc = 5; D.gbossBlock = 0.5; /* 두목: 한 바퀴 5차례(방패 · 내려찍기 2 · 부르기/내려찍기 · 빈틈) · 피스톤 망치 내려찍기는 막아도 절반 — 꼼꼼한 봇 70~90%에 맞춘 값 (측정: junk_bal.js) */
 // 범퍼 (보기만 · 작업판에서 만들고 한 개만 끼움): 철판(파이프 3 + 120코인) · 통나무(파이프 2 + 밧줄 2) · 캥거루(두목 첫 보상)
 D.bumper = { steel: { n: '철판 범퍼', mats: { pipe: 3 }, coins: 120, layer: 'bumper1' }, log: { n: '통나무 범퍼', mats: { pipe: 2, rope: 2 }, coins: 0, layer: 'bumper2' }, kang: { n: '캥거루 범퍼', boss: true, layer: 'bumper3' } };
+/* ===== v2.24 3장 — 옥상 거리 · 13차(태양광 패널 8장 달기) (업무-20261126-16 · 기획서 3장 v0.4 부록 A⑤ · B · E · I · K + v0.2 부록 A④ 길 · B 햇볕 포자꽃) =====
+   이번 판에 넣지 않는 것: 실내 화면 · 화분 · 씨앗 · 식물 · 커튼 · 깃발 · 꼬마전구 · 해먹 · 버스 차고 · 보스 · 배터리 · 전기 미터 (다음 판 v2.24.1~) */
+// 새 물건: 태양광 패널(부품 2×2 · 못 팖 · 떼면 크레인 바구니로 바로 거점에) · 구리 풍향계(귀중품 2×2 · 240 · 학교 옥상 풍향계 기둥에서 한 번)
+Object.assign(D.items, {
+  panel: { n: '태양광 패널', c: '부품', s: 4, p: 0, use: '골조 캠핑카 지붕 부품 · 떼면 크레인 바구니로 바로 거점에 와요(배낭에 안 들어가요) · 쓰러져도 안 잃어요 · 못 팔아요', nosell: true, part: true, sh: [2, 2] },
+  vane: { n: '구리 풍향계', c: '귀중품', s: 4, p: 120, /* 판매가 240 (뒤의 판매가 2배 규칙이 곱함) */ use: '팔기 · 학교 옥상 풍향계 기둥에서 떼어 온 것', sh: [2, 2] } });
+// 렌치·스프링 새 쓰임 (BOSS "새쓰임 만들기" → 전략실장 A+C → 비서실장 판단)
+D.items.wrench.use = '작업판 퍼즐 「🔧 렌치 쓰기」: 남은 횟수 +4 (판 하나에 1번 · 쓴 렌치는 사라져요)';
+D.items.spring.use = '옥상 거리 널다리 「🌀 스프링 받침」: 그 건너기 한 번만 기력 2 → 1 (1개 사라져요)';
+D.pzWrench = 4; // 렌치 한 개 = 남은 횟수 +4
+// A⑤ 옥상 거리 8곳 · 🪜비상계단(출발·귀환) · 🪜화재 대피 사다리(귀환) · rp = 패널 옥상 번호(0 아파트 · 1 학교 · 2 쇼핑몰 · 3 방송국) · inner = 실내(계단실)
+Object.assign(D.nodes, {
+  L5A: { r: 'roof', n: '비상계단', x: 40, y: 395, exit: true, danger: 1, loot: { bandage: 1, water: 1, copper: 1 }, hint: '출발·귀환 · 생활' },
+  L5B: { r: 'roof', n: '아파트 옥상', x: 55, y: 215, danger: 1, rp: 0, loot: { water: 1, rope: 1, glass: 1 }, hint: '☀️ 패널 2 · 낮엔 학교로 널다리' },
+  L5C: { r: 'roof', n: '아파트 계단실', x: 135, y: 330, danger: 1, inner: true, loot: { campfood: 1, bandage: 1, tape: 1 }, hint: '실내 · 식량·의료 · 밤 우회로' },
+  L5D: { r: 'roof', n: '학교 옥상', x: 150, y: 115, danger: 2, rp: 1, loot: { rope: 1, stone: 2, copper: 1 }, hint: '☀️ 패널 2 · 구리 풍향계' },
+  L5E: { r: 'roof', n: '쇼핑몰 옥상', x: 225, y: 185, danger: 2, rp: 2, loot: { copper: 1, gear: 1, spring: 1 }, hint: '☀️ 패널 2 · 기계' },
+  L5F: { r: 'roof', n: '쇼핑몰 계단실', x: 250, y: 330, danger: 2, inner: true, loot: { water: 1, campfood: 1, medkit: 0.4 }, hint: '실내 · 식량·의료 · 밤 우회로' },
+  L5G: { r: 'roof', n: '방송국 옥상', x: 300, y: 55, danger: 3, rp: 3, loot: { circuit: 1, battery: 1, cable: 1 }, hint: '☀️ 패널 2 · 사수 엄폐(정해진 전투)' },
+  L5H: { r: 'roof', n: '화재 대피 사다리', x: 200, y: 40, /* 방송국 옥상 왼쪽 위 — 이름표가 지도 밖으로 안 나가게 */ exit: true, danger: 2, loot: { water: 1, spring: 1, tape: 1 }, hint: '귀환 · 기계' } });
+D.regions.roof = { n: '옥상 거리', starts: ['L5A'], land: 1, roof: 1, need: 'p12', needMsg: '옥상 거리는 12차(문 3개 달기) 뒤에 열려요', ew: { sunbloom: 5, gull: 2, shooter: 2 } }; // 사수는 낮 옥상에만 (roofEw)
+// 길: 늘 열린 길 7(계단·계단실) + 낮에만 건너는 널다리 3(아파트–학교–쇼핑몰–방송국 옥상). 밤엔 널다리 대신 계단실로 돌아감 — 네 옥상 모두 닿음
+D.roofBridges = [['L5B', 'L5D'], ['L5D', 'L5E'], ['L5E', 'L5G']];
+D.edges.push(['L5A', 'L5B'], ['L5B', 'L5C'], ['L5C', 'L5D'], ['L5D', 'L5F'], ['L5F', 'L5E'], ['L5F', 'L5G'], ['L5G', 'L5H'], ...D.roofBridges);
+// 곳마다 상자 3개 = 그림 속 물건 3개 (비서실장이 정한 이름 · 왼쪽 · 가운데 · 오른쪽) · 계단실은 식량·의료 위주 · 패널은 「패널 거치대」에서 따로 뗌(조사와 별개)
+const ROOF_BOXES = {
+  L5A: [BX('소화전 함', '🧯', { bandage: 1, rope: 1, pipe: 1 }), BX('계단참 배낭', '🎒', { water: 1, can: 1, campfood: 0.6 }), BX('에어컨 실외기', '❄️', { copper: 1, fuse: 1, spring: 1 })],
+  L5B: [BX('옥상 텃밭 상자', '🌱', { water: 1, rope: 1, tarp: 1 }), BX('패널 거치대', '☀️', { glass: 1, copper: 1, circuit: 0.5 }), BX('물탱크', '🛢️', { water: 2, bottle: 1, pipe: 1 })],
+  L5C: [BX('우편함', '📬', { tape: 1, purse: 0.3, notebook: 0.5 }), BX('경비실 책상', '🗄️', { campfood: 1, can: 1, painkiller: 0.6 }), BX('구급함 벽장', '🩹', { bandage: 2, medkit: 0.5, painkiller: 0.6 })],
+  L5D: [BX('체육 창고 사물함', '🏐', { rope: 1, stone: 2, water: 1 }), BX('패널 거치대', '☀️', { glass: 1, copper: 1, fuse: 1 }), BX('풍향계 기둥', '🧭', { copper: 1, spring: 1, wrench: 0.4 })],
+  L5E: [BX('환풍기 덕트', '🌀', { copper: 1, gear: 1, spring: 1 }), BX('패널 거치대', '☀️', { glass: 1, circuit: 0.6, battery: 0.5 }), BX('간판 공구함', '🧰', { wrench: 0.6, tape: 1, drill: 0.3 })],
+  L5F: [BX('자판기', '🥤', { water: 2, can: 1, campfood: 1 }), BX('청소 수레', '🧹', { bottle: 1, tarp: 1, tape: 1 }), BX('비상 물품 캐비닛', '🗃️', { bandage: 1, medkit: 0.4, campfood: 1, flare: 0.6 })],
+  L5G: [BX('위성 접시 제어함', '📡', { circuit: 1, fuse: 1, copper: 1 }), BX('패널 거치대', '☀️', { glass: 1, battery: 1, circuit: 0.6 }), BX('송신탑 장비함', '🗼', { cable: 1, battery: 0.6, firework: 0.5 })],
+  L5H: [BX('버려진 배낭', '🎒', { water: 1, can: 1, bandage: 1 }), BX('실외기 더미', '❄️', { copper: 1, spring: 1, pipe: 1 }), BX('철제 공구함', '🧰', { wrench: 0.5, tape: 1, saw: 0.3 })] };
+// B 햇볕 포자꽃 (v0.2 부록 B 그대로): 체력 14 · 늘 중간 거리(다가오지 않음) · 낮: 포자 뿜기 3 + 포자 +1 / 밤: 잠들어 처음 2턴 빈틈 · 괴물이라 호박석만
+D.enemies.sunbloom = { n: '햇볕 포자꽃', hp: 14, start: 1, desc: '늘 중간 거리에 뿌리박고 다가오지 않아요 · 낮: 포자 뿜기 3(맞으면 포자 +1) · 밤: 잠들어 있어 처음 2턴은 빈틈' };
+D.intents.bspew = { t: '포자 뿜기 (가까움·중간 · 낮엔 맞으면 포자 +1)', dmg: 3 }; D.intents.bsleep = { t: '잠들어 있어요 (빈틈)', dmg: 0 };
+D.bloomSleep = 2; // 밤에 잠든 턴 수
 const BOXES = {};
+Object.assign(BOXES, ROOF_BOXES); /* v2.24 옥상 거리 상자 = 그림 속 물건 3개 */
 Object.assign(BOXES, JUNK_BOXES); /* v2.23 폐차장 상자 = 그림 속 물건 3개 */
 function boxesOf(n) {
   if (BOXES[n]) return BOXES[n]; const L = D.nodes[n].loot, g = {};
@@ -1214,8 +1254,8 @@ function move(st, to) {
   needRun(st); const r = st.run;
   if (!(ADJ[r.node] || []).includes(to)) E('바로 이어진 곳으로만 갈 수 있어요');
   seaLock(st, to); // v2.0 잠긴 선장실: 열쇠가 없으면 기력을 쓰기 전에 거절
-  const t0 = tideOf(r); useEnergy(st, (flooded(r, to) ? 3 : 1) + tireLoad(st)); /* v2.22 타이어 무게 */ if (!st.run) return; // v1.2: 잠긴 곳은 헤엄(기력 3)
-  const first = !r.visited[to]; r.prev = r.node; r.node = to; r.visited[to] = true; r.risk++; r.moves++; seaStep(st, to); landStep(st, to); /* v2.22 */ junkStep(st, to); /* v2.23 */
+  const t0 = tideOf(r); const rb = roofCost(st, r.node, to); useEnergy(st, (flooded(r, to) ? 3 : 1) + tireLoad(st) + rb.add); /* v2.22 타이어 무게 · v2.24 널다리 */ if (!st.run) return; roofCrossed(st, rb); // v1.2: 잠긴 곳은 헤엄(기력 3)
+  const first = !r.visited[to]; r.prev = r.node; r.node = to; r.visited[to] = true; r.risk++; r.moves++; seaStep(st, to); landStep(st, to); /* v2.22 */ junkStep(st, to); /* v2.23 */ roofStep(st, to); /* v2.24 */
   if (tideOf(r) > t0) log(st, '🌊 물이 차올랐어요: ' + Object.keys(D.nodes).filter(n => regionOf(n) === r.region && heightOf(n) === t0).map(n => D.nodes[n].n).join('·') + ' 잠김');
   log(st, `${D.nodes[to].n}(으)로 이동. 위험도 ${r.risk}`);
   encounter(st, P(st, 'quiet') ? 0.9 : 1);
@@ -1234,7 +1274,7 @@ function search(st, j) {
   r.searched[n] = k + 1; op[j] = true; seaSearched(st, n); landSearched(st, n); /* v2.21 */ landSearched2(st, n); /* v2.22 */ r.risk += riskOf(n); st.stats.searches++; pqAdd(st, 'boxes');
   if (lowBefore) r.deepLow = true;
   let cnt = 1 + (rng(st) < 0.6 ? 1 : 0) + (rng(st) < 0.2 ? 1 : 0) + (n === r.rich ? 1 : 0) + deepBonus(n) + (P(st, 'search') && rng(st) < 0.15 ? 1 : 0), got = []; // v0.2: 1~3개, v0.3: 풍부한 곳 +1, v0.4: 위험 2는 +1·위험 3은 +2
-  const due = partDue(st, n) ? D.partAt[n] : (seaDue(st, n) || landDue(st, n)); /* v2.21 */ if (due) (r.partGot = r.partGot || {})[n] = true;
+  const due = roofVane(st, n, j) || (partDue(st, n) ? D.partAt[n] : (seaDue(st, n) || landDue(st, n))); /* v2.24 풍향계 */ /* v2.21 */ if (due) (r.partGot = r.partGot || {})[n] = true;
   const sd = due ? [] : starterDue(st); if (sd.length) { r.gN = (r.gN || 0) + 1; cnt = Math.max(cnt, sd.length); } // v1.4 첫 귀환 전 끈·테이프 보장
   if (st.tm) cnt = 2; /* v2.12 튜토리얼 */
   for (let q = 0; q < cnt; q++) { const it = st.tm ? ['battery', 'rope'][q] : (q === 0 && due) ? due : q < sd.length ? sd[q] : pickW(st, bx[j].loot); (r.found[n] = r.found[n] || []).push({ k: it, bx: j }); /* v2.22.2 상자 안에 남음 · v2.22.3 튜토리얼도 */ got.push(D.items[it].n); }
@@ -1292,7 +1332,7 @@ function extract(st, via) {
   const qNew = qCommit(st, r); if (!r.practice) { st.fx = true; st.sg = true; } if (st.rk !== undefined && st.reserve === undefined) delete st.rk; // v1.4 첫 실전 귀환 성공 // v1.3 의뢰 진행은 귀환할 때만
   st.run = null; st.runsDone++; st.stats.extracts++; if (r.night !== undefined) halfDay(st, r.night); checkPassives(st);
   log(st, r.practice ? `연습 귀환 성공! (연습에서 주운 ${lost}개는 사라졌어요)` : '귀환 성공! 배낭 물건은 그대로 있어요.');
-  landDeliver(st); /* v2.22 */ landDeliver2(st); /* v2.23 */
+  landDeliver(st); /* v2.22 */ landDeliver2(st); /* v2.23 */ roofDeliver(st); /* v2.24 */
   checkGoal(st); // v1.4: 보급을 다시 주지 않음
   const bonus = r.practice ? 0 : (r.radio || 0); if (bonus) { st.coins += bonus; log(st, `조난 무전의 보답 +${bonus} (조합 장부)`); }
   const ga = [!!st.won, !!st.won2, !!st.won3, !!st.won4];
@@ -1358,14 +1398,14 @@ function xboxes(st) {
   const r = st.run, out = []; if (!r) return out; const n = r.node, L = D.locked[n];
   if (L && !(r.lockOpen && r.lockOpen[n])) out.push({ k: 'lock', e: L.e, n: L.n, note: hasK(st, L.key) ? `${D.items[L.key].n} 사용 · 기력 1 · 위험 +2` : `${D.items[L.key].n} 필요`, ok: hasK(st, L.key) });
   if (r.hidden === n && !r.hiddenOpen) out.push({ k: 'hidden', e: '📦', n: '숨긴 상자', note: '기력 1 · 위험 +1', ok: true });
-  { const ex = engineX(st); if (ex) out.push(ex); } /* v2.22 */ { const dx = doorX(st); if (dx) out.push(dx); } /* v2.23 */
+  { const ex = engineX(st); if (ex) out.push(ex); } /* v2.22 */ { const dx = doorX(st); if (dx) out.push(dx); } /* v2.23 */ for (const x of roofX(st)) out.push(x); /* v2.24 */
   for (const x of bodyX(st)) out.push(x); /* v2.22.1 쓰러진 적 뒤지기 */
   if (shutAdj(st)) { const hb = hasK(st, 'battery'); out.push({ k: 'shutB', e: '🔋', n: '전시장 셔터 · 배터리로 열기', note: hb ? '배터리 1개 · 조용히 바로' : '배터리가 필요해요 (관리동 상자)', ok: hb }, { k: 'shutH', e: '✋', n: '전시장 셔터 · 손으로 감기', note: st.energy >= 5 ? '기력 5 · 소리에 적이 꼭 와요' : `기력 5가 필요해요 (지금 ${st.energy})`, ok: st.energy >= 5 }); } /* v2.21 */
   if (r.supply === n && !r.supplyOpen) out.push({ k: 'supply', e: '🎁', n: '보급 상자', note: '예약한 보급품', ok: true });
   return out;
 }
 function openX(st, kind) {
-  needRun(st); const r = st.run, n = r.node, b = xboxes(st).find(x => x.k === kind); if (!b) E('없는 상자예요'); if (!b.ok) E(b.note); if (flooded(r, n)) E('물에 잠겨서 열 수 없어요'); if (kind === 'shutB' || kind === 'shutH') return shutOpen(st, kind); /* v2.21 */ if (kind === 'engine') return engineTake(st); /* v2.22 */ if (kind === 'fdoor' || kind === 'edoor') return doorTake(st, kind); /* v2.23 */ if (/^body\d$/.test(kind)) return bodyOpen(st, +kind.slice(4)); /* v2.22.1 */
+  needRun(st); const r = st.run, n = r.node, b = xboxes(st).find(x => x.k === kind); if (!b) E('없는 상자예요'); if (!b.ok) E(b.note); if (flooded(r, n)) E('물에 잠겨서 열 수 없어요'); if (kind === 'shutB' || kind === 'shutH') return shutOpen(st, kind); /* v2.21 */ if (kind === 'engine') return engineTake(st); /* v2.22 */ if (kind === 'fdoor' || kind === 'edoor') return doorTake(st, kind); /* v2.23 */ if (kind === 'panel') return panelTake(st); if (kind === 'spring' || kind === 'springx') return roofSpring(st, kind === 'spring'); /* v2.24 */ if (/^body\d$/.test(kind)) return bodyOpen(st, +kind.slice(4)); /* v2.22.1 */
   const got = [];
   if (kind === 'lock') { const L = D.locked[n]; useEnergy(st, 1); if (!st.run) return; if (!r.lockOpen || typeof r.lockOpen !== 'object') r.lockOpen = {}; r.lockOpen[n] = true; if (!takeK(st, L.key)) E('열쇠가 없어요'); /* 열린 기록을 먼저 [전략실장] */ r.risk += 2; for (let q = 0; q < 3; q++) got.push(putF(st, pickW(st, L.loot))); }
   else if (kind === 'hidden') { useEnergy(st, 1); if (!st.run) return; r.hiddenOpen = true; r.risk += 1; for (let q = 0; q < 2; q++) got.push(putF(st, q === 1 && rng(st) < 0.25 ? regionKey(r.region) : pickW(st, D.nodes[n].loot))); }
@@ -1414,7 +1454,7 @@ function intentOf(e) {
   if (e.k === 'cocoon') return ['cocoon', 'brood', 'pounce', 'stagger'][e.cyc % 4]; /* v2.21 */
   if (e.k === 'club') { if (e.hp <= e.hpMax / 4) return 'runaway'; if (e.dist > 0) return 'approach'; return e.cyc % 2 === 0 ? 'bash' : 'block'; } /* v2.22 */
   if (e.k === 'shooter') return ['cover', 'aim', 'shoot'][e.cyc % 3]; /* v2.22 */
-  { const ji = junkIntent(e); if (ji) return ji; } /* v2.23 */
+  { const ji = junkIntent(e); if (ji) return ji; } /* v2.23 */ { const ri = roofIntent(e); if (ri) return ri; } /* v2.24 */
   if (e.k === 'tireworm') { if (e.dist > 1) return 'approach'; return ['burrow', 'lunge', 'stagger'][e.cyc % 3]; } /* v2.22 */
   if (e.k === 'moths') return 'nibble'; // v2.2
   if (e.k === 'wisp') { if (e.dist > 1) return 'approach'; return e.cyc % 2 === 0 ? 'puff' : 'drift'; }
@@ -1485,6 +1525,7 @@ function bossOk(st) { // 저장된 보스전이 앞뒤가 맞는지 [전략실�
 function startCombat(st, k) {
   const r = st.run, base = D.enemies[k], tm = todOf(r), hp = Math.max(1, Math.round(base.fixed ? base.hp : base.hp * (1 + r.risk * 0.08) * tm.hp)); // v1.5 낮엔 약하고 밤엔 셈
   const e = { k, hp, hpMax: hp, bonus: base.fixed ? 0 : Math.floor(r.risk / 4) + tm.dmg, dist: base.far ? base.start : Math.max(0, base.start - (((r && r.fog) || 1) - 1)), first: true, alt: false, cyc: 0, stunned: false, stunImm: 0, bleed: 0 };
+  if (k === 'sunbloom' && r && r.night === true) e.sl = D.bloomSleep; /* v2.24 밤엔 잠듦 */
   e.intent = intentOf(e); st.combat = { e, turn: 0, lines: [`${base.n} 등장! (${base.desc})`] };
   log(st, `${base.n} 등장!`); seaAmbush(st, base); seaSpawn(st); // v2.0 안개 속 기습
 }
@@ -1502,7 +1543,7 @@ function intentShow(st) { /* v2.8 화면에 보이는 '다음 행동 피해' = �
 function can(st, name, ...a) { /* v2.8 ① 이 행동을 엔진이 받아 줄지: 사본에서 해 보고 거절 글(없으면 '') */
   return canS(JSON.stringify(st), name, ...a); }
 function canS(snap, name, ...a) { /* v2.8 화면이 한 번 그릴 때 상태 사본 글은 한 번만 만듦 */
-  const f = ({ bumperCraft, bumperOn, doorTake, /* v2.23 */ bodyTake, bodyTakeAll, /* v2.22.1 */ pzStart, pzTap, pzShuffle, pzCrew, pzReset, /* v2.22 · v2.22.5 */ landGo, scrapDeliver, /* v2.21 */ sell, craft, moveItem, heal, reserveSupply, search, combatAct, move, useItem, buy, buyN, buyAmb, shopPin, accUpStart, slotSpin, reload, equip, equipPack, openBox, openX, extract })[name]; if (!f) return '';
+  const f = ({ pzWrench, panelTake, roofSpring, /* v2.24 */ bumperCraft, bumperOn, doorTake, /* v2.23 */ bodyTake, bodyTakeAll, /* v2.22.1 */ pzStart, pzTap, pzShuffle, pzCrew, pzReset, /* v2.22 · v2.22.5 */ landGo, scrapDeliver, /* v2.21 */ sell, craft, moveItem, heal, reserveSupply, search, combatAct, move, useItem, buy, buyN, buyAmb, shopPin, accUpStart, slotSpin, reload, equip, equipPack, openBox, openX, extract })[name]; if (!f) return '';
   const c = JSON.parse(snap); try { f(c, ...a); return ''; } catch (e) { return e && e.game ? e.message : ''; } }
 const REACH = { bash: [0], shoot: [0, 1, 2], lunge: [0, 1], /* v2.22 */ maul: [0], maul2: [0], pounce: [0, 1], /* v2.21 */ spit: [1, 2], spout: [1, 2], weld: [1, 2], heavy: [0], ambush: [0], claw: [0], swing: [0], slam: [0], snap: [0], pinch: [0], smash: [0], ram: [0], cast: [0], grab: [0], bite: [0, 1], frenzy: [0, 1], sting: [0, 1], shock: [0, 1], gnaw: [0, 1], swingarm: [0, 1], tail: [0, 1], puff: [0, 1], wrap: [0, 1], clamp: [0], swallow: [0], undertow: [0, 1] }; /* v2.8 combatAct0의 닿는 거리와 같게 */
 function intentHits(st) { const c = st.combat; if (!c) return false; const e = c.e, it = e.intent; if (it === 'squeeze' || it === 'crush' || it === 'drag') return !!e.held; if (it === 'undertow') return e.dist <= 1; const R = REACH[it]; return R ? R.includes(e.dist) : true; }
@@ -1617,6 +1658,7 @@ function combatAct0(st, act, arg) {
     else if (it === 'aim') L.push('사수가 조준해요 — 다음 턴에 쏴요!');
     else if (it === 'shoot') hit(d);
     else if (junkAct(st, c, e, it, d, hit, blocking, L)) { } /* v2.23 */
+    else if (roofAct(st, c, e, it, d, hit, blocking, L)) { } /* v2.24 */
     else if (it === 'burrow') L.push('굴벌레가 타이어 속으로 숨어요');
     else if (it === 'lunge') { if (e.dist <= 1) hit(d); else L.push('튀어 물기가 닿지 않았어요 (거리)'); }
     else if (it === 'chase') { e.dist = 0; L.push('들개가 바로 따라붙었어요'); } /* v2.21 */
@@ -1636,7 +1678,7 @@ function combatAct0(st, act, arg) {
     if ((e.k === 'wisp' || e.k === 'calf' || e.k === 'whale') && it !== 'approach') e.cyc++; // v2.2
     if (e.k === 'dog') { if (it !== 'chase') e.cyc++; if (it !== 'bark') e.pump = false; if (e.dist > 0) { e.dist = 0; L.push('들개가 바로 따라붙었어요'); } } /* v2.21 짖기를 끊으면(빈틈) 두 배도 사라짐 · 물러나도 바로 따라붙음 */
     if (e.k === 'cocoon') e.cyc++; /* v2.21 */
-    if (e.k === 'club' && (it === 'bash' || it === 'block')) e.cyc++; if (e.k === 'shooter') e.cyc = it === 'stagger' ? 0 : e.cyc + 1; if (e.k === 'tireworm' && it !== 'approach') e.cyc++; if ((e.k === 'gang' || e.k === 'oilspore' || e.k === 'gboss') && it !== 'approach') e.cyc++; /* v2.23 */ /* v2.22 조준을 끊으면 다시 엄폐부터 */
+    if (e.k === 'club' && (it === 'bash' || it === 'block')) e.cyc++; if (e.k === 'shooter') e.cyc = it === 'stagger' ? 0 : e.cyc + 1; if (e.k === 'tireworm' && it !== 'approach') e.cyc++; if ((e.k === 'gang' || e.k === 'oilspore' || e.k === 'gboss') && it !== 'approach') e.cyc++; /* v2.23 */ if (e.k === 'sunbloom' && it !== 'bsleep') e.cyc++; /* v2.24 */ /* v2.22 조준을 끊으면 다시 엄폐부터 */
     if (it === 'ambush') e.first = false;
   }
   if (e.k === 'ambusher' && e.first && e.intent !== 'ambush') e.first = false;
@@ -1754,7 +1796,7 @@ function landGoalNext(st) { const L = landOf(st);
 function landValidate(st, bad) { const r = st.run;
   if (st.land === undefined) { if (r && isLandR(r.region)) bad('3장 탐사'); return; }
   const L = st.land, s = seaOf(st), b = v => typeof v === 'boolean';
-  if (!L || typeof L !== 'object' || Array.isArray(L) || Object.keys(L).some(k => !['on', 'here', 'shut', 'frame', 'rq', 'eng', 'tire', 'p10', 'pf', 'pzN', 'pz', 'lb', 'ti', 'dg', 'di', 'gt', 'bossK', 'p11', 'p12', 'bmp', 'bmpOn'].includes(k) /* v2.22 */) || !b(L.on) || !b(L.here) || !b(L.shut) || !b(L.frame) || !Number.isInteger(L.rq) || L.rq < 0 || L.rq > st.day) bad('3장 기록');
+  if (!L || typeof L !== 'object' || Array.isArray(L) || Object.keys(L).some(k => !['on', 'here', 'shut', 'frame', 'rq', 'eng', 'tire', 'p10', 'pf', 'pzN', 'pz', 'lb', 'ti', 'dg', 'di', 'gt', 'bossK', 'p11', 'p12', 'bmp', 'bmpOn', 'pg', 'pi', 'p13', 'vn'].includes(k) /* v2.22 */) || !b(L.on) || !b(L.here) || !b(L.shut) || !b(L.frame) || !Number.isInteger(L.rq) || L.rq < 0 || L.rq > st.day) bad('3장 기록');
   if (L.on && !(s.on && s.won8)) bad('3장 기록 (2장을 안 끝냄)'); if ((L.here || L.shut || L.frame || L.rq) && !L.on) bad('3장 기록 (상륙 전)'); if (L.frame && !L.shut) bad('3장 기록 (9차)');
   if (r && isLandR(r.region) && !L.here) bad('3장 탐사'); }
 /* ===== v2.22 3장 — 규칙 (기획서 3장 v0.4 부록 A③ · B · C · D · E · K) =====
@@ -1766,9 +1808,10 @@ const engineDue = st => landN(st, 'eng') === 0 && partCount(st, 'engine') === 0;
 const tireDue = st => landN(st, 'tire') + partCount(st, 'tire') < 2; // 정비소 몫 2 (폐차장 몫 2는 v2.23)
 const tireLoad = st => Math.min(2, (st.bag || []).filter(it => it.k === 'tire').length); // 들고 있는 타이어 1개마다 이동 기력 +1 (최대 +2)
 // 정비소 거리: 낮엔 사람↑, 밤엔 괴물↑ · 바퀴단 순찰은 탐사 한 번에 최대 2무리(넘으면 굴벌레)
-function landEw(st) { const r = st.run, R = D.regions[r.region]; if (r.region !== 'garage' && r.region !== 'junk') return R.ew; /* v2.23 폐차장도 낮엔 사람↑·밤엔 괴물↑ */ const nt = r.night === true, o = {};
+function landEw(st) { const r = st.run, R = D.regions[r.region]; if (r.region !== 'garage' && r.region !== 'junk') return r.region === 'roof' ? roofEw(st, R.ew) : R.ew; /* v2.24 */ /* v2.23 폐차장도 낮엔 사람↑·밤엔 괴물↑ */ const nt = r.night === true, o = {};
   for (const [k, w] of Object.entries(R.ew)) o[k] = w * (D.enemies[k].human ? (nt ? 1 : 1.5) : (nt ? 1.5 : 1)); return junkEw(st, o); /* v2.23 망루 */ }
-function landPick(st, k) { const r = st.run; if (!r || !D.enemies[k] || !D.enemies[k].human) return k; if ((r.gang || 0) >= D.hloot.gang) return r.region === 'junk' ? 'oilspore' : 'tireworm'; /* v2.23 */ r.gang = (r.gang || 0) + 1; return k; }
+function landPick(st, k) { const k2 = landPick0(st, k); return k2 === 'tireworm' && st.run && st.run.region === 'roof' ? 'sunbloom' : k2; } /* v2.24 옥상 거리는 순찰 다음이 포자꽃 */
+function landPick0(st, k) { const r = st.run; if (!r || !D.enemies[k] || !D.enemies[k].human) return k; if ((r.gang || 0) >= D.hloot.gang) return r.region === 'junk' ? 'oilspore' : 'tireworm'; /* v2.23 */ r.gang = (r.gang || 0) + 1; return k; }
 // 정비 공장: 엔진이 필요한 동안 들어가면 바퀴단 정해진 전투 2번(사수 → 몽둥이꾼). 이긴 수는 이번 탐사에만 셈
 function landStep(st, to) { const r = st.run; if (!r || !D.nodes[to].engc || st.combat || !engineDue(st) || (r.gfix || 0) >= 2) return;
   r.fixOn = true; startCombat(st, (r.gfix || 0) ? 'club' : 'shooter'); st.combat.lines.unshift(`녹슨바퀴단이 리프트 위 차를 지키고 있어요! (정해진 전투 ${(r.gfix || 0) + 1}/2)`); }
@@ -1787,7 +1830,7 @@ function hLoot(st, ek) { const r = st.run, H = D.hloot; if (!r || !st.land) retu
   while (it && v > left) { cat = next[cat]; if (cat === 'coin') { if (left > 0) { st.coins += left; st.land.lb.u += left; out.c += left; left = 0; it = null; } else { it = { k: 'stone' }; v = 0; } break; } it = cand(cat); v = sellPrice(it); }
   if (it) put(it, v);
   log(st, `🪙 ${D.enemies[ek].n}의 주머니: 코인 ${out.c}${it ? ` · ${it.ow ? '낡은 ' : ''}${D.items[it.k].n}` : ''} (오늘 남은 보상 ${Math.max(0, H.budget - st.land.lb.u)})`); return out; }
-function landWin(st, ek) { const r = st.run; if (!r || !st.land) return; if (ek === 'gboss') st.land.bossK = true; /* v2.23 두목은 한 번만 */ if (D.enemies[ek] && D.enemies[ek].human) { const b = hLootBody3(st, ek); if (b) { /* v2.23 */ r.bodies = r.bodies || {}; const L = r.bodies[r.node] = r.bodies[r.node] || []; if (L.length < D.body.max) L.push(b); } } /* v2.22.1 쓰러진 적 (코인·물건은 뒤져서) */
+function landWin(st, ek) { const r = st.run; if (!r || !st.land) return; roofWin(st, ek); /* v2.24 */ if (ek === 'gboss') st.land.bossK = true; /* v2.23 두목은 한 번만 */ if (D.enemies[ek] && D.enemies[ek].human) { const b = hLootBody3(st, ek); if (b) { /* v2.23 */ r.bodies = r.bodies || {}; const L = r.bodies[r.node] = r.bodies[r.node] || []; if (L.length < D.body.max) L.push(b); } } /* v2.22.1 쓰러진 적 (코인·물건은 뒤져서) */
   if (r.fixOn) { r.fixOn = false; r.gfix = (r.gfix || 0) + 1;
     if (r.gfix < 2 && !st.combat && D.nodes[r.node].engc) { r.fixOn = true; startCombat(st, 'club'); st.combat.lines.unshift('몽둥이꾼이 달려들어요! (정해진 전투 2/2)'); }
     else if (r.gfix >= 2) log(st, '🔧 바퀴단을 물리쳤어요. 리프트 위 엔진을 떼어 낼 수 있어요 (기력 4)'); } }
@@ -2026,11 +2069,12 @@ function pzBoard(st, part) { const P = D.pz[part], n = P.n, R = () => rngA(st), 
     const p = { part, n, b, ri, ro }; if (pzSolved(p)) continue; const ms = pzMin(p, P.max).d; if (ms < P.min || ms > P.max) continue;
     return Object.assign(p, { b0: b.slice(), ms, m: ms + P.spare, g: 0 }); }
   E('퍼즐 판을 만들지 못했어요'); }
-const pzParts = st => { const o = []; if (landN(st, 'eng') === 1) o.push('engine'); if (landN(st, 'ti') < landN(st, 'tire')) o.push('tire'); if (doorNext(st)) o.push('door'); /* v2.23 */ return o; }; // 지금 달 수 있는 부품
+const pzParts = st => { const o = []; if (landN(st, 'eng') === 1) o.push('engine'); if (landN(st, 'ti') < landN(st, 'tire')) o.push('tire'); if (doorNext(st)) o.push('door'); /* v2.23 */ if (landN(st, 'pi') < panelGot(st)) o.push('panel'); /* v2.24 */ return o; }; // 지금 달 수 있는 부품
 function pzNeed(st, part) { needBase(st); const L = landOf(st); if (!L.frame) E('골조 캠핑카를 먼저 찾아요 (9차)');
   if (part === 'engine') { if (landN(st, 'eng') === 2) E('엔진은 이미 달았어요'); if (landN(st, 'eng') !== 1) E('엔진이 아직 없어요 — 정비소 거리 정비 공장에서 떼어 와요'); return; }
   if (part === 'tire') { if (landN(st, 'ti') >= 4) E('타이어 4개를 다 달았어요'); if (landN(st, 'ti') >= landN(st, 'tire')) E('달 타이어가 없어요 — 정비소 거리 타이어 가게에서 가져와요'); return; }
   if (part === 'door') { if (landN(st, 'di') === 7) E('문 3개를 다 달았어요'); if (!doorNext(st)) E('달 문이 없어요 — 폐차장 잔해 줄(앞문)·막사(출입문)에서 가져와요'); return; } /* v2.23 */
+  if (part === 'panel') { if (landN(st, 'pi') >= 8) E('패널 8장을 다 달았어요'); if (landN(st, 'pi') >= panelGot(st)) E('달 패널이 없어요 — 옥상 거리 패널 거치대에서 떼어 와요'); return; } /* v2.24 */
   E('그 부품은 아직 가져올 수 없어요 (다음 이야기)'); }
 function pzStart(st, part) { part = part || pzParts(st)[0] || 'engine'; pzNeed(st, part); if (st.land.pz) E('퍼즐 판이 이미 있어요');
   if (D.pz[part].mats && !hasMats(st, D.pz[part].mats)) E('재료가 부족해요 (구리선 2 · 회로판 1 — 보관함이나 배낭)');
@@ -2051,23 +2095,24 @@ function pzCrew(st, part) { part = (st.land && st.land.pz && st.land.pz.part) ||
 function pzInstall(st, why, part) { part = part || 'engine'; delete st.land.pz; st.land.pf = 0;
   if (part === 'engine') { consume(st, D.pz.engine.mats); st.land.eng = 2; log(st, `${why} 캠핑카에 엔진을 달았어요 (구리선 2 · 회로판 1) — 작업판에서 「시동 시험」을 해 봐요`); }
   else if (part === 'tire') { st.land.ti = landN(st, 'ti') + 1; log(st, `${why} 캠핑카에 타이어를 달았어요 (${st.land.ti}/4)`); }
+  else if (part === 'panel') { st.land.pi = landN(st, 'pi') + 1; log(st, `${why} 캠핑카 지붕에 태양광 패널을 달았어요 (${st.land.pi}/8)`); } /* v2.24 */
   else if (part === 'door') { const b = doorNext(st); st.land.di = landN(st, 'di') | b; log(st, `${why} 캠핑카에 ${['', '운전석 문', '보조석 문', '', '출입문'][b]}을 달았어요 (${popc(st.land.di)}/3)`); } /* v2.23 */
-  check10(st); check11(st); }
+  check10(st); check11(st); check13(st); /* v2.24 */ }
 const CF_SLOTS = { engine: 1, tire: 4, door: 3, cbat: 1, panel: 8 }; // 골조의 부품 자리 수 (기획서 v0.4)
 function camperInfo(st) { const L = landOf(st), eng = landN(st, 'eng'), tire = landN(st, 'tire'), ti = Math.min(landN(st, 'ti'), tire), P = D.pz.engine, pz = L.pz || null;
   const h = pz && pz.g > 0 ? pzMin(pz, D.pz[pz.part].max) : null;
   const dg = landN(st, 'dg'), di = landN(st, 'di'); /* v2.23 문 */
-  return { frame: !!L.frame, eng, tire, ti, p10: !!L.p10, p11: !!L.p11, p12: !!L.p12, di: popc(di), dmask: di, dgot: dg, bossK: !!L.bossK, bmp: Object.assign({}, L.bmp || {}), bmpOn: L.bmpOn || '', parts: D.partsAll.map(([k, n, need]) => ({ k, n, need, have: k === 'engine' ? (eng === 2 ? 1 : 0) : k === 'tire' ? ti : k === 'door' ? popc(di) : 0, got: k === 'engine' ? (eng ? 1 : 0) : k === 'tire' ? tire : k === 'door' ? popc(dg) : 0 })),
+  return { frame: !!L.frame, eng, tire, ti, p10: !!L.p10, p11: !!L.p11, p12: !!L.p12, p13: !!L.p13, pi: landN(st, 'pi'), pgot: panelGot(st), /* v2.24 */ di: popc(di), dmask: di, dgot: dg, bossK: !!L.bossK, bmp: Object.assign({}, L.bmp || {}), bmpOn: L.bmpOn || '', parts: D.partsAll.map(([k, n, need]) => ({ k, n, need, have: k === 'engine' ? (eng === 2 ? 1 : 0) : k === 'tire' ? ti : k === 'door' ? popc(di) : k === 'panel' ? Math.min(landN(st, 'pi'), panelGot(st)) : 0, got: k === 'engine' ? (eng ? 1 : 0) : k === 'tire' ? tire : k === 'door' ? popc(dg) : k === 'panel' ? panelGot(st) : 0 })),
     slots: CF_SLOTS, can: pzParts(st), mats: P.mats, matsOk: hasMats(st, P.mats), fails: landN(st, 'pf'), crewFree: landN(st, 'pf') >= D.pz.fails, pz, lit: pz ? pzLit(pz) : null, hint: h ? h.first : -1, minLeft: pz ? pzMin(pz, D.pz[pz.part].max + D.pz[pz.part].spare).d : -1,
     canStart: !!L.frame && !pz && !st.run && pzParts(st).length > 0 }; }
 // 저장 검사: 돌리기 판(b·b0·ms) · 단 타이어 수 ti (가져온 tire 이하, 4 이하)
 function pzValidate(st, bad) { const L = st.land; if (!L) return; const ti = L.ti;
   if (ti !== undefined && (!Number.isInteger(ti) || ti < 0 || ti > 4 || ti > landN(st, 'tire'))) bad('단 타이어 수');
   const p = L.pz; if (p === undefined) return; const P = D.pz[p && p.part], T = D.pz.tiles, n = P && P.n;
-  if (!P || !['engine', 'tire', 'door'].includes(p.part) || Object.keys(p).sort().join() !== 'b,b0,g,m,ms,n,part,ri,ro' || p.n !== n || !Array.isArray(p.b) || !Array.isArray(p.b0) || p.b.length !== n * n || p.b0.length !== n * n
+  if (!P || !['engine', 'tire', 'door', 'panel'].includes(p.part) || Object.keys(p).filter(q => q !== 'w').sort().join() !== 'b,b0,g,m,ms,n,part,ri,ro' || (p.w !== undefined && p.w !== true) /* v2.24 렌치 */ || p.n !== n || !Array.isArray(p.b) || !Array.isArray(p.b0) || p.b.length !== n * n || p.b0.length !== n * n
     || p.b.some((x, i) => !T.includes(x) || pzRotN(p.b0[i], x) < 0 || [3, 12].includes(x) !== [3, 12].includes(p.b0[i]) || [7, 11, 13, 14].includes(x) !== [7, 11, 13, 14].includes(p.b0[i]) || (x === 15) !== (p.b0[i] === 15)) || p.b0.some(x => !T.includes(x))
-    || !Number.isInteger(p.ri) || p.ri < 0 || p.ri >= n || !Number.isInteger(p.ro) || p.ro < 0 || p.ro >= n || !Number.isInteger(p.ms) || p.ms < P.min || p.ms > P.max || !Number.isInteger(p.m) || p.m < 1 || p.m > p.ms + P.spare || ![0, 1, 2].includes(p.g) || pzSolved(p)
-    || (p.part === 'engine' && landN(st, 'eng') !== 1) || (p.part === 'tire' && landN(st, 'ti') >= landN(st, 'tire')) || (p.part === 'door' && !doorNext(st))) bad('퍼즐 판'); }
+    || !Number.isInteger(p.ri) || p.ri < 0 || p.ri >= n || !Number.isInteger(p.ro) || p.ro < 0 || p.ro >= n || !Number.isInteger(p.ms) || p.ms < P.min || p.ms > P.max || !Number.isInteger(p.m) || p.m < 1 || p.m > p.ms + P.spare + (p.w ? D.pzWrench : 0) || ![0, 1, 2].includes(p.g) || pzSolved(p)
+    || (p.part === 'engine' && landN(st, 'eng') !== 1) || (p.part === 'tire' && landN(st, 'ti') >= landN(st, 'tire')) || (p.part === 'door' && !doorNext(st)) || (p.part === 'panel' && landN(st, 'pi') >= panelGot(st))) bad('퍼즐 판'); }
 /* ===== v2.23 폐차장 — 규칙 (업무-20261126-14) =====
    st.land에 더하는 칸(예전 저장엔 없음 = 0/없음): dg 가져온 문(비트 1 운전석 · 2 보조석 · 4 출입문) · di 단 문(비트) · gt 패거리 첫 처치 타이어를 줬음 · bossK 두목을 쓰러뜨림
      p11 11차(타이어 4 달기) · p12 12차(문 3 달기) · bmp 가진 범퍼 {steel, log, kang} · bmpOn 끼운 범퍼
@@ -2124,7 +2169,7 @@ function landDeliver2(st) { if (!st.land) return; let dg = landN(st, 'dg'), kb =
 function check11(st) { const L = st.land; if (!L) return; if (!L.p11 && landN(st, 'ti') >= 4) { L.p11 = true; log(st, '🏁 11차 목표 달성! 타이어 4개를 모두 달았어요'); }
   if (!L.p12 && landN(st, 'di') === 7) { L.p12 = true; log(st, '🏁 12차 목표 달성! 문 3개(운전석·보조석·출입문)를 모두 달았어요'); } }
 function landGoal11(st) { const L = st.land, ti = landN(st, 'ti'), di = popc(landN(st, 'di'));
-  if (L.p11 && L.p12) return { t: '🏁 12차 달성 — 타이어 4 · 문 3을 달았어요', d: '다음은 옥상 거리의 지붕 패널이에요 (다음 이야기). 폐차장·정비소 거리는 계속 탐사할 수 있어요', ok: false };
+  if (L.p11 && L.p12) return landGoal13(st); /* v2.24 */ if (false) return { t: '🏁 12차 달성 — 타이어 4 · 문 3을 달았어요', d: '다음은 옥상 거리의 지붕 패널이에요 (다음 이야기). 폐차장·정비소 거리는 계속 탐사할 수 있어요', ok: false };
   if (!L.p11) return { t: `11차: 타이어 4개 달기 (${ti}/4)`, d: `가져온 타이어 ${landN(st, 'tire')}/4 — 폐차장 타이어 더미·패거리 첫 처치 · 작업판 퍼즐로 달기`, ok: landN(st, 'tire') > ti && !st.run };
   return { t: `12차: 문 3개 달기 (${di}/3)`, d: `앞문 2 = 폐차장 잔해 줄 · 출입문 = 「출입문 되찾기」(막사의 두목) · 작업판 퍼즐로 달기`, ok: landN(st, 'dg') !== landN(st, 'di') && !st.run }; }
 // 범퍼: 작업판에서 만들기(재료는 보관함·배낭) · 하나만 끼우고 바꿔 끼우기 · 보기만(효과 없음)
@@ -2217,6 +2262,92 @@ function seenValidate(st, bad) { if (st.seen === undefined) return; if (!st.seen
 /* v2.23.1 비서실장: 이미 쓰이는 재료의 옛 설명 글·옛 판 번호 글 바로잡음 (도감에 그대로 보여서) */
 for (const k of ['copper', 'glass', 'tarp']) if (D.items[k] && /다음 이야기/.test(D.items[k].use || '')) D.items[k].use = '재료 (수리·제작·의뢰에 써요)';
 D.version = '2.23.1';
+/* ===== v2.24 옥상 거리 — 규칙 (업무-20261126-16) =====
+   st.land에 더하는 칸(예전 저장엔 없음 = 0/없음): pg 뗀 패널(비트 8개 — 옥상 rp마다 2비트 · 떼는 순간 크레인 바구니로 '가져옴') · pi 단 패널 수 · p13 13차 · vn 구리 풍향계를 가져왔음
+   탐사 칸: spr 스프링 받침을 걸어 둠 · g5w 이번 탐사에 방송국 옥상 사수를 이김
+   길: 낮엔 널다리 3(건너면 기력 2 · 포자 +1) · 밤엔 널다리를 못 건넘(계단실 우회) */
+// 도감 (v2.23.1 규칙: 자동으로 못 잡는 것만 손으로)
+Object.assign(D.codex, {
+  panel: { get: ['옥상 거리 네 옥상(아파트·학교·쇼핑몰·방송국)의 패널 거치대에서 2장씩 — 낮엔 한 번에 2장 · 밤엔 1장 · 크레인 바구니로 바로 거점에'], use: ['캠핑카 작업판에서 퍼즐로 지붕에 달기 (13차 · 8장)'] },
+  vane: { get: ['옥상 거리 학교 옥상 「풍향계 기둥」 (한 번 · 가져오면 다시 안 나와요)'] },
+  wrench: { use: ['캠핑카 작업판 퍼즐 「🔧 렌치 쓰기」: 남은 횟수 +4 (판 하나에 1번 · 렌치는 사라져요)'] },
+  spring: { use: ['옥상 거리 낮 널다리 「🌀 스프링 받침」: 그 건너기 기력 2 → 1 (1개 사라져요)'] } });
+delete D.codexSellOnly.wrench; delete D.codexSellOnly.spring; // 이제 팔기 말고 쓰임이 있음
+const popc8 = m => { let n = 0; for (let i = 0; i < 8; i++) n += (m >> i) & 1; return n; };
+const panelGot = st => popc8(landN(st, 'pg'));
+const roofLeft = (st, n) => { const rp = D.nodes[n] && D.nodes[n].rp; if (rp === undefined) return 0; const m = landN(st, 'pg'); return 2 - ((m >> (2 * rp)) & 1) - ((m >> (2 * rp + 1)) & 1); };
+const isBridge = (a, b) => D.roofBridges.some(([x, y]) => (x === a && y === b) || (x === b && y === a));
+const roofShut = (st, a, b) => !!(st && st.run && st.run.night === true && isBridge(a, b)); // 밤엔 널다리를 못 건넘
+// 널다리 건너기: 기력 1 더(모두 2) · 스프링 받침을 걸어 뒀고 배낭에 스프링이 있으면 더하지 않음(1) — 건넌 뒤에 스프링 1개를 씀
+function roofCost(st, a, b) { const r = st.run; if (!r || !isBridge(a, b)) return { add: 0 }; const sp = r.spr === true && hasK(st, 'spring'); return { add: sp ? 0 : 1, br: true, spring: sp }; }
+function roofCrossed(st, rb) { const r = st.run; if (!rb.br || !r) return; if (rb.spring) { takeK(st, 'spring'); norm(st); log(st, '🌀 스프링 받침으로 널다리를 가볍게 건넜어요 (기력 1 · 스프링 −1)'); } else log(st, '🌉 널다리를 건넜어요 (기력 2)'); delete r.spr; roofSpore(st, 1); }
+// 포자 (바다 포자와 같은 셈 · 마스크면 두 번에 1) — 옥상 거리는 낮 널다리·포자꽃 뿜기에서만 쌓임, 밤엔 안 쌓임
+function roofSpore(st, n) { const r = st.run; if (!r || r.night === true) return; const S = D.spore; let add = n;
+  if (st.bag.some(x => x.k === 'mask')) { r.sporeH = (r.sporeH || 0) + n; add = Math.floor(r.sporeH / 2); r.sporeH %= 2; }
+  for (let i = 0; i < add; i++) { r.spore = (r.spore || 0) + 1; const v = r.spore;
+    if (v >= S.e2 && (v - S.e2) % S.step === 0) { const d = Math.min(S.hp, st.hp - 1); if (d > 0) st.hp -= d; log(st, `☣️ 포자가 쌓였어요 (${v}) — 체력 −${Math.max(0, d)}`); }
+    else if (v >= S.e1 && v < S.e2 && (v - S.e1) % S.step === 0) { st.energy = Math.max(0, st.energy - 1); log(st, `☣️ 포자가 쌓였어요 (${v}) — 기력 −1`); } } }
+// 스프링 받침: 플레이어가 골라 걸어 둠(자동으로 안 씀) · 한 번에 1개 · 풀면 스프링은 그대로 · 건너면 그 한 번만
+function roofSpring(st, on) { needRun(st); const r = st.run; if (r.region !== 'roof') E('널다리는 옥상 거리에만 있어요'); if (st.combat) E('전투 중이에요');
+  if (!on) { if (r.spr !== true) E('걸어 둔 스프링 받침이 없어요'); delete r.spr; log(st, '🌀 스프링 받침을 풀었어요 (스프링은 그대로)'); return; }
+  if (r.night === true) E('밤엔 널다리를 건널 수 없어요'); if (r.spr === true) E('스프링 받침을 이미 걸어 뒀어요 (한 번에 1개)'); if (!hasK(st, 'spring')) E('배낭에 스프링이 없어요');
+  if (!(ADJ[r.node] || []).some(m => isBridge(r.node, m))) E('여기엔 널다리가 없어요');
+  r.spr = true; log(st, '🌀 스프링 받침을 걸었어요 — 다음 널다리 한 번만 기력 2 → 1 (건널 때 스프링 1개를 써요)'); }
+// 옥상 칸의 따로 된 일: 패널 떼기 · 스프링 받침 걸기/풀기
+D.roofBasket = 4; // 크레인 바구니: 한 탐사에 4장까지 (선원이 한 번에 나르는 양 · 전략실장 (가) → 비서실장 결정) — 탐사 칸 r.bk (탐사가 끝나면 0)
+const bkN = r => (r && Number.isInteger(r.bk)) ? r.bk : 0;
+function roofX(st) { const r = st.run, out = []; if (!r || r.region !== 'roof' || !st.land) return out; const n = r.node, left = roofLeft(st, n);
+  if (left > 0) { const g = g5Need(st, n), bk = bkN(r), room = D.roofBasket - bk, take = Math.min(r.night === true ? 1 : left, room);
+    out.push({ k: 'panel', e: '☀️', n: `태양광 패널 떼기 (남은 ${left}장 · 이번 탐사 바구니 ${bk}/${D.roofBasket})`, note: room <= 0 ? '바구니가 찼어요 — 귀환하면 선원이 날라요' : g ? '방송국 사수를 먼저 물리쳐요 (다시 들어오면 싸워요)' : st.energy < 1 ? '기력이 없어요 (체력 −2로 뗌)' : `${r.night === true ? '밤: 1장씩' : `낮: ${take}장 한 번에`} · 기력 1 · 크레인 바구니로 바로 거점에`, ok: !g && room > 0 }); }
+  if (r.night !== true && (ADJ[n] || []).some(m => isBridge(n, m))) {
+    if (r.spr === true) out.push({ k: 'springx', e: '🌀', n: '스프링 받침 걸림 — 다음 널다리 기력 1', note: '누르면 풀어요 (스프링은 그대로)', ok: true });
+    else if (hasK(st, 'spring')) out.push({ k: 'spring', e: '🌀', n: '스프링 받침 걸기 — 다음 널다리 기력 2 → 1', note: '건널 때 배낭의 스프링 1개를 써요', ok: true }); }
+  return out; }
+// 패널 떼기 = 조사 1번(기력 1 · 위험 +조사만큼): 낮엔 남은 것 다(2장), 밤엔 1장 · 떼는 순간 st.land.pg에 들어감(크레인 바구니 = 거점 '가져옴', 쓰러져도 안 잃음 · 한 번에 처리)
+function panelTake(st) { needRun(st); if (st.combat) E('전투 중이에요'); const r = st.run, n = r.node, left = roofLeft(st, n); if (!left) E('이 옥상의 패널은 다 뗐어요');
+  if (g5Need(st, n)) E('방송국 사수를 먼저 물리쳐요'); if (bkN(r) >= D.roofBasket) E('바구니가 찼어요 — 귀환하면 선원이 날라요');
+  useEnergy(st, 1); if (!st.run) return; const rp = D.nodes[n].rp, take = Math.min(r.night === true ? 1 : left, D.roofBasket - bkN(r)); r.bk = bkN(r) + take; /* 자리가 1이면 1장만 (나머지는 옥상에 남음) */ let m = landN(st, 'pg');
+  for (let q = 0, b = 0; q < take && b < 2; b++) if (!((m >> (2 * rp + b)) & 1)) { m |= 1 << (2 * rp + b); q++; }
+  st.land.pg = m; r.risk += riskOf(n); log(st, `☀️ 태양광 패널 ${take}장을 떼어 크레인 바구니에 넣었어요 — 선원이 줄로 내려 거점으로 옮겨요 (가져옴 ${popc8(m)}/8 · 이번 탐사 바구니 ${r.bk}/${D.roofBasket})`); encounter(st, 0.5); }
+D.roofGuardNight = false; // 방송국 사수(엄폐)는 낮에만 지킴 — 밤엔 사람 대신 괴물(×1.25) (기획서: 낮 "사수 엄폐" · 폐차장 망루와 같은 낮=사람/밤=괴물)
+const g5Need = (st, n) => { const r = st.run; return !!r && D.nodes[n].rp === 3 && !r.g5w && (r.night !== true || D.roofGuardNight); };
+// 방송국 옥상: 패널이 남아 있고 이번 탐사에 사수를 아직 못 이겼으면, 들어갈 때마다 엄폐한 사수와 정해진 전투
+function roofStep(st, to) { const r = st.run; if (!r || r.region !== 'roof' || st.combat || !g5Need(st, to) || !roofLeft(st, to)) return;
+  startCombat(st, 'shooter'); st.combat.lines.unshift('송신탑 뒤에서 사수가 엄폐한 채 겨눠요! (정해진 전투)'); }
+function roofWin(st, ek) { const r = st.run; if (r && r.region === 'roof' && ek === 'shooter' && D.nodes[r.node].rp === 3) { r.g5w = true; log(st, '📡 방송국 사수를 물리쳤어요. 패널 거치대에 손댈 수 있어요'); } }
+// 만나는 적: 사수는 낮 옥상에만(밤·계단실엔 없음)
+function roofEw(st, o) { const r = st.run, x = Object.assign({}, o); if (r.night === true || D.nodes[r.node].rp === undefined) delete x.shooter; return x; }
+// 햇볕 포자꽃: 늘 중간 거리(다가오지 않음) · 뿜기, 뿜기, 빈틈 · 밤엔 처음 2턴 잠듦(빈틈)
+function roofIntent(e) { if (e.k !== 'sunbloom') return ''; if (e.sl > 0) return 'bsleep'; return e.cyc % 3 === 2 ? 'stagger' : 'bspew'; }
+function roofAct(st, c, e, it, d, hit, blocking, L) {
+  if (it === 'bsleep') { e.sl = Math.max(0, (e.sl || 0) - 1); L.push('햇볕 포자꽃이 잠들어 있어요 (빈틈)'); return true; }
+  if (it === 'bspew') { if (e.dist > 1) { L.push('포자가 닿지 않았어요 (거리)'); return true; } hit(d); if (!blocking && st.run && st.run.night !== true) { roofSpore(st, 1); L.push('포자를 들이마셨어요 (포자 +1)'); } return true; }
+  return false; }
+// 구리 풍향계: 학교 옥상 풍향계 기둥(가운데 아닌 오른쪽 상자)에서 — 가져올 때까지는 다시 나옴, 가져오면 끝
+const roofVane = (st, n, j) => n === 'L5D' && j === 2 && st.land && !st.land.vn && partCount(st, 'vane') === 0 ? 'vane' : '';
+function roofDeliver(st) { if (!st.land || st.land.vn) return; if ([...st.bag, ...st.pocket, ...st.stash].some(x => x.k === 'vane')) st.land.vn = true; }
+function check13(st) { const L = st.land; if (!L || L.p13 || landN(st, 'pi') < 8) return; L.p13 = true; log(st, '🏁 13차 목표 달성! 지붕에 태양광 패널 8장을 모두 달았어요'); }
+function landGoal13(st) { const L = st.land, pi = landN(st, 'pi'), pg = panelGot(st);
+  if (L.p13) return { t: '🏁 13차 달성 — 지붕에 태양광 패널 8장', d: '낮이면 지붕이 햇볕을 받아요. 실내와 전기는 다음 이야기예요. 옥상 거리·폐차장은 계속 탐사할 수 있어요', ok: false };
+  return { t: `13차: 태양광 패널 8장 달기 (${pi}/8)`, d: `가져온 패널 ${pg}/8 — 옥상 거리 네 옥상에서 2장씩(낮 한 번에 2장 · 밤 1장) · 작업판 퍼즐로 달기`, ok: pg > pi && !st.run }; }
+// 출발 전 미리보기
+function roofPreview(st) { const nt = st.tod === 1, roofs = Object.keys(D.nodes).filter(n => D.nodes[n].rp !== undefined).map(n => ({ k: n, n: D.nodes[n].n, left: roofLeft(st, n) }));
+  return { night: nt, roofs, leftRoofs: roofs.filter(x => x.left > 0).length, leftPanels: roofs.reduce((a, x) => a + x.left, 0), got: panelGot(st), pi: landN(st, 'pi'), open: regionOpen(st, 'roof'), basket: D.roofBasket,
+    rules: nt ? ['🌙 밤: 널다리는 어두워 못 건너요 — 계단실로 돌아가요 (이동 약 +2)', '괴물 체력 ×1.25 · 방송국 사수는 없어요 · 햇볕 포자꽃은 잠들어 있고 포자는 안 쌓여요', '패널은 조사 1번에 1장씩']
+      : ['☀️ 낮: 널다리 지름길이 열려요 (건너면 기력 2 · 포자 +1)', '방송국 옥상 사수가 엄폐해 지켜요(정해진 전투) · 햇볕 포자꽃이 포자를 뿜어요', '패널은 조사 1번에 2장 다'] }; }
+function roofInfo(st) { const r = st.run; if (!r || r.region !== 'roof') return null; const n = r.node;
+  return { night: r.night === true, spore: r.spore || 0, spr: r.spr === true, springs: [...st.bag, ...st.pocket].filter(x => x.k === 'spring').length, left: roofLeft(st, n), rp: D.nodes[n].rp !== undefined, got: panelGot(st), bk: bkN(r), basket: D.roofBasket, bridge: (ADJ[n] || []).filter(m => isBridge(n, m)).map(m => D.nodes[m].n), g5: g5Need(st, n) && roofLeft(st, n) > 0 }; }
+// 렌치: 작업판 퍼즐 남은 횟수 +4 · 판 하나에 1번(「처음부터」로 다시 받지 않음 · 새 판은 새로) · 렌치 1개(보관함·배낭)는 사라짐
+function pzWrench(st) { const p = st.land && st.land.pz; if (!p) { needBase(st); E('퍼즐 판이 없어요'); } pzNeed(st, p.part); if (p.w) E('이 판에는 렌치를 이미 썼어요 (판 하나에 1번)');
+  if (!hasMats(st, { wrench: 1 })) E('렌치가 없어요 (보관함·배낭)'); consume(st, { wrench: 1 }); p.m += D.pzWrench; p.w = true; log(st, `🔧 렌치로 이음새를 조였어요 — 남은 횟수 +${D.pzWrench} (렌치 −1)`); }
+function roofValidate(st, bad) { const L = st.land, r = st.run, I = v => v === undefined || Number.isInteger(v), B = v => v === undefined || typeof v === 'boolean';
+  if (L) { if (!I(L.pg) || (L.pg || 0) < 0 || L.pg > 255 || !I(L.pi) || (L.pi || 0) < 0 || (L.pi || 0) > popc8(L.pg || 0) || !B(L.p13) || !B(L.vn)) bad('옥상 기록');
+    if (L.p13 && landN(st, 'pi') < 8) bad('옥상 기록 (13차)'); if ((L.pg || L.pi || L.p13) && !L.p12) bad('옥상 기록 (12차 전)'); }
+  if (r && ((r.spr !== undefined && (r.spr !== true || r.region !== 'roof')) || (r.g5w !== undefined && r.g5w !== true) || (r.bk !== undefined && (!Number.isInteger(r.bk) || r.bk < 0 || r.bk > D.roofBasket || r.region !== 'roof')))) bad('옥상 탐사'); }
+D.hloot.vals = D.hloot.vals.filter(k => k !== 'vane'); // 구리 풍향계는 학교 옥상 풍향계 기둥에서만 (사람 루팅 귀중품 목록에서 뺌)
+
+// 비서실장: 설정 화면 판 번호 글
+D.version = '2.24';
 function die(st, why) { if (st.tm) { st.hp = 1; log(st, '연습 판이라 쓰러지지 않아요 (체력 1)'); return; } /* v2.12 튜토리얼 */ if (!(st.run && st.run.practice)) lvDeath(st); /* v2.5 쓰러지면 막대 −5 */
   const r = st.run, d0 = { lostN: 0 }; st.stats.deaths++; /* v2.20 결과창 */
   if (r && r.practice) { for (const w of ['bag', 'pocket']) { const n0 = st[w].length; st[w] = st[w].filter(it => !it.f); d0.lostN += n0 - st[w].length; } norm(st); log(st, `${why} — 연습이라 잃은 건 없어요 (연습 중 주운 물건만 사라짐)`); }
@@ -2259,7 +2390,7 @@ function sell(st, from, i) {
 /* ===== v2.14 상점 개편 (BOSS 2026-11-24): 1~5칸 = 코인 랜덤(챕터·종류 상관없이), 6칸 = 칼 고정, 7칸 = 호박석 무기(하루 1개). 📌 고정은 2칸까지 =====
    값 = 되파는 값 × 1.25를 5코인 단위로 올림(기존 9개 값은 그대로). 뺀 것: 귀중품·장신구·열쇠·호박석·무기(7칸 따로)·이야기 진행 물건 (전략실장 동의) */
 const SHOP_CATS = ['생활', '공구', '기계', '전자', '의료', '식량', '던지기', '특산', '파우치', '가방'];
-const SHOP_NO = { engine: 1, tire: 1, armband: 1, cdoorL: 1, cdoorR: 1, cdoorE: 1, bumperK: 1, /* v2.23 */ /* v2.22 */ firework: 1, campfood: 1, medkit: 1, camera: 1, minicamper: 1, /* v2.21 3장 물건은 3장 곳에서만 */ hugepackF: 1, slingF: 1, hikeF: 1, tacpackF: 1, /* v2.20 새 가방은 뽑기에서만 */ /* v2.18 특대 배낭은 뽑기에서만 (상점 자동 목록에서 뺌) */ genpart: 1, filter: 1, helmet: 1, drillbit: 1, fuel: 1, pump: 1, prop: 1, rudder: 1, anchorbit: 1, whaleoil: 1 };
+const SHOP_NO = { panel: 1, vane: 1, /* v2.24 */ engine: 1, tire: 1, armband: 1, cdoorL: 1, cdoorR: 1, cdoorE: 1, bumperK: 1, /* v2.23 */ /* v2.22 */ firework: 1, campfood: 1, medkit: 1, camera: 1, minicamper: 1, /* v2.21 3장 물건은 3장 곳에서만 */ hugepackF: 1, slingF: 1, hikeF: 1, tacpackF: 1, /* v2.20 새 가방은 뽑기에서만 */ /* v2.18 특대 배낭은 뽑기에서만 (상점 자동 목록에서 뺌) */ genpart: 1, filter: 1, helmet: 1, drillbit: 1, fuel: 1, pump: 1, prop: 1, rudder: 1, anchorbit: 1, whaleoil: 1 };
 for (const [k, d] of Object.entries(D.items)) if (D.shop[k] === undefined && SHOP_CATS.includes(d.c) && !SHOP_NO[k] && !d.nosell && d.p > 0) D.shop[k] = Math.max(5, Math.ceil(d.p * 1.25 / 5) * 5);
 D.shopW = { pouchS: 3, bandage: 3, can: 3, water: 3, rope: 3, tape: 3, gear: 3, battery: 3, oil: 3 }; /* 기본 보급(예전 상점 9가지)은 3배 잘 나옴 — 붕대·재료를 너무 못 사지 않게 (밸런스 봇) */
 D.shopDay.n = 5; D.shopDay.pinMax = 2; D.shopZone = {}; D.ambW = { spear: 8, hammer: 10, harpoon: 10 };
@@ -2664,7 +2795,7 @@ function seaAmbush(st, base) { const r = st.run, c = st.combat; if (!r || !c || 
 function toggleLamp(st, k) { needBase(st); const s = seaOf(st); if (!s.on) E('탐조등은 갈매기호 갑판에 있어요');
   if (s.lamp && (!k || k === (s.lampK || 'oil'))) { s.lamp = false; delete s.lampK; return; } // 같은 기름을 다시 누르면 끔
   k = k || (holds(st, 'oil') ? 'oil' : 'whaleoil'); if (k !== 'oil' && k !== 'whaleoil') E('탐조등에 쓸 수 없는 물건이에요'); if (!holds(st, k)) E('기름이 없어요 (구역에서 줍거나 마루에게 사요)'); s.lamp = true; s.lampK = k; }
-function seaLock(st, to) { syncHelm(st); if (D.nodes[to].shut && !landOf(st).shut) E('전시장 셔터가 닫혀 있어요 — 텐트촌·캠핑용품점에서 배터리로 열거나 손으로 감아요'); /* v2.21 */ if (D.nodes[to].door && !allLit(st)) E(`기록선 문이 잠겨 있어요. 등불 ${LAMPS.length}개를 모두 켜야 열려요 (${litN(st)}/${LAMPS.length})`); if (st.run && kelpBlocked(st, st.run.node, to)) E('해초가 길을 막고 있어요. 먼저 끊어야 해요'); if (D.nodes[to].lock && !seaOf(st).capOpen && !hasK(st, 'keyC')) E('선장실이 잠겨 있어요. 기관실에서 선장실 열쇠를 찾아요'); }
+function seaLock(st, to) { syncHelm(st); if (D.nodes[to].shut && !landOf(st).shut) E('전시장 셔터가 닫혀 있어요 — 텐트촌·캠핑용품점에서 배터리로 열거나 손으로 감아요'); /* v2.21 */ if (D.nodes[to].door && !allLit(st)) E(`기록선 문이 잠겨 있어요. 등불 ${LAMPS.length}개를 모두 켜야 열려요 (${litN(st)}/${LAMPS.length})`); if (st.run && roofShut(st, st.run.node, to)) E('밤엔 널다리가 어두워 못 건너요 — 계단실로 돌아가요'); /* v2.24 */ if (st.run && kelpBlocked(st, st.run.node, to)) E('해초가 길을 막고 있어요. 먼저 끊어야 해요'); if (D.nodes[to].lock && !seaOf(st).capOpen && !hasK(st, 'keyC')) E('선장실이 잠겨 있어요. 기관실에서 선장실 열쇠를 찾아요'); }
 function seaStep(st, to) { const s = st.sea, r = st.run; if (!s || !r || !zoneOf(r.region)) return;
   if (D.nodes[to].lock && !s.capOpen) { takeK(st, 'keyC'); norm(st); s.capOpen = true; log(st, '🔐 선장실 열쇠로 문을 열었어요 (이제 계속 열려 있어요)'); }
   s.chart[to] = true; seaSpore(st, 1); if (D.nodes[to].guard && !s.clawDead && !st.combat) { startCombat(st, 'claw'); log(st, '⚙️ 시추 집게가 꼭대기를 지키고 있어요!'); } }
@@ -2759,7 +2890,7 @@ function seaMigrate2(st) { const s = st.sea; if (s.lampLv !== 1 || !s.on) s.lamp
 const kelpKey = (a, b) => a < b ? a + '|' + b : b + '|' + a;
 const KELP = Object.create(null); /* 물려받은 이름(toString 등)이 해초 길로 통과하지 않게 [전략실장] */ for (const [a, b] of D.kelp) KELP[kelpKey(a, b)] = true;
 function kelpBlocked(st, a, b) { const k = kelpKey(a, b), s = seaOf(st); return !!KELP[k] && !(s.cut && s.cut[k] === true); }
-function seaAdj(st, n) { return (ADJ[n] || []).filter(m => !kelpBlocked(st, n, m)); }
+function seaAdj(st, n) { return (ADJ[n] || []).filter(m => !kelpBlocked(st, n, m) && !roofShut(st, n, m)); } /* v2.24 밤 널다리 */
 function cutKelp(st, to) { needRun(st); const r = st.run; if (!(ADJ[r.node] || []).includes(to) || !kelpBlocked(st, r.node, to)) E('끊을 해초가 없어요');
   if (st.energy < D.kelpCost) E(`기력이 모자라요 (해초 끊기: 기력 ${D.kelpCost})`); // 기력을 확인한 뒤 한 번만 냄
   st.energy -= D.kelpCost; r.risk += 1; st.sea.cut[kelpKey(r.node, to)] = true; log(st, `🌿 해초를 끊어 길을 냈어요 (기력 −${D.kelpCost} · 위험도 ${r.risk}). 이 길은 계속 열려 있어요`); }
@@ -2834,7 +2965,7 @@ function whaleInfo(st) { const c = st.combat; if (!c || c.e.k !== 'whale') retur
   return { ready: false, fight: true, mist: c.mist || 0, hidden: whaleHidden(st), lantern: hasLantern(st), oil: cnt('oil'), whaleoil: cnt('whaleoil'), nextMiss, exposed: c.e.intent === 'stagger' && !whaleHidden(st), near: c.e.dist === 0 }; }
 function seaInfo4(st) { const s = seaOf(st), r = st.run, n = r ? r.node : '', nd = r ? D.nodes[n] : null;
   return { lit: litN(st), lamps: LAMPS.length, allLit: allLit(st), won8: !!s.won8, lamp: !!(nd && nd.lamp), lampLit: !!(nd && isLit(st, n)), lampOil: r ? hasK(st, 'oil') : false, litLeft: nd && isLit(st, n) ? Math.max(0, 3 - (s.litS[n] || 0)) : -1,
-    door: !!(r && (ADJ[n] || []).some(m => D.nodes[m].door) && !allLit(st)), spore: r && D.regions[r.region].spore ? { v: r.spore || 0, mask: st.bag.some(x => x.k === 'mask'), e1: D.spore.e1, e2: D.spore.e2 } : null, whale: whaleInfo(st), whaleNode: !!(nd && nd.whale), engine: !!s.engine, cleared: s.cleared }; }
+    door: !!(r && (ADJ[n] || []).some(m => D.nodes[m].door) && !allLit(st)), spore: r && (D.regions[r.region].spore || (D.regions[r.region].roof && r.night !== true)) ? /* v2.24 옥상 낮 */ { v: r.spore || 0, mask: st.bag.some(x => x.k === 'mask'), e1: D.spore.e1, e2: D.spore.e2 } : null, whale: whaleInfo(st), whaleNode: !!(nd && nd.whale), engine: !!s.engine, cleared: s.cleared }; }
 function seaValidate4(st, bad) { const s = st.sea, pl = o => !!o && typeof o === 'object' && !Array.isArray(o);
   if (!pl(s.lit) || Object.entries(s.lit).some(([k, v]) => !LAMPS.includes(k) || v !== true) || !pl(s.litS) || Object.entries(s.litS).some(([k, v]) => !LAMPS.includes(k) || !Number.isInteger(v) || v < 0 || v > 3) || typeof s.won8 !== 'boolean' || (s.won8 && !(s.engine && s.cleared >= 9)) || (!s.on && (Object.keys(s.lit).length || s.won8)) || (s.at >= 8 && !s.engine)) bad('바다 기록 (8~10구역)');
   const r = st.run; if (r && ((r.spore !== undefined && (!Number.isInteger(r.spore) || r.spore < 0)) || (r.sporeH !== undefined && r.sporeH !== 0 && r.sporeH !== 1))) bad('포자');
@@ -2888,7 +3019,7 @@ function validate(st) {
   if (!st.unlocked || typeof st.unlocked !== 'object' || (st.unlocked.harbor && !st.won3) || typeof st.fx !== 'boolean' || typeof st.sg !== 'boolean' || !Number.isInteger(st.rs) || st.rs < 0 || !!st.quests.q15 !== !!st.unlocked.harbor || (st.run && st.run.region === 'harbor' && !st.unlocked.harbor) || (st.rk !== undefined && (st.rk !== true || st.reserve === undefined))) bad('해금·첫 귀환 기록');
   if (!Number.isInteger(st.ship) || st.ship < 0 || st.ship > D.ship.length || (st.ship > 0 && !st.won3) || !!st.won4 !== (st.ship === D.ship.length)) bad('배 수리');
   if (!Number.isInteger(st.device) || st.device < 0 || st.device > D.device.length || (st.device > 0 && !st.won2)) bad('정화 장치');
-  if (!!st.won3 !== (st.device === D.device.length) || (st.won2 && !D.goal2Quests.every(q => st.quests[q])) || !Array.isArray(st.log)) bad('목표 기록'); /* v0.6 [전략실장] */ for (const it of allItems(st)) if (!D.items[it.k]) bad('물건 ' + it.k); wCheck(st, bad); wTryCheck(st, bad); rvCheck(st, bad); /* v2.17 */ landValidate(st, bad); /* v2.21 */ landValidate2(st, bad); /* v2.22 */ junkValidate(st, bad); /* v2.23 */ seenValidate(st, bad); /* v2.23.1 */ bodyValidate(st, bad); /* v2.22.1 */ boxValidate(st, bad); /* v2.22.2 */ lootValidate(st, bad); /* v2.22.3 */
+  if (!!st.won3 !== (st.device === D.device.length) || (st.won2 && !D.goal2Quests.every(q => st.quests[q])) || !Array.isArray(st.log)) bad('목표 기록'); /* v0.6 [전략실장] */ for (const it of allItems(st)) if (!D.items[it.k]) bad('물건 ' + it.k); wCheck(st, bad); wTryCheck(st, bad); rvCheck(st, bad); /* v2.17 */ landValidate(st, bad); /* v2.21 */ landValidate2(st, bad); /* v2.22 */ junkValidate(st, bad); /* v2.23 */ seenValidate(st, bad); /* v2.23.1 */ roofValidate(st, bad); /* v2.24 */ bodyValidate(st, bad); /* v2.22.1 */ boxValidate(st, bad); /* v2.22.2 */ lootValidate(st, bad); /* v2.22.3 */
   return true;
 }
 function save(st) { seenFill(st); /* v2.23.1 도감: 상자·보상이 바로 보관함에 넣은 것도 저장할 때 얻은 기록에 */ return JSON.stringify({ app: 'surv-rpg', v: 1, st }); }
@@ -2944,7 +3075,7 @@ function migrate(st) { if (st && st.land && st.land.pz && typeof st.land.pz === 
 }
 function load(txt) { const o = JSON.parse(txt); if (!o || o.app !== 'surv-rpg' || !o.st) E('저장 형식이 달라요'); const st = lvFix(migrate(o.st)); if (st && st.seen === undefined) seenFill(st); /* v2.23.1 예전 저장은 지금 가진 물건으로 */ validate(st); return st; }
 
-root.SurvEngine = { codexInfo, codexList, codexTab, codexBuild, seenAdd, seenFill, /* v2.23.1 */ hLootBody3, doorX, doorTake, bumperCraft, bumperOn, landGoal11, check11, gangHeads, junkIntent, tireDue4, doorNext, landDeliver2, /* v2.23 */ statInfo, /* v2.22.4 */ lootPut, /* v2.22.4 */ lootItems, lootLayout, lootSeen, lootTake, lootTakeAll, /* v2.22.3 */ boxItems, boxLayout, boxTake, boxTakeAll, gridFit, /* v2.22.2 */ bodyOpen, bodyTake, bodyTakeAll, bodyLayout, bodyName, hLootBody, /* v2.22.1 */ camperInfo, pzStart, pzTap, pzShuffle, pzCrew, pzBoard, pzBfs, pzSolved, pzTrace, pzReset, pzLit, pzMin, pzRotN, pzParts, /* v2.22.5 */ lootLeft, hLoot, tireLoad, engineDue, tireDue, landEw, /* v2.22 */ landGo, landInfo, scrapDeliver, landGoalNext, landOf, landHere, shutAdj, /* v2.21 */ pocketCap, fleeCost, slotInfo, slotSpin, reload, rvInfo, rvNeed, vSpawn, accUpInfo, accUpStart, redeem, atkInfo, ambInfo, ambWeapon, buyAmb, shopPin, buyN, buyMax, can, canS, intentHits, intentShow, dmgAfter, diceInfo, dicePre, diceRoll, diceClose, diceBest, upgradeStart, levelInfo, lvPick, storeUpInfo, storeUp, lvGain, lvDeath, startCombat, die, shopStock, openBox, boxInfo, equipAcc, unequipAcc, amberDrop, accOn: A, seaInfo4, lightLamp, challengeWhale, whaleInfo, seaInfo3, kelpBlocked, seaAdj, cutKelp, syncHelm, repairEngine, seaInfo2, upgradeLamp, intentHidden, shopOpen, seaInfo, setSail, voyage, submitMark, toggleLamp, ringBell, regionOpen, fogCalc, zoneOf, bossInfo, challengeBoss, todInfo, rest, nextGoal, starterDue, questInfo, questRun, tideInfo, flooded, exitCost, shipInfo, buildShip, eventInfo, eventAct, xboxes, openX, reserveSupply, cancelReserve, hasK, nestMsg, tierOf, reach, depthOf, clearLastRun, passiveInfo, submitPassive, checkPassives, boxesOf, placeItem, equipPack, craft, findSpot, fitsAt, dimsOf, area, bagCells, contDims, conts, norm, isPouch, pouchEmpty, D, ADJ, regionOf, swapTake, swapInfo, fits, deepBonus, riskOf, buyIntel, unlockMetro, checkGoal, newGame, startRun, move, search, take, drop, extract, combatAct, useItem, moveItem, sell, buy, equip, unequip, heal, upgrade, upgradeInfo, build, quest, deviceInfo, buildDevice, toggleLock, needs, distToExit, used, sellPrice, countBase, built, weapon, intentDmg, validate, save, load, stashCap };
+root.SurvEngine = { roofPreview, roofInfo, roofX, roofCost, roofShut, isBridge, roofLeft, panelGot, panelTake, roofSpring, pzWrench, landGoal13, check13, roofIntent, roofVane, /* v2.24 */ codexInfo, codexList, codexTab, codexBuild, seenAdd, seenFill, /* v2.23.1 */ hLootBody3, doorX, doorTake, bumperCraft, bumperOn, landGoal11, check11, gangHeads, junkIntent, tireDue4, doorNext, landDeliver2, /* v2.23 */ statInfo, /* v2.22.4 */ lootPut, /* v2.22.4 */ lootItems, lootLayout, lootSeen, lootTake, lootTakeAll, /* v2.22.3 */ boxItems, boxLayout, boxTake, boxTakeAll, gridFit, /* v2.22.2 */ bodyOpen, bodyTake, bodyTakeAll, bodyLayout, bodyName, hLootBody, /* v2.22.1 */ camperInfo, pzStart, pzTap, pzShuffle, pzCrew, pzBoard, pzBfs, pzSolved, pzTrace, pzReset, pzLit, pzMin, pzRotN, pzParts, /* v2.22.5 */ lootLeft, hLoot, tireLoad, engineDue, tireDue, landEw, /* v2.22 */ landGo, landInfo, scrapDeliver, landGoalNext, landOf, landHere, shutAdj, /* v2.21 */ pocketCap, fleeCost, slotInfo, slotSpin, reload, rvInfo, rvNeed, vSpawn, accUpInfo, accUpStart, redeem, atkInfo, ambInfo, ambWeapon, buyAmb, shopPin, buyN, buyMax, can, canS, intentHits, intentShow, dmgAfter, diceInfo, dicePre, diceRoll, diceClose, diceBest, upgradeStart, levelInfo, lvPick, storeUpInfo, storeUp, lvGain, lvDeath, startCombat, die, shopStock, openBox, boxInfo, equipAcc, unequipAcc, amberDrop, accOn: A, seaInfo4, lightLamp, challengeWhale, whaleInfo, seaInfo3, kelpBlocked, seaAdj, cutKelp, syncHelm, repairEngine, seaInfo2, upgradeLamp, intentHidden, shopOpen, seaInfo, setSail, voyage, submitMark, toggleLamp, ringBell, regionOpen, fogCalc, zoneOf, bossInfo, challengeBoss, todInfo, rest, nextGoal, starterDue, questInfo, questRun, tideInfo, flooded, exitCost, shipInfo, buildShip, eventInfo, eventAct, xboxes, openX, reserveSupply, cancelReserve, hasK, nestMsg, tierOf, reach, depthOf, clearLastRun, passiveInfo, submitPassive, checkPassives, boxesOf, placeItem, equipPack, craft, findSpot, fitsAt, dimsOf, area, bagCells, contDims, conts, norm, isPouch, pouchEmpty, D, ADJ, regionOf, swapTake, swapInfo, fits, deepBonus, riskOf, buyIntel, unlockMetro, checkGoal, newGame, startRun, move, search, take, drop, extract, combatAct, useItem, moveItem, sell, buy, equip, unequip, heal, upgrade, upgradeInfo, build, quest, deviceInfo, buildDevice, toggleLock, needs, distToExit, used, sellPrice, countBase, built, weapon, intentDmg, validate, save, load, stashCap };
 // v2.1 배낭이 바뀌는 행동 뒤에는 잠수 헬멧을 지녔는지 바로 맞춤 [전략실장]
 for (const k of ['take', 'swapTake', 'drop', 'moveItem', 'combatAct', 'useItem', 'search', 'move', 'openX', 'eventAct']) { const f0 = root.SurvEngine[k]; root.SurvEngine[k] = function (st) { try { return f0.apply(this, arguments); } finally { if (st && st.run) syncHelm(st); } }; }
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -2956,8 +3087,8 @@ for (const k of ['take', 'swapTake', 'drop', 'moveItem', 'combatAct', 'useItem',
 'use strict';
 const G = window.SurvEngine, D = G.D, KEY = 'recovery-v22';
 const RA = window.RA || {};
-{ const AL = { DK1D: 'A5', DK1N: 'A5', A16: 'A5', A17: 'A3', E19: 'E1', E20: 'E2', I_firework: 'I_flare', I_campfood: 'I_can', I_medkit: 'I_painkiller', I_camera: 'I_watch', I_minicamper: 'I_statue', A18: 'A5', E21: 'E1', E22: 'E3', E23: 'E5', I_engine: 'I_motor', I_tire: 'I_gear', I_armband: 'I_wrist', I_cdoor: 'I_frame', A19: 'A5', E24: 'E21', E25: 'E23', E26: 'E22', I_cdoorL: 'I_cdoor', I_cdoorR: 'I_cdoor', I_cdoorE: 'I_cdoor', I_bumperS: 'I_pipe', I_bumperL: 'I_rope', I_bumperK: 'I_pipe' } /* v2.23 */; /* v2.22 키 */ for (const [k, o] of Object.entries(AL)) if (!RA[k] && RA[o]) RA[k] = RA[o]; } /* v2.21 3장 그림 자리 */
-const FOE = { charger: 'E1', ambusher: 'E2', spitter: 'E3', swarm: 'E4', vine: 'E5', shell: 'E6', tide: 'E7', gull: 'E8', jelly: 'E9', net: 'E10', eel: 'E11', crabs: 'E12', drone: 'E13', claw: 'E14', moths: 'E15', wisp: 'E16', calf: 'E17', whale: 'E18', dog: 'E19', cocoon: 'E20', club: 'E21', shooter: 'E22', tireworm: 'E23', gang: 'E24', oilspore: 'E25', gboss: 'E26' /* v2.23 */ }, AREA = { junk: 'A19', garage: 'A18', dock: 'A16', camp: 'A17', city: 'A3', metro: 'A4', harbor: 'A5', z1: 'A6', z2: 'A7', z3: 'A8', z4: 'A9', z5: 'A10', z6: 'A11', z7: 'A12', z8: 'A13', z9: 'A14', z10: 'A15' };
+{ const AL = { DK1D: 'A5', DK1N: 'A5', A16: 'A5', A17: 'A3', E19: 'E1', E20: 'E2', I_firework: 'I_flare', I_campfood: 'I_can', I_medkit: 'I_painkiller', I_camera: 'I_watch', I_minicamper: 'I_statue', A18: 'A5', E21: 'E1', E22: 'E3', E23: 'E5', I_engine: 'I_motor', I_tire: 'I_gear', I_armband: 'I_wrist', I_cdoor: 'I_frame', A19: 'A5', E24: 'E21', E25: 'E23', E26: 'E22', I_cdoorL: 'I_cdoor', I_cdoorR: 'I_cdoor', I_cdoorE: 'I_cdoor', I_bumperS: 'I_pipe', I_bumperL: 'I_rope', I_bumperK: 'I_pipe', A20: 'A18', E27: 'E5', I_vane: 'I_statue', I_panel: 'I_glass' } /* v2.23 · v2.24 */; /* v2.22 키 */ for (const [k, o] of Object.entries(AL)) if (!RA[k] && RA[o]) RA[k] = RA[o]; } /* v2.21 3장 그림 자리 */
+const FOE = { charger: 'E1', ambusher: 'E2', spitter: 'E3', swarm: 'E4', vine: 'E5', shell: 'E6', tide: 'E7', gull: 'E8', jelly: 'E9', net: 'E10', eel: 'E11', crabs: 'E12', drone: 'E13', claw: 'E14', moths: 'E15', wisp: 'E16', calf: 'E17', whale: 'E18', dog: 'E19', cocoon: 'E20', club: 'E21', shooter: 'E22', tireworm: 'E23', gang: 'E24', oilspore: 'E25', gboss: 'E26' /* v2.23 */, sunbloom: 'E27' /* v2.24 */ }, AREA = { roof: 'A20', junk: 'A19', garage: 'A18', dock: 'A16', camp: 'A17', city: 'A3', metro: 'A4', harbor: 'A5', z1: 'A6', z2: 'A7', z3: 'A8', z4: 'A9', z5: 'A10', z6: 'A11', z7: 'A12', z8: 'A13', z9: 'A14', z10: 'A15' };
 // ---------- v0.5 소리 (게임 저장과 따로, 이 기기에만 기억) ----------
 const SND = (() => {
   const SK = 'recovery-sound', MV = 0.35, SV = 0.8, mus = {}, fx = new Set();
@@ -3493,7 +3624,7 @@ function logCard() { return `<div class="card"><b>📒 기록</b><div class="log
 function mapSvg() {
   const r = st.run, cur = r.node, adj = G.seaAdj(st, cur); const FOG = !!D.regions[r.region].fog, kn = id => !FOG || !!(r.visited[id] || (st.sea && st.sea.chart[id])); // v2.0 안개: 밟았거나 해도에 남은 칸만 보임
   let s = `<div class="mapbox">${img(AREA[r.region], '', '')}<svg viewBox="0 0 340 430">`; const inR = id => G.regionOf(id) === r.region;
-  for (const [a, b] of D.edges) { if (!inR(a) || (!kn(a) && !kn(b))) continue; const A = D.nodes[a], B = D.nodes[b]; s += `<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="${G.kelpBlocked(st, a, b) ? '#4fae6e' : '#3a444d'}" stroke-width="3"${G.kelpBlocked(st, a, b) ? ' stroke-dasharray="2 6"' : ''}/>`; }
+  for (const [a, b] of D.edges) { if (!inR(a) || (!kn(a) && !kn(b))) continue; const A = D.nodes[a], B = D.nodes[b]; s += `<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="${G.kelpBlocked(st, a, b) ? '#4fae6e' : G.isBridge(a, b) ? (r.night === true ? '#6b3a3a' : '#d9a441') : '#3a444d'}" stroke-width="3"${G.kelpBlocked(st, a, b) || (G.isBridge(a, b) && r.night === true) ? ' stroke-dasharray="2 6"' : ''}/>`; }
   for (const [id, n] of Object.entries(D.nodes)) {
     if (!inR(id)) continue;
     if (!kn(id)) { const can0 = adj.includes(id); s += `<g ${can0 ? `data-a="move" data-k="${id}" style="cursor:pointer"` : ''}><circle cx="${n.x}" cy="${n.y}" r="17" fill="#1b2026" fill-opacity=".82" stroke="${can0 ? '#e0a040' : '#5a6670'}" stroke-width="${can0 ? 3 : 1}" stroke-dasharray="4 3"/><text x="${n.x}" y="${n.y + 5}" text-anchor="middle" font-size="15" fill="#c5d0d8">?</text></g>`; continue; }
@@ -4326,7 +4457,7 @@ function renderRun() {
    ${G.deepBonus(r.node) ? `<div class="muted">📦 깊은 곳: 조사하면 +${G.deepBonus(r.node)}개 더 나와요 · ⚠ 대신 위험도 +${G.riskOf(r.node)}</div>` : ''}
    <div class="boxes">${G.boxesOf(r.node).map((b, j) => { const op = r.opened && r.opened[r.node] && r.opened[r.node][j]; const bn = op && !st.tm ? G.boxItems(st, r.node, j).length : 0; if (bn) return `<button class="boxb" data-a="boxopen" data-k="${j}"><span class="e">${b.e}</span>${b.n}<span class="muted" style="font-size:11px">다시 열기 · ${bn}개</span></button>`; /* v2.22.2 */ return `<button class="boxb" data-a="search" data-k="${j}" ${op || k >= 3 || reveal || G.flooded(r, r.node) ? 'disabled' : WHY(G.can(st, 'search', j))}><span class="e">${b.e}</span>${b.n}<span class="muted" style="font-size:11px">${op ? (st.tm ? '다 뒤짐' : '빈 상자') : G.flooded(r, r.node) ? '물에 잠김' : `기력 1 · 위험 +${G.riskOf(r.node)}`}</span></button>`; }).join('')}${G.xboxes(st).map(b => `<button class="boxb" data-a="xbox" data-k="${b.k}" ${b.ok && !reveal && !G.flooded(r, r.node) ? '' : 'disabled'} style="border-color:var(--acc)"><span class="e">${b.e}</span>${b.n}<span class="muted" style="font-size:11px">${b.note}</span></button>`).join('')}</div>
    ${n.exit ? '<div class="btns"><button class="pri" data-a="extract">🚪 귀환</button></div>' : ''}</div>`;
-  h += seaRunCard() + seaRunCard2() + seaRunCard3() + bossCard();
+  h += roofRunCard() + /* v2.24 */ seaRunCard() + seaRunCard2() + seaRunCard3() + bossCard();
   if (reveal && reveal.phase === 'scan') h += `<div class="card${fpOn() ? " fphide" : ""}" style="border-color:var(--acc)"><b><span class="mag">🔍</span> ${reveal.e} ${reveal.name} 안을 살피는 중…</b><div class="pbar"><i style="animation-duration:${reveal.ms}ms"></i></div><div class="btns sm"><button data-a="rskip">빨리 보기</button></div></div>`;
   if (swap && found.indexOf(swap.obj) < 0) swap = null;
   if (swap && !fpOn()) h += swapCard(found);
@@ -4857,9 +4988,9 @@ function pzHtml2(x) { const p = x.pz, n = p.n, lit = x.lit || [], solvedSink = l
 function camperHtml2() { const x = G.camperInfo(st);
   if (!x.frame) return '<div class="card"><b>🚐 캠핑카</b><div class="muted">아직 캠핑카를 찾지 못했어요. 해안 캠핑장 전시장을 조사해요 (9차).</div></div>';
   const tot = x.parts.reduce((a, p) => a + p.need, 0), have = x.parts.reduce((a, p) => a + p.have, 0);
-  const pzTop = x.pz ? `<div class="pzcard">${pzHtml2(x)}<div class="btns"><button data-a="pzreset">↺ 처음부터</button><button data-a="pzshuf">🔀 새 판</button><button data-a="pzcrew"${WHY(G.can(st, 'pzCrew'))}>🧰 선원에게 맡기기 (${x.crewFree ? '실패 3번 — 바로' : '반나절'})</button></div><div class="muted">실패해도 잃는 것은 없어요${x.fails ? ` · 실패 ${x.fails}번` : ''}. 풀면 이 부품이 위 골조에 달려요.</div></div>` : ''; /* 퍼즐은 골조 바로 아래 (달리는 모습이 한 화면에) */
+  const pzTop = x.pz ? `<div class="pzcard">${pzHtml2(x)}<div class="btns"><button data-a="pzreset">↺ 처음부터</button><button data-a="pzwrench"${WHY(G.can(st, 'pzWrench'))}>🔧 렌치 쓰기 (+${D.pzWrench} · 렌치 ${G.countBase(st, 'wrench')})</button><button data-a="pzshuf">🔀 새 판</button><button data-a="pzcrew"${WHY(G.can(st, 'pzCrew'))}>🧰 선원에게 맡기기 (${x.crewFree ? '실패 3번 — 바로' : '반나절'})</button></div><div class="muted">실패해도 잃는 것은 없어요${x.fails ? ` · 실패 ${x.fails}번` : ''}. 풀면 이 부품이 위 골조에 달려요.</div></div>` : ''; /* 퍼즐은 골조 바로 아래 (달리는 모습이 한 화면에) */
   let h = `<div class="card">${camperFrameHtml(x)}${pzTop}<b>🚐 골조 캠핑카 — 단 부품 ${have}/${tot}</b><div class="muted">부품을 배낭에 넣어 귀환하면 선원이 날라요. 날라 온 부품은 퍼즐을 풀면 골조에 달려요. 흐린 그림은 빈 자리, 주황 빛은 가져와서 달기를 기다리는 부품이에요.</div><div class="cparts">`
-    + x.parts.map(p => { const can = x.can.includes(p.k) && !x.pz, st2 = p.k === 'engine' ? (x.eng === 2 ? '달았어요' : x.eng === 1 ? '가져옴 · 달기 전' : '정비소 거리 정비 공장') : p.k === 'tire' ? `달림 ${p.have}/4 · 가져옴 ${p.got}` : p.k === 'door' ? `달림 ${p.have}/3 · 가져옴 ${p.got}` : '다음 이야기';
+    + x.parts.map(p => { const can = x.can.includes(p.k) && !x.pz, st2 = p.k === 'engine' ? (x.eng === 2 ? '달았어요' : x.eng === 1 ? '가져옴 · 달기 전' : '정비소 거리 정비 공장') : p.k === 'tire' ? `달림 ${p.have}/4 · 가져옴 ${p.got}` : p.k === 'door' ? `달림 ${p.have}/3 · 가져옴 ${p.got}` : p.k === 'panel' ? `달림 ${p.have}/8 · 가져옴 ${p.got}` : '다음 이야기';
       return `<div class="cpart"><span class="cpn">${p.n} <span class="muted">${p.have}/${p.need}</span></span><span class="cbox">${Array.from({ length: p.need }, (_, i) => `<i class="${i < p.have ? 'on' : i < p.got ? 'got' : ''}"></i>`).join('')}</span><span class="muted">${st2}</span>${can ? `<button class="pri cpbtn" data-a="pzstart" data-k="${p.k}"${WHY(G.can(st, 'pzStart', p.k))}>🧩 ${PZ_NAME[p.k]} 달기 (퍼즐)</button>` : ''}</div>`; }).join('') + '</div></div>';
   h += bumperHtml(x); /* v2.23 */
   if (x.p10) h += '<div class="card goal">🏁 10차 목표 달성 — 엔진을 달고 타이어 2개를 모았어요!<div class="muted" style="font-weight:400">다음은 폐차장의 타이어·문이에요 (다음 이야기).</div></div>';
@@ -4868,13 +4999,14 @@ function camperHtml2() { const x = G.camperInfo(st);
   else if (x.eng === 2) h += `<div class="muted">엔진을 달았어요.</div><div class="btns"><button class="pri" data-a="ignite">🔑 시동 시험</button></div>`;
   else { const m = x.mats, cnt = k => G.countBase(st, k); h += `<div class="muted">달기 재료: 구리선 ${cnt('copper')}/${m.copper} · 회로판 ${cnt('circuit')}/${m.circuit} (보관함·배낭) — 퍼즐(5×5)을 풀면 달아요.</div>${x.pz ? '' : `<div class="btns"><button data-a="pzcrew" data-k="engine"${WHY(G.can(st, 'pzCrew', 'engine'))}>🧰 엔진은 선원에게 맡기기 (${x.crewFree ? '바로' : '반나절'})</button></div>`}`; }
   h += '</div>';
+  h += panelCardHtml(x); /* v2.24 */
   if (x.tire > x.ti && !x.pz) h += `<div class="card"><b>🛞 타이어</b><div class="muted">가져온 타이어 ${x.tire - x.ti}개가 달기를 기다려요. 하나마다 퍼즐(4×4)을 한 번 풀어요.</div><div class="btns"><button data-a="pzcrew" data-k="tire"${WHY(G.can(st, 'pzCrew', 'tire'))}>🧰 타이어는 선원에게 맡기기 (${x.crewFree ? '바로' : '반나절'})</button></div></div>`;
   return h; }
 // 부품을 달면 그 자리가 짧게 반짝 + 소리
 function cfAct(fn) { const b = G.camperInfo(st).parts.map(p => p.have); act(fn); const a = G.camperInfo(st).parts; const k = a.findIndex((p, i) => p.have > b[i]);
   if (k >= 0) { cfFlash = { k: a[k].k, i: a[k].have - 1 }; SND.sfx('S4'); toast(`🔧 ${a[k].n}을(를) 골조에 달았어요 (${a[k].have}/${a[k].need})`); render(); setTimeout(() => { cfFlash = null; }, 1200); } }
 /* ===== v2.23 폐차장 화면: 11·12차 목표 카드 · 작업판 범퍼 칸(만들기·끼우기, 보기만) (업무-20261126-14) ===== */
-function landGoal11Card(x) { const g = G.landGoal11(st); if (x.p11 && x.p12) return '';
+function landGoal11Card(x) { const g = G.landGoal11(st); if (x.p11 && x.p12) return landGoal13Card(x); /* v2.24 */
   return `<div class="card goal">🔧 3장 — ${esc(g.t)}<div class="muted" style="font-weight:400">${esc(g.d)}</div><div class="muted" style="font-weight:400">타이어 달림 ${x.ti}/4 · 문 달림 ${x.di}/3${x.bossK ? '' : ' · 「출입문 되찾기」: 폐차장 바퀴단 막사의 두목'}</div><div class="btns"><button data-a="sheet" data-k="cwork">🚐 캠핑카 작업판</button></div></div>`; }
 function bumperHtml(x) { const own = x.bmp || {}, on = x.bmpOn || '';
   const row = k => { const B = D.bumper[k], has = !!own[k], im = RA['I_bumper' + { steel: 'S', log: 'L', kang: 'K' }[k]];
@@ -4882,6 +5014,22 @@ function bumperHtml(x) { const own = x.bmp || {}, on = x.bmpOn || '';
       : B.boss ? '<span class="muted">두목 첫 보상</span>' : `<button data-a="bmpcraft" data-k="${k}"${WHY(G.can(st, 'bumperCraft', k))}>🔨 만들기 (${Object.entries(B.mats).map(([m, n]) => esc(D.items[m].n) + ' ' + n).join(' · ')}${B.coins ? ' · ' + B.coins + '코인' : ''})</button>`;
     return `<div class="cpart bmprow">${im ? `<img class="thumb" src="${im}" alt="">` : ''}<span class="cpn">${esc(B.n)}</span><span class="muted">${has ? '있어요' : ''}</span>${act}</div>`; };
   return `<div class="card"><b>🛡️ 범퍼 (꾸미기 · 보기만)</b><div class="muted">하나만 끼워요. 끼우면 골조 앞에 보여요.${on ? '' : ' 지금은 안 끼웠어요.'}</div><div class="cparts">${['steel', 'log', 'kang'].map(row).join('')}</div>${on ? '<div class="btns sm"><button data-a="bmpon" data-k="">빼기</button></div>' : ''}</div>`; }
+/* ===== v2.24 옥상 거리 화면: 출발 전 미리보기 · 탐사 중 옥상 칸(낮·밤 길 · 포자 · 패널 · 스프링) · 13차 목표 카드 · 작업판 패널 칸 (업무-20261126-16) ===== */
+let roofPv = false; // 옥상 거리 출발 전 미리보기 창
+function roofPvHtml() { const x = G.roofPreview(st);
+  return `<div class="dim rdim"></div><div class="rmodal roofpv" role="dialog" aria-label="옥상 거리 출발 전 미리보기"><div class="rhead">🏙️ 옥상 거리로 출발할까요?</div>
+    <div class="btns"><button class="pri" data-a="roofgo">${x.night ? '🌙' : '☀️'} 출발</button><button data-a="roofx">취소</button></div>
+    <div class="muted">남은 옥상 <b>${x.leftRoofs}/4</b> · 남은 패널 ${x.leftPanels}장 · 가져옴 ${x.got}/8 · 달림 ${x.pi}/8</div><div class="muted">🧺 이번 탐사 바구니 <b>0/${x.basket}</b> — 크레인 바구니는 한 탐사에 ${x.basket}장까지 (선원이 한 번에 나르는 양)</div>
+    <ul class="cxul">${x.roofs.map(o => `<li>${esc(o.n)}: ${o.left ? `패널 ${o.left}장 남음` : '다 뗐어요 ✓'}</li>`).join('')}</ul>
+    <div class="stl"><div class="sth">지금 ${x.night ? '밤' : '낮'}이에요</div><ul class="cxul">${x.rules.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div></div>`; }
+function roofRunCard() { const x = G.roofInfo(st); if (!x) return '';
+  const road = x.night ? '🌙 밤 — 널다리는 어두워 못 건너요 (계단실로 돌아가요)' : x.bridge.length ? `☀️ 낮 — 널다리로 ${x.bridge.map(esc).join('·')} (기력 2 · 포자 +1)${x.spr ? ' · 🌀 스프링 받침 걸림(기력 1)' : x.springs ? ` · 🌀 스프링 ${x.springs}개` : ''}` : '☀️ 낮 — 이 곳엔 널다리가 없어요';
+  return `<div class="card roofc"><b>🏙️ 옥상 거리</b><div class="muted">${road}</div><div class="muted">☀️ 패널 가져옴 ${x.got}/8 · 🧺 이번 탐사 바구니 ${x.bk}/${x.basket}${x.rp ? ` · 이 옥상 남은 ${x.left}장${x.g5 ? ' (방송국 사수를 먼저)' : ''}` : ''}${x.night ? '' : ` · ☣️ 포자 ${x.spore}`}</div></div>`; }
+function landGoal13Card(x) { const g = G.landGoal13(st);
+  if (x.p13) return `<div class="card goal">${esc(g.t)}<div class="muted" style="font-weight:400">${esc(g.d)}</div></div>`;
+  return `<div class="card goal">🔧 3장 — ${esc(g.t)}<div class="muted" style="font-weight:400">${esc(g.d)}</div><div class="btns"><button data-a="sheet" data-k="cwork">🚐 캠핑카 작업판</button></div></div>`; }
+function panelCardHtml(x) { if (!x.p12 && !x.pgot) return ''; if (x.p13) return '';
+  return `<div class="card"><b>☀️ 지붕 태양광 패널</b><div class="muted">달림 ${x.pi}/8 · 가져옴 ${x.pgot}/8 — 옥상 거리 네 옥상의 패널 거치대에서 떼면 크레인 바구니로 바로 와요(쓰러져도 안 잃어요). 하나마다 퍼즐(4×4)을 한 번 풀어요.</div>${x.pgot > x.pi && !x.pz ? `<div class="btns"><button data-a="pzcrew" data-k="panel"${WHY(G.can(st, 'pzCrew', 'panel'))}>🧰 패널은 선원에게 맡기기 (${x.crewFree ? '바로' : '반나절'})</button></div>` : ''}</div>`; }
 function camperHtml2_0() { /* v2.22 것 — v2.22.5부터 안 씀 */ const x = G.camperInfo(st);
   if (!x.frame) return '<div class="card"><b>🚐 캠핑카</b><div class="muted">아직 캠핑카를 찾지 못했어요. 해안 캠핑장 전시장을 조사해요 (9차).</div></div>';
   const tot = x.parts.reduce((a, p) => a + p.need, 0), have = x.parts.reduce((a, p) => a + p.have, 0);
@@ -5056,6 +5204,7 @@ function renderScene() {
     h += `<div class="dim" data-a="sheet" data-k=""></div><div class="sheet ${sheetFresh ? 'fresh' : ''}"><div class="sheet-h"><b>${title}</b><button data-a="sheet" data-k="">닫기 ✕</button></div><div class="sheet-body">${body}</div></div>`;
     sheetFresh = false;
   }
+  if (roofPv && !st.run && !st.lastRun) h += roofPvHtml(); /* v2.24 출발 전 미리보기 */
   if (st.lastRun) h += resultHtml(); else if (landIntroOn && !st.run) h += landIntroHtml(); /* v2.21 */ else if (igniteOn && !st.run) h += igniteHtml(); /* v2.22 */
   return h;
 }
@@ -5117,7 +5266,7 @@ if (a === 'helpcat') { helpCat = k; window.scrollTo(0, 0); return render(); } if
   if (a === 'landgo') { let first = false; act(() => { first = G.landGo(st); }); if (LANDHERE()) { sheet = ''; outside = true; dockV = !first; landIntroOn = first; window.scrollTo(0, 0); } return render(); } /* v2.21 */
   if (a === 'landok') { landIntroOn = false; if (LANDHERE()) { dockV = true; outside = true; sheet = ''; } return render(); }
   if (a === 'scrap') return act(() => G.scrapDeliver(st));
-  if (a === 'pzstart') return cfAct(() => G.pzStart(st, k || undefined)); if (a === 'pztap') return cfAct(() => G.pzTap(st, i)); if (a === 'pzshuf') return act(() => G.pzShuffle(st)); if (a === 'pzcrew') return cfAct(() => G.pzCrew(st, k || undefined)); if (a === 'pzreset') return act(() => G.pzReset(st)); /* v2.22.5 */ if (a === 'bmpcraft') return act(() => G.bumperCraft(st, k)); if (a === 'bmpon') return act(() => G.bumperOn(st, k || null)); /* v2.23 */ /* v2.22 */
+  if (a === 'pzstart') return cfAct(() => G.pzStart(st, k || undefined)); if (a === 'pztap') return cfAct(() => G.pzTap(st, i)); if (a === 'pzshuf') return act(() => G.pzShuffle(st)); if (a === 'pzcrew') return cfAct(() => G.pzCrew(st, k || undefined)); if (a === 'pzreset') return act(() => G.pzReset(st)); /* v2.22.5 */ if (a === 'pzwrench') return act(() => G.pzWrench(st)); /* v2.24 */ if (a === 'bmpcraft') return act(() => G.bumperCraft(st, k)); if (a === 'bmpon') return act(() => G.bumperOn(st, k || null)); /* v2.23 */ /* v2.22 */
   if (a === 'ignite') { igniteOn = true; sheet = ''; return render(); } if (a === 'ignok') { igniteOn = false; return render(); }
   if (a === 'sheet' || a === 'eqtab') eqPop = null; if (a === 'eqpx') { eqPop = null; return render(); } if (a === 'eqpk' && eqPop) { eqPop.sel = eqPop.sel === i ? null : i; return render(); } if (a === 'eqpmv' && eqPop) { eqPop.sel = null; return act(() => G.moveItem(st, 'pocket', i, t)); } if (a === 'eqpuse' && eqPop) { eqPop.sel = null; return act(() => G.useItem(st, 'pocket', i)); } /* v2.22.5 */
   if (a === 'eqgo') return eqGo(k); if (a === 'stat') { statOpen = true; return render(); } if (a === 'statx') { statOpen = false; return render(); } /* v2.22.4 */
@@ -5182,6 +5331,7 @@ if (a === 'helpcat') { helpCat = k; window.scrollTo(0, 0); return render(); } if
   if (a !== 'swtog') swap = null;
   let snd = a === 'take' ? 'S4' : (a === 'ca' && k === 'attack') ? rvSnd() : (a === 'ca' && k === 'reload') ? 'S6' : ''; /* v2.17 리볼버는 쏘면 총소리 · 장전은 실린더 소리 */
   if (a === 'ca' && k === 'item' && st[f] && st[f][i] && st[f][i].k === 'bottle') snd = 'S1';
+  if (a === 'start' && k === 'roof') { roofPv = true; return render(); } if (a === 'roofx') { roofPv = false; return render(); } if (a === 'roofgo') { roofPv = false; return act(() => { G.startRun(st, 'roof'); sheet = ''; window.scrollTo(0, 0); }, 'start'); } /* v2.24 */
   const TAG = { start: 'start', move: 'move', search: 'search', take: 'take', extract: 'extract', sell: 'sell', quest: 'sell' };
   act(() => {
     if (a === 'start') { G.startRun(st, k, t); sheet = ''; window.scrollTo(0, 0); }
