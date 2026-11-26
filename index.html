@@ -200,6 +200,7 @@ svg{display:block;width:100%;height:auto;background:#101316;border-radius:var(--
 .bq-v{min-width:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px solid var(--line);background:#0b1119}.bq-v b{font-size:28px;line-height:1}.bq-v small{font-size:12px;color:var(--muted)}
 .bq-sum{text-align:center;font-size:15px}.bq-why{text-align:center;margin-top:4px}.bqcard .btns button{min-height:48px;font-size:16px}
 </style>
+<style id="v2242">.girot{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(90deg);background-position:center;background-size:contain;background-repeat:no-repeat;pointer-events:none;z-index:-1}.gi:has(> .girot),.sgi:has(> .girot),.sopi:has(> .girot){isolation:isolate}.sgi:has(> .girot),.sopi:has(> .girot){position:relative}.sopi:has(> .girot){display:inline-block}</style>
 <style id="v224">.roofpv .rhead{margin-bottom:4px}.roofpv .cxul{margin:4px 0 0 16px;padding:0;font-size:12.5px;line-height:1.45}.roofpv .stl{border-top:2px dashed #8fa3bb55;margin-top:6px;padding-top:6px}.roofpv .sth{font-weight:800;font-size:12px;color:#9fb0c4}.roofc .muted{line-height:1.45}</style>
 <style id="v2231">.cxcard .row{display:flex;justify-content:space-between;align-items:center}.cxtabs{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0}.cxtabs button{flex:1 1 30%;min-height:40px;padding:4px 6px;font-size:12px}.cxtabs button.on{background:var(--acc,#e0a040);color:#111;border-color:var(--acc,#e0a040)}.cxtabs small{display:block;font-size:10px;opacity:.8}.cxgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;max-width:100%}.cxgrid .sgi{position:relative;min-height:0;padding:0;border:2px dashed #ffffff3a}.cxgrid .sgi span{font-size:10px}.cxgrid .sgi:not(.got){opacity:.55}.cxok{position:absolute;right:3px;top:1px;font-style:normal;color:#7fd18f;font-weight:800;font-size:14px;text-shadow:0 1px 2px #000}.cxpop .cxul{margin:2px 0 0 16px;padding:0;font-size:12.5px;line-height:1.4}.cxpop .cxul li{margin:1px 0}.cxpop .stl{border-top:2px dashed #8fa3bb55;margin-top:6px;padding-top:6px}.cxpop .sth{font-weight:800;font-size:12px;color:#9fb0c4}</style>
 <style id="v223">.bmprow{grid-template-columns:auto minmax(0,1fr) auto}.bmprow .thumb{width:34px;height:34px;object-fit:contain;image-rendering:pixelated}.bmprow button{grid-column:1/4;min-height:40px}</style>
@@ -1278,7 +1279,7 @@ function search(st, j) {
   const sd = due ? [] : starterDue(st); if (sd.length) { r.gN = (r.gN || 0) + 1; cnt = Math.max(cnt, sd.length); } // v1.4 첫 귀환 전 끈·테이프 보장
   if (st.tm) cnt = 2; /* v2.12 튜토리얼 */ if (reS) cnt = 0; /* v2.24.1 다시 조사엔 패널만 */
   for (let q = 0; q < cnt; q++) { const it = st.tm ? ['battery', 'rope'][q] : (q === 0 && due) ? due : q < sd.length ? sd[q] : pickW(st, bx[j].loot); (r.found[n] = r.found[n] || []).push({ k: it, bx: j }); /* v2.22.2 상자 안에 남음 · v2.22.3 튜토리얼도 */ got.push(D.items[it].n); }
-  { const vk = vTake(st, n, j).concat(roofPanels(st, n, j)) /* v2.24.1 패널은 거치대 칸 창에 */; for (const x of vk) { (r.found[n] = r.found[n] || []).push({ k: x, bx: j }); /* v2.22.2 */ got.push('✨' + D.items[x].n); } cnt += vk.length; } /* v2.17 */
+  { const vk = vTake(st, n, j).concat(roofPanels(st, n, j)) /* v2.24.1 패널은 거치대 칸 창에 */; for (const x of vk) { (r.found[n] = r.found[n] || []).push({ k: x, bx: j }); /* v2.22.2 */ got.push((x === 'panel' ? '☀️' : '✨') + D.items[x].n) /* v2.24.2 패널은 ☀️ */; } cnt += vk.length; } /* v2.17 */
   r.last = { n, j, cnt }; log(st, `${bx[j].e} ${bx[j].n} ${k + 1}/3: ${got.join(', ')} 발견. 위험도 ${r.risk}`); seaSpore(st, 1); seaOilGift(st, n); landNest(st, n); /* v2.22 */
   encounter(st, 0.5);
 }
@@ -1525,7 +1526,7 @@ function bossOk(st) { // 저장된 보스전이 앞뒤가 맞는지 [전략실�
 function startCombat(st, k) {
   const r = st.run, base = D.enemies[k], tm = todOf(r), hp = Math.max(1, Math.round(base.fixed ? base.hp : base.hp * (1 + r.risk * 0.08) * tm.hp)); // v1.5 낮엔 약하고 밤엔 셈
   const e = { k, hp, hpMax: hp, bonus: base.fixed ? 0 : Math.floor(r.risk / 4) + tm.dmg, dist: base.far ? base.start : Math.max(0, base.start - (((r && r.fog) || 1) - 1)), first: true, alt: false, cyc: 0, stunned: false, stunImm: 0, bleed: 0 };
-  if (k === 'sunbloom' && r && r.night === true) e.sl = D.bloomSleep; /* v2.24 밤엔 잠듦 */
+  if (k === 'sunbloom' && r && r.night === true) { e.sl = D.bloomSleep; e.nt = true; } /* v2.24.2 밤 꽃 */ /* v2.24 밤엔 잠듦 */
   e.intent = intentOf(e); st.combat = { e, turn: 0, lines: [`${base.n} 등장! (${base.desc})`] };
   log(st, `${base.n} 등장!`); seaAmbush(st, base); seaSpawn(st); // v2.0 안개 속 기습
 }
@@ -2312,7 +2313,7 @@ function roofWin(st, ek) { const r = st.run; if (r && r.region === 'roof' && ek 
 // 만나는 적: 사수는 낮 옥상에만(밤·계단실엔 없음)
 function roofEw(st, o) { const r = st.run, x = Object.assign({}, o); if (r.night === true || D.nodes[r.node].rp === undefined) delete x.shooter; return x; }
 // 햇볕 포자꽃: 늘 중간 거리(다가오지 않음) · 뿜기, 뿜기, 빈틈 · 밤엔 처음 2턴 잠듦(빈틈)
-function roofIntent(e) { if (e.k !== 'sunbloom') return ''; if (e.sl > 0) return 'bsleep'; return e.cyc % 3 === 2 ? 'stagger' : 'bspew'; }
+function roofIntent(e) { if (e.k !== 'sunbloom') return ''; if (e.sl > 0) return 'bsleep'; const cy = e.nt ? D.bloomCycN : D.bloomCyc; return e.cyc % cy === cy - 1 ? 'stagger' : 'bspew'; } /* v2.24.2 빈틈 간격 (밤은 졸려서 더 자주) */
 function roofAct(st, c, e, it, d, hit, blocking, L) {
   if (it === 'bsleep') { e.sl = Math.max(0, (e.sl || 0) - 1); L.push('햇볕 포자꽃이 잠들어 있어요 (빈틈)'); return true; }
   if (it === 'bspew') { if (e.dist > 1) { L.push('포자가 닿지 않았어요 (거리)'); return true; } hit(d); if (!blocking && st.run && st.run.night !== true) { roofSpore(st, 1); L.push('포자를 들이마셨어요 (포자 +1)'); } return true; }
@@ -2370,7 +2371,14 @@ function roofFitN(st, how) { let best = 0, bestRf = 0; for (const rf of [0, 1]) 
 D.nodes.L5E.x = 215; D.nodes.L5E.y = 190;
 
 // 비서실장: 설정 화면 판 번호 글
-D.version = '2.24.1';
+D.version = '2.24.2';
+/* ===== v2.24.2 주의점 보완 (업무-20261126-17 · BOSS 2026-11-26 21:0x "주의점 보완 후 확정") =====
+   햇볕 포자꽃 숫자: 낮에 꼼꼼한 봇(레벨 6 · 칼 3단계) 승률 85~95% · 받는 피해 6~9 쯤 · 밤(잠듦)은 뚜렷이 쉽게 · 막으면 포자 안 쌓임은 그대로 (측정: bloom_bal.js) */
+D.bloomCyc = 4; D.bloomCycN = 2; // 한 바퀴 차례 수(마지막이 빈틈): 낮 뿜기·뿜기·뿜기·빈틈 · 밤(깬 뒤) 뿜기·빈틈
+D.enemies.sunbloom.hp = 28; D.intents.bspew.dmg = 5; // 체력 14 → 28 · 뿜기 3 → 5 (낮 −1 · 밤 +1 · 위험 규칙은 그대로) — bloom_bal.js: 낮 따로 싸움 받은 피해 8.3 · 옥상 한 판 안 승률 95.0% · 귀환 94.3%
+D.enemies.sunbloom.desc = '늘 중간 거리에 뿌리박고 다가오지 않아요 · 낮: 포자 뿜기 5 세 번 → 빈틈(맞으면 포자 +1, 막으면 안 쌓여요) · 밤: 잠들어 처음 2턴 빈틈 → 깨도 졸려서 뿜기·빈틈';
+D.intents.bspew.t = '포자 뿜기 (가까움·중간 · 낮엔 맞으면 포자 +1)';
+D.bigImg = ['panel']; // 배낭·칸 창에서 큰 세로 그림(IB_)을 쓰는 물건 — 눕히면 90° 돌려 보여 줌
 function die(st, why) { if (st.tm) { st.hp = 1; log(st, '연습 판이라 쓰러지지 않아요 (체력 1)'); return; } /* v2.12 튜토리얼 */ if (!(st.run && st.run.practice)) lvDeath(st); /* v2.5 쓰러지면 막대 −5 */
   const r = st.run, d0 = { lostN: 0 }; st.stats.deaths++; /* v2.20 결과창 */
   if (r && r.practice) { for (const w of ['bag', 'pocket']) { const n0 = st[w].length; st[w] = st[w].filter(it => !it.f); d0.lostN += n0 - st[w].length; } norm(st); log(st, `${why} — 연습이라 잃은 건 없어요 (연습 중 주운 물건만 사라짐)`); }
@@ -3385,8 +3393,8 @@ function gridHtml(c, w, h) {
   const at = (x, y, ww, hh) => `left:${x * (cw + GP)}px;top:${y * (cw + GP)}px;width:${ww * cw + (ww - 1) * GP}px;height:${hh * cw + (hh - 1) * GP}px`;
   let g = `<div class="grid" style="grid-template-columns:repeat(${w},${cw}px)">`;
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) g += `<div class="cell" data-a="cell" data-k="${c}" data-t="${x},${y}"></div>`;
-  st.bag.forEach((it, i) => { if (it.c !== c) return; const [ww, hh] = G.dimsOf(it), d = D.items[it.k], im = RA['IB_' + it.k] || RA['I_' + it.k]; /* v2.24.1 배낭 칸엔 큰 그림이 있으면 그것 */
-    g += `<div data-a="cell" data-k="${c}" data-t="${it.x},${it.y}" class="gi ${im ? 'img' : ''} ${G.isPouch(it) ? 'pouch' : ''} ${held && held.obj === it ? 'held' : ''}" style="${at(it.x, it.y, ww, hh)};background-color:${CCOL[d.c] || '#999'}${im ? `;background-image:url(${im})` : ''}">${esc(short(d.n))}${it.lv ? ' ' + it.lv : ''}</div>`; });
+  st.bag.forEach((it, i) => { if (it.c !== c) return; const [ww, hh] = G.dimsOf(it), d = D.items[it.k], im = bigIm(it.k, ww, hh); /* v2.24.1 배낭 칸엔 큰 그림 · v2.24.2 눕히면 돌린 그림 */
+    g += `<div data-a="cell" data-k="${c}" data-t="${it.x},${it.y}" class="gi ${im ? 'img' : ''} ${G.isPouch(it) ? 'pouch' : ''} ${held && held.obj === it ? 'held' : ''}" style="${at(it.x, it.y, ww, hh)};background-color:${CCOL[d.c] || '#999'}${im ? `;background-image:url(${im})` : ''}">${rotEl(it.k, ww, hh)}${esc(short(d.n))}${it.lv ? ' ' + it.lv : ''}</div>`; });
   const hi = heldItem();
   if (hi && ghost && ghost.c === c) { const [ww, hh] = G.dimsOf(hi, held.r), ok = G.fitsAt(st, hi, c, ghost.x, ghost.y, held.r, held.src === 'bag' ? hi : undefined);
     g += `<div class="ghost ${ok ? 'ok' : 'no'}" style="${at(ghost.x, ghost.y, ww, hh)}">${ok ? '✓' : '×'}</div>`; }
@@ -4920,7 +4928,7 @@ function lootInner(P) { const L = lootCells(P); if (!L) return null; let occ = {
     if (!c.sv) { hid++; const now = lootCur === c.obj; g += `<button class="sgi shd${now ? ' now' : ''}" disabled style="${pos(c)}" aria-label="${now ? '수색 중' : '수색 전'}">${now ? '<b class="srch">수색 중<br><i>.</i><i>.</i><i>.</i></b>' : ''}</button>`; continue; }
     ready++; const fl = lootFl === c.obj ? ' lfl' : '', imp = c.it && (D.lootKey.includes(c.it.k) || (D.lootKey2 || []).includes(c.it.k)) ? ' kimp' : '';
     if (c.obj === 'c') g += `<button class="sgi coin${fl}" data-a="lt" data-k="c" style="${pos(c)}" aria-label="코인 ${c.coin}"><span><span class="emo">💰</span> ${c.coin}</span></button>`;
-    else g += `<button class="sgi img${fl}${imp}" data-a="lt" data-k="${key}" data-it="${c.it.k}" style="${pos(c)};background-image:url(${RA['I_' + c.it.k]})" aria-label="${esc(D.items[c.it.k].n)}"><span>${lootLabel(c.it)}</span></button>`; }
+    else g += `<button class="sgi img${fl}${imp}" data-a="lt" data-k="${key}" data-it="${c.it.k}" style="${pos(c)};background-image:url(${bigIm(c.it.k, c.w, c.h)})" aria-label="${esc(D.items[c.it.k].n)}">${rotEl(c.it.k, c.w, c.h)}<span>${lootLabel(c.it)}</span></button>`; }
   g += '</div>';
   const title = P.t === 'b' ? `🎒 ${esc(G.bodyName(st.run.bodies[P.n][P.j].ek))}` : P.t === 'x' ? `📦 ${esc(boxTitle(P.n, P.j))}` : '📦 바닥에 있는 물건';
   const note = hid ? `수색 중… ${L.cells.length - hid}/${L.cells.length} · 나온 칸만 가져갈 수 있어요` : `칸을 누르면 배낭으로 들어가요 · ${P.t === 'b' ? '다 비우면 사라져요 · ' : ''}${L.cells.some(c => c.it && c.it.k === 'panel') ? '패널은 남겨도 이 거치대에 그대로 있어요 · 다른 것은 귀환하면 사라져요' : '귀환하면 남은 것은 사라져요'}`;
@@ -4943,15 +4951,15 @@ const sortOcc = (c, x, y) => st.bag.find(o => o.c === c && x >= o.x && y >= o.y 
 function sortGrid(c, w, h) { const cw = sortCw(w), GP = 3, S = sortPop, at = (x, y, ww, hh) => `left:${x * (cw + GP)}px;top:${y * (cw + GP)}px;width:${ww * cw + (ww - 1) * GP}px;height:${hh * cw + (hh - 1) * GP}px`;
   let g = `<div class="grid sogrid" style="grid-template-columns:repeat(${w},${cw}px)">`;
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) g += `<div class="cell" data-a="so_cell" data-k="${c}" data-t="${x},${y}"></div>`;
-  st.bag.forEach(it => { if (it.c !== c) return; const [ww, hh] = G.dimsOf(it), im = RA['I_' + it.k];
-    g += `<div data-a="so_cell" data-k="${c}" data-t="${it.x},${it.y}" class="gi${im ? ' img' : ''}${G.isPouch(it) ? ' pouch' : ''}${S.menu === it || S.move === it ? ' held' : ''}" style="${at(it.x, it.y, ww, hh)}${im ? `;background-image:url(${im})` : ''}">${esc(short(D.items[it.k].n))}${it.lv ? ' ' + it.lv : ''}</div>`; });
+  st.bag.forEach(it => { if (it.c !== c) return; const [ww, hh] = G.dimsOf(it), im = bigIm(it.k, ww, hh); /* v2.24.2 */
+    g += `<div data-a="so_cell" data-k="${c}" data-t="${it.x},${it.y}" class="gi${im ? ' img' : ''}${G.isPouch(it) ? ' pouch' : ''}${S.menu === it || S.move === it ? ' held' : ''}" style="${at(it.x, it.y, ww, hh)}${im ? `;background-image:url(${im})` : ''}">${rotEl(it.k, ww, hh)}${esc(short(D.items[it.k].n))}${it.lv ? ' ' + it.lv : ''}</div>`; });
   const o = S.move || (S.pick ? S.obj : null);
   if (o && S.ghost && S.ghost.c === c) { const r = S.move ? S.mr : S.r, [ww, hh] = G.dimsOf(o, r), ok = G.fitsAt(st, o, c, S.ghost.x, S.ghost.y, r, S.move ? o : undefined);
     g += `<div class="ghost ${ok ? 'ok' : 'no'}" style="${at(S.ghost.x, S.ghost.y, ww, hh)}">${ok ? '✓' : '×'}</div>`; }
   return g + '</div>'; }
 function sortPouches(c, pre) { let h = ''; for (const pu of st.bag) if (G.isPouch(pu) && pu.c === c && pu.uid) { const [iw, ih] = D.items[pu.k].inner; h += `<div class="muted sopl">🧷 ${esc(pre + D.items[pu.k].n)} 안 (${iw}×${ih})</div>` + sortGrid(pu.uid, iw, ih) + sortPouches(pu.uid, pre + D.items[pu.k].n + ' › '); } return h; }
-function sortPickHtml() { const S = sortPop, o = S.obj, [w, h] = G.dimsOf(o, S.r), im = RA['I_' + o.k], sq = D.items[o.k].sh[0] === D.items[o.k].sh[1];
-  return `<div class="sopick${S.pick ? ' on' : ''}"><div class="sopk">주울 물건</div><button class="sopt" data-a="so_pick" aria-label="주울 물건 ${esc(D.items[o.k].n)}"><span class="sopi" style="width:${w * 22}px;height:${h * 22}px${im ? `;background-image:url(${im})` : ''}"></span></button><div class="sopn">${lootLabel(o)}</div><div class="sosz">${w}×${h}칸</div><button class="sor" data-a="so_rot"${sq ? ' disabled' : ''}>↻ 돌리기</button></div>`; }
+function sortPickHtml() { const S = sortPop, o = S.obj, [w, h] = G.dimsOf(o, S.r), im = bigIm(o.k, w, h) /* v2.24.2 */, sq = D.items[o.k].sh[0] === D.items[o.k].sh[1];
+  return `<div class="sopick${S.pick ? ' on' : ''}"><div class="sopk">주울 물건</div><button class="sopt" data-a="so_pick" aria-label="주울 물건 ${esc(D.items[o.k].n)}"><span class="sopi" style="width:${w * 22}px;height:${h * 22}px${im ? `;background-image:url(${im})` : ''}">${rotEl(o.k, w, h)}</span></button><div class="sopn">${lootLabel(o)}</div><div class="sosz">${w}×${h}칸</div><button class="sor" data-a="so_rot"${sq ? ' disabled' : ''}>↻ 돌리기</button></div>`; }
 // 배낭 물건 메뉴: 안 되는 것은 흐리게 + 짧은 까닭
 function sortWhy(it) { const i = st.bag.indexOf(it), d = D.items[it.k], [w, h] = G.dimsOf(it);
   return { i, drop: G.pouchEmpty(st, it) ? '' : '안에 물건이 있어요', use: !(d.heal || d.food || d.stim || d.compass || d.note || d.open) ? '쓸 수 없는 물건' : G.can(st, 'useItem', 'bag', i),
@@ -4992,6 +5000,12 @@ const boxTitle = (n, j) => (typeof FPS !== 'undefined' && FPS[n] && FPS[n][j] &&
 function boxPopHtml() { const r = st.run; if (!boxPop || !r || st.combat || st.tm || r.node !== boxPop.n) { boxPop = null; return ''; } const idx = G.boxItems(st, boxPop.n, boxPop.j); if (!idx.length) { boxPop = null; return ''; }
   const L = r.found[boxPop.n], lay = G.boxLayout(st, boxPop.n, boxPop.j), cells = lay.cells.map(c => Object.assign({}, c, { a: `data-a="xtake" data-k="${c.key}"`, img: RA['I_' + L[c.key].k], label: lootLabel(L[c.key]), aria: D.items[L[c.key].k].n }));
   return `<div class="dim rdim"></div><div class="rmodal boxpop" role="dialog" aria-label="상자 뒤지기"><div class="rhead">📦 ${esc(boxTitle(boxPop.n, boxPop.j))} <span class="muted" style="font-size:13px">${lay.W}×${lay.H}</span></div><div class="muted" style="text-align:center">칸을 누르면 배낭으로 들어가요 · 다시 열기는 공짜 · 귀환하면 남은 것은 사라져요</div>${lootGridHtml(lay.W, lay.H, cells)}<div class="btns"><button class="pri" data-a="xtakeall">모두 가져가기</button><button data-a="xclose">닫기</button></div></div>`; }
+/* ===== v2.24.2 눕힌 큰 그림: 세로 그림(IB_)이 있는 물건을 눕히면(가로 > 세로) 칸엔 투명 바탕만 두고, 안쪽 <i class="girot">에 같은 그림을 90° 돌려 칸을 꽉 채움 (세워 둔 것과 같은 크기) ===== */
+function TRPX() { return 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; } // 투명 1점 (칸의 바탕 그림 자리)
+function hasBig(k) { return (D.bigImg || []).includes(k) && !!RA['IB_' + k]; } // 큰 그림(IB_)이 있는 물건 = D.bigImg (지금은 태양광 패널)
+function isRot(k, w, h) { return hasBig(k) && w > h; }
+function bigIm(k, w, h) { return isRot(k, w, h) ? TRPX() : (hasBig(k) && h > w ? RA['IB_' + k] : RA['I_' + k]); }
+function rotEl(k, w, h) { return isRot(k, w, h) ? `<i class="girot" style="width:${(h / w * 100).toFixed(3)}%;height:${(w / h * 100).toFixed(3)}%;background-image:url(${RA['IB_' + k]})"></i>` : ''; }
 function bodyPopHtml0() { /* v2.22.1 것 — v2.22.2부터 lootGridHtml로 그림 */ const r = st.run; if (!bodyPop || !r || st.combat || r.node !== bodyPop.n) { bodyPop = null; return ''; } const b = ((r.bodies || {})[bodyPop.n] || [])[bodyPop.i]; if (!b || !b.op) { bodyPop = null; return ''; }
   const W = D.body.w, H = D.body.h, cells = G.bodyLayout(b) || [], occ = {}; for (const c of cells) for (let dy = 0; dy < c.h; dy++) for (let dx = 0; dx < c.w; dx++) occ[(c.y + dy) * W + c.x + dx] = 1;
   let g = `<div class="sgrid bgrid" style="grid-template-columns:repeat(${W},minmax(0,1fr));grid-template-rows:repeat(${H},auto)">`;
